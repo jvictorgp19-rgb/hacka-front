@@ -1,0 +1,11 @@
+node_modules
+.next
+out
+package-lock.json
+src/data
+src/services/demo/*.json
+test-results
+playwright-report
+
+# Documento de concepção original preservado byte a byte
+docs/PROPOSTA.md

@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Calculator,
   Users,
@@ -10,10 +10,9 @@ import {
   XCircle,
   Info,
   ShieldAlert,
-  Banknote,
-  FileText,
-} from "lucide-react";
-import MermaidFlowchart from "./MermaidFlowchart";
+} from 'lucide-react';
+import { teamLimit, vacationTimeline, shiftDate } from '@/features/simulators/calculations';
+import MermaidFlowchart from './MermaidFlowchart';
 
 interface FeriasSimulatorsProps {
   regras: {
@@ -64,13 +63,13 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
   const [jaAusentes, setJaAusentes] = useState<number>(1);
 
   // 3. State for D-n Timeline & Date Simulator (default to Ana's demo date 2027-05-05)
-  const [dataGozo, setDataGozo] = useState<string>("2027-05-05");
+  const [dataGozo, setDataGozo] = useState<string>('2027-05-05');
   const [selectedMarcoIdx, setSelectedMarcoIdx] = useState<number>(0);
 
   // Compute vacation days from faltas
   const faixaFaltas =
     regras.tabela_faltas_injustificadas.find(
-      (f) => faltas >= f.faltas_min && faltas <= f.faltas_max
+      (f) => faltas >= f.faltas_min && faltas <= f.faltas_max,
     ) || regras.tabela_faltas_injustificadas[regras.tabela_faltas_injustificadas.length - 1];
 
   const diasDireito = faixaFaltas.dias_ferias;
@@ -78,32 +77,52 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
   const diasGozoEfetivo = querAbono && diasDireito > 0 ? diasDireito - diasAbonoMax : diasDireito;
 
   // Compute 30% team limit
-  const maxSimultaneos =
-    tamanhoEquipe <= 0
-      ? 0
-      : tamanhoEquipe <= 3
-      ? 1
-      : Math.floor(tamanhoEquipe * 0.3);
+  const maxSimultaneos = teamLimit(tamanhoEquipe);
 
   const vagasDisponiveis = Math.max(0, maxSimultaneos - jaAusentes);
   const podeAprovarNovo = jaAusentes + 1 <= maxSimultaneos;
 
   // Helper to compute exact dates from dataGozo for D-n (with NG_111 item 4.5 weekend/holiday anticipation on D-3)
-  const calcDataMarco = (offsetDays: number) => {
-    if (!dataGozo) return "";
-    const d = new Date(dataGozo + "T12:00:00");
-    d.setDate(d.getDate() + offsetDays);
-    if (offsetDays === -3) {
-      // Anticipate if Sunday (0), Saturday (6), or May 1st Holiday
-      while (
-        d.getDay() === 0 ||
-        d.getDay() === 6 ||
-        (d.getDate() === 1 && d.getMonth() === 4)
-      ) {
-        d.setDate(d.getDate() - 1);
-      }
+  const calcDataMarco = (marco: string) => {
+    if (!dataGozo || diasGozoEfetivo <= 0) return 'Sem gozo';
+    if (dataGozo < '2026-01-01' || dataGozo > '2028-12-31') return 'Fora do calendário demo';
+    try {
+      if (marco.includes('D-19'))
+        return new Date(shiftDate(dataGozo, -19) + 'T12:00:00Z').toLocaleDateString('pt-BR', {
+          timeZone: 'UTC',
+        });
+      const timeline = vacationTimeline(
+        dataGozo,
+        ['2026-05-01', '2027-05-01', '2028-05-01'],
+        regras.antecedencia_minima_dias_corridos,
+        undefined,
+        undefined,
+        diasGozoEfetivo,
+      );
+      const key = marco.includes('D-45')
+        ? 'request'
+        : marco.includes('7 dias')
+          ? 'manager'
+          : marco.includes('3 dias')
+            ? 'director'
+            : marco.includes('D-35')
+              ? 'notice'
+              : marco.includes('D-30')
+                ? 'signature'
+                : marco.includes('D-20')
+                  ? 'change'
+                  : marco.includes('D-19')
+                    ? 'change'
+                    : marco.includes('D-3')
+                      ? 'payment'
+                      : 'return';
+      const value = timeline.find((m) => m.id === key)?.date;
+      return value
+        ? new Date(value + 'T12:00:00Z').toLocaleDateString('pt-BR', { timeZone: 'UTC' })
+        : 'Consulte a fonte';
+    } catch {
+      return 'Data inválida';
     }
-    return d.toLocaleDateString("pt-BR");
   };
 
   return (
@@ -172,10 +191,10 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
               <div
                 className={`p-4 rounded-xl border-2 transition ${
                   diasDireito === 30
-                    ? "bg-emerald-50/70 border-emerald-500/40"
+                    ? 'bg-emerald-50/70 border-emerald-500/40'
                     : diasDireito > 0
-                    ? "bg-amber-50/80 border-amber-500/50"
-                    : "bg-rose-50 border-rose-500/50"
+                      ? 'bg-amber-50/80 border-amber-500/50'
+                      : 'bg-rose-50 border-rose-500/50'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -187,7 +206,7 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
                       {diasDireito} dias corridos
                     </div>
                     <p className="text-xs text-slate-600 mt-1">
-                      Faixa enquadrada:{" "}
+                      Faixa enquadrada:{' '}
                       <strong>
                         {faixaFaltas.faltas_max >= 999
                           ? `Acima de 32 faltas (${faixaFaltas.observacao})`
@@ -227,8 +246,9 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
                           Abono Pecuniário (vender 1/3)
                         </span>
                         <span className="text-slate-600">
-                          Converte <strong>{diasAbonoMax} dias</strong> em dinheiro; gozo de{" "}
-                          <strong>{diasGozoEfetivo} dias</strong> (pedir até 15d antes do fim do aquisitivo).
+                          Converte <strong>{diasAbonoMax} dias</strong> em dinheiro; gozo de{' '}
+                          <strong>{diasGozoEfetivo} dias</strong> (pedir até 15d antes do fim do
+                          aquisitivo).
                         </span>
                       </div>
                     </label>
@@ -245,8 +265,8 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
                         </span>
                         <span className="text-slate-600">
                           {quer13
-                            ? "Exige pedido entre 1º e 31/jan para o 1º período do ano (FM_1111-001 v2.0.0)."
-                            : "Opcional no 1º período do ano (solicitar em janeiro)."}
+                            ? 'Exige pedido entre 1º e 31/jan para o 1º período do ano (FM_1111-001 v2.0.0).'
+                            : 'Opcional no 1º período do ano (solicitar em janeiro).'}
                         </span>
                       </div>
                     </label>
@@ -268,12 +288,14 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
                         onClick={() => setFaltas(row.faltas_min)}
                         className={`p-2 rounded-lg border text-xs transition cursor-pointer ${
                           active
-                            ? "bg-[#002D72] text-white border-[#002D72] font-bold shadow-sm scale-[1.02]"
-                            : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                            ? 'bg-[#002D72] text-white border-[#002D72] font-bold shadow-sm scale-[1.02]'
+                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                         }`}
                       >
                         <div className="text-[10px] opacity-80">
-                          {row.faltas_max >= 999 ? "> 32 faltas" : `${row.faltas_min}-${row.faltas_max} faltas`}
+                          {row.faltas_max >= 999
+                            ? '> 32 faltas'
+                            : `${row.faltas_min}-${row.faltas_max} faltas`}
                         </div>
                         <div className="text-sm font-extrabold mt-0.5">{row.dias_ferias}d</div>
                       </button>
@@ -286,8 +308,8 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
 
           <div className="bg-slate-50 px-5 py-3 border-t border-slate-200 text-[11px] text-slate-600 flex items-center justify-between">
             <span>
-              <strong>Fracionamento:</strong> Até {regras.fracionamento.max_periodos} períodos (1º ≥{" "}
-              {regras.fracionamento.min_dias_periodo_principal}d, demais ≥{" "}
+              <strong>Fracionamento:</strong> Até {regras.fracionamento.max_periodos} períodos (1º ≥{' '}
+              {regras.fracionamento.min_dias_periodo_principal}d, demais ≥{' '}
               {regras.fracionamento.min_dias_demais_periodos}d)
             </span>
             <span className="font-semibold text-[#002D72]">FM_1111-001 v2.0.0</span>
@@ -365,8 +387,8 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
               <div
                 className={`p-4 rounded-xl border-2 transition ${
                   podeAprovarNovo
-                    ? "bg-emerald-50/70 border-emerald-500/40"
-                    : "bg-rose-50 border-rose-500/50"
+                    ? 'bg-emerald-50/70 border-emerald-500/40'
+                    : 'bg-rose-50 border-rose-500/50'
                 }`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -378,8 +400,9 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
                       Máx. {maxSimultaneos} em férias ao mesmo tempo
                     </div>
                     <p className="text-xs text-slate-600 mt-1">
-                      Cálculo: 30% de {tamanhoEquipe} = {(tamanhoEquipe * 0.3).toFixed(1)} →{" "}
-                      <strong>arredondado para baixo = {maxSimultaneos}</strong> (mínimo de 1 para 1 a 3 emp.)
+                      Cálculo: 30% de {tamanhoEquipe} = {(tamanhoEquipe * 0.3).toFixed(1)} →{' '}
+                      <strong>arredondado para baixo = {maxSimultaneos}</strong> (mínimo de 1 para 1
+                      a 3 emp.)
                     </p>
                   </div>
 
@@ -432,13 +455,19 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
           <div className="bg-amber-50/90 px-5 py-3 border-t border-amber-200 text-[11px] text-amber-950 flex items-center gap-2">
             <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
             <span>
-              <strong>Cancelamento a serviço (a partir de D-19):</strong> Exclusivo do{" "}
-              <strong>{regras.ressarcimento_cancelamento_servico.quem_autoriza_a_partir_de_D19}</strong>,
-              com ressarcimento até{" "}
+              <strong>Cancelamento a serviço (a partir de D-19):</strong> Exclusivo do{' '}
               <strong>
-                R$ {regras.ressarcimento_cancelamento_servico.teto_reais.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-              </strong>{" "}
-              (comprovantes em {regras.ressarcimento_cancelamento_servico.prazo_comprovantes_dias_corridos} dias).
+                {regras.ressarcimento_cancelamento_servico.quem_autoriza_a_partir_de_D19}
+              </strong>
+              , com ressarcimento até{' '}
+              <strong>
+                R${' '}
+                {regras.ressarcimento_cancelamento_servico.teto_reais.toLocaleString('pt-BR', {
+                  minimumFractionDigits: 2,
+                })}
+              </strong>{' '}
+              (comprovantes em{' '}
+              {regras.ressarcimento_cancelamento_servico.prazo_comprovantes_dias_corridos} dias).
             </span>
           </div>
         </div>
@@ -456,7 +485,8 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
                 3. Linha do Tempo Interativa dos Marcos D-n (D-45 a D+1)
               </h3>
               <p className="text-xs text-blue-100">
-                Selecione a data pretendida de início de gozo (Dia D) para calcular os prazos-limite de cada responsável
+                Selecione a data pretendida de início de gozo (Dia D) para calcular os prazos-limite
+                de cada responsável
               </p>
             </div>
           </div>
@@ -477,7 +507,7 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
           <div className="mb-4 p-3 rounded-xl bg-blue-50/80 border border-blue-200 flex items-start gap-2.5 text-xs text-slate-700">
             <Info className="w-4 h-4 text-[#002D72] shrink-0 mt-0.5" />
             <div>
-              <strong className="text-[#002D72]">Trava de Dias Vedados (NG_111 v3.0.0):</strong>{" "}
+              <strong className="text-[#002D72]">Trava de Dias Vedados (NG_111 v3.0.0):</strong>{' '}
               {regras.dias_vedados_inicio}
             </div>
           </div>
@@ -486,17 +516,6 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
           <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-9 gap-2.5">
             {regras.marcos_dn.map((m, idx) => {
               const isSelected = selectedMarcoIdx === idx;
-              // Map marco string to approximate day offset for live date preview
-              let offset: number | null = null;
-              if (m.marco.includes("D-45")) offset = -45;
-              else if (m.marco.includes("7 dias")) offset = -38;
-              else if (m.marco.includes("3 dias")) offset = -35;
-              else if (m.marco.includes("D-35")) offset = -35;
-              else if (m.marco.includes("D-30")) offset = -30;
-              else if (m.marco.includes("D-20")) offset = -20;
-              else if (m.marco.includes("D-19")) offset = -19;
-              else if (m.marco.includes("D-3")) offset = -3;
-              else if (m.marco.includes("D+1")) offset = 1;
 
               return (
                 <button
@@ -504,8 +523,8 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
                   onClick={() => setSelectedMarcoIdx(idx)}
                   className={`p-3 rounded-xl border text-left transition flex flex-col justify-between cursor-pointer ${
                     isSelected
-                      ? "bg-[#002D72] text-white border-[#002D72] shadow-md ring-2 ring-[#FFCC00]"
-                      : "bg-slate-50 hover:bg-blue-50/50 text-slate-800 border-slate-200"
+                      ? 'bg-[#002D72] text-white border-[#002D72] shadow-md ring-2 ring-[#FFCC00]'
+                      : 'bg-slate-50 hover:bg-blue-50/50 text-slate-800 border-slate-200'
                   }`}
                 >
                   <div>
@@ -513,25 +532,25 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
                       <span
                         className={`text-[11px] font-extrabold px-2 py-0.5 rounded ${
                           isSelected
-                            ? "bg-[#FFCC00] text-[#002D72]"
-                            : "bg-[#002D72]/10 text-[#002D72]"
+                            ? 'bg-[#FFCC00] text-[#002D72]'
+                            : 'bg-[#002D72]/10 text-[#002D72]'
                         }`}
                       >
                         {m.marco}
                       </span>
                     </div>
-                    {offset !== null && (
+                    {dataGozo && (
                       <div
                         className={`text-[10px] font-mono font-bold mb-1 ${
-                          isSelected ? "text-amber-300" : "text-slate-500"
+                          isSelected ? 'text-amber-300' : 'text-slate-500'
                         }`}
                       >
-                        📅 {calcDataMarco(offset)}
+                        📅 {calcDataMarco(m.marco)}
                       </div>
                     )}
                     <p
                       className={`text-[11px] font-medium line-clamp-3 leading-snug ${
-                        isSelected ? "text-white" : "text-slate-700"
+                        isSelected ? 'text-white' : 'text-slate-700'
                       }`}
                     >
                       {m.etapa}
@@ -540,8 +559,8 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
                   <div
                     className={`mt-2 pt-1.5 border-t text-[10px] font-bold ${
                       isSelected
-                        ? "border-white/20 text-blue-200"
-                        : "border-slate-200 text-slate-500"
+                        ? 'border-white/20 text-blue-200'
+                        : 'border-slate-200 text-slate-500'
                     }`}
                   >
                     👤 {m.responsavel}
