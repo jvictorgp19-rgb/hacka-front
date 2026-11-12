@@ -4,11 +4,11 @@
 
 O repositório usa somente três branches permanentes, com capitalização exata:
 
-| Branch | Função |
-|---|---|
-| `Dev` | Desenvolvimento e integração do trabalho da equipe. |
-| `Homolog` | Validação funcional e preparação da entrega. |
-| `main` | Versão aprovada para entrega e futura produção. |
+| Branch    | Função                                              |
+| --------- | --------------------------------------------------- |
+| `Dev`     | Desenvolvimento e integração do trabalho da equipe. |
+| `Homolog` | Validação funcional e preparação da entrega.        |
+| `main`    | Versão aprovada para entrega e futura produção.     |
 
 ## Fluxo
 

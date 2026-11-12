@@ -1,14 +1,26 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { GitCommit, CheckCircle2, AlertCircle, Code2, Play, RotateCcw, UserCheck, ShieldAlert, FileSignature, Banknote, CalendarCheck } from "lucide-react";
+import React, { useState } from 'react';
+import {
+  GitCommit,
+  CheckCircle2,
+  AlertCircle,
+  Code2,
+  Play,
+  RotateCcw,
+  UserCheck,
+  ShieldAlert,
+  FileSignature,
+  Banknote,
+  CalendarCheck,
+} from 'lucide-react';
 
 interface MermaidFlowchartProps {
   mermaidCode: string;
 }
 
 export default function MermaidFlowchart({ mermaidCode }: MermaidFlowchartProps) {
-  const [gestorDecision, setGestorDecision] = useState<"aprova" | "recusa" | "silencio">("aprova");
+  const [gestorDecision, setGestorDecision] = useState<'aprova' | 'recusa' | 'silencio'>('aprova');
   const [showRawCode, setShowRawCode] = useState(false);
 
   return (
@@ -20,13 +32,16 @@ export default function MermaidFlowchart({ mermaidCode }: MermaidFlowchartProps)
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="font-bold text-base">Fluxograma Oficial de Férias (FL_1111-001 v1.0.0)</h3>
+              <h3 className="font-bold text-base">
+                Fluxograma Oficial de Férias (FL_1111-001 v1.0.0)
+              </h3>
               <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-200 border border-emerald-400/30">
                 vinculado_a: PX_1111-001
               </span>
             </div>
             <p className="text-xs text-blue-100">
-              Simule a decisão do gestor no nó condicional (7 dias corridos) para visualizar o caminho de aprovação ou escalada
+              Simule a decisão do gestor no nó condicional (7 dias corridos) para visualizar o
+              caminho de aprovação ou escalada
             </p>
           </div>
         </div>
@@ -36,7 +51,7 @@ export default function MermaidFlowchart({ mermaidCode }: MermaidFlowchartProps)
           className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
         >
           <Code2 className="w-3.5 h-3.5 text-[#FFCC00]" />
-          {showRawCode ? "Ocultar Código Mermaid" : "Ver Código Mermaid (JSON)"}
+          {showRawCode ? 'Ocultar Código Mermaid' : 'Ver Código Mermaid (JSON)'}
         </button>
       </div>
 
@@ -53,37 +68,41 @@ export default function MermaidFlowchart({ mermaidCode }: MermaidFlowchartProps)
       <div className="bg-slate-50 px-5 py-3 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
         <span className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
           <Play className="w-3.5 h-3.5 text-[#002D72]" />
-          Simular Decisão no Nó <code className="bg-slate-200 px-1.5 py-0.5 rounded text-[#002D72]">E &#123;Gestor decide em até 7 dias?&#125;</code>:
+          Simular Decisão no Nó{' '}
+          <code className="bg-slate-200 px-1.5 py-0.5 rounded text-[#002D72]">
+            E &#123;Gestor decide em até 7 dias?&#125;
+          </code>
+          :
         </span>
         <div className="flex flex-wrap gap-2">
           <button
-            onClick={() => setGestorDecision("aprova")}
+            onClick={() => setGestorDecision('aprova')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer ${
-              gestorDecision === "aprova"
-                ? "bg-emerald-600 text-white shadow-sm"
-                : "bg-white text-slate-700 border border-slate-300 hover:bg-slate-100"
+              gestorDecision === 'aprova'
+                ? 'bg-emerald-600 text-white shadow-sm'
+                : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-100'
             }`}
           >
             <CheckCircle2 className="w-3.5 h-3.5" />
             Aprova (Rito Padrão)
           </button>
           <button
-            onClick={() => setGestorDecision("silencio")}
+            onClick={() => setGestorDecision('silencio')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer ${
-              gestorDecision === "silencio"
-                ? "bg-amber-500 text-slate-950 shadow-sm"
-                : "bg-white text-slate-700 border border-slate-300 hover:bg-slate-100"
+              gestorDecision === 'silencio'
+                ? 'bg-amber-500 text-slate-950 shadow-sm'
+                : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-100'
             }`}
           >
             <AlertCircle className="w-3.5 h-3.5" />
             Sem decisão em 7 dias (Escalada Diretor)
           </button>
           <button
-            onClick={() => setGestorDecision("recusa")}
+            onClick={() => setGestorDecision('recusa')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer ${
-              gestorDecision === "recusa"
-                ? "bg-rose-600 text-white shadow-sm"
-                : "bg-white text-slate-700 border border-slate-300 hover:bg-slate-100"
+              gestorDecision === 'recusa'
+                ? 'bg-rose-600 text-white shadow-sm'
+                : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-100'
             }`}
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -115,7 +134,9 @@ export default function MermaidFlowchart({ mermaidCode }: MermaidFlowchartProps)
             </span>
             <div>
               <div className="text-xs font-bold text-[#002D72]">Gestor consolida a equipe</div>
-              <div className="text-[11px] text-slate-600">Até 30/11 (respeitando limite de 30%)</div>
+              <div className="text-[11px] text-slate-600">
+                Até 30/11 (respeitando limite de 30%)
+              </div>
             </div>
           </div>
 
@@ -138,9 +159,9 @@ export default function MermaidFlowchart({ mermaidCode }: MermaidFlowchartProps)
           {/* Node D */}
           <div
             className={`lg:col-span-4 p-4 rounded-xl border-2 transition flex flex-col justify-between ${
-              gestorDecision === "recusa"
-                ? "border-rose-500 bg-rose-50/70 ring-2 ring-rose-500/20"
-                : "border-[#002D72] bg-[#002D72]/5"
+              gestorDecision === 'recusa'
+                ? 'border-rose-500 bg-rose-50/70 ring-2 ring-rose-500/20'
+                : 'border-[#002D72] bg-[#002D72]/5'
             }`}
           >
             <div className="flex items-start gap-3">
@@ -152,11 +173,12 @@ export default function MermaidFlowchart({ mermaidCode }: MermaidFlowchartProps)
                   Empregado solicita no Portal Raiz até D-45
                 </div>
                 <p className="text-xs text-slate-600 mt-1">
-                  Anexa formulário eletrônico <strong>FM_1111-001 v2.0.0</strong> (início em dia útil, fora dos 2 dias antes de feriado/DSR).
+                  Anexa formulário eletrônico <strong>FM_1111-001 v2.0.0</strong> (início em dia
+                  útil, fora dos 2 dias antes de feriado/DSR).
                 </p>
               </div>
             </div>
-            {gestorDecision === "recusa" && (
+            {gestorDecision === 'recusa' && (
               <div className="mt-3 p-2 rounded-lg bg-rose-100 border border-rose-300 text-rose-900 text-[11px] font-medium flex items-center gap-1.5">
                 <RotateCcw className="w-3.5 h-3.5 shrink-0" />
                 Fluxo retornou ao Nó D: Empregado deve submeter nova data pactuada!
@@ -175,23 +197,24 @@ export default function MermaidFlowchart({ mermaidCode }: MermaidFlowchartProps)
                   &#123;Gestor decide em até 7 dias corridos?&#125;
                 </div>
                 <p className="text-xs text-slate-700 mt-1">
-                  O silêncio do gestor <strong>não aprova</strong> automaticamente o pedido (NG_111 v3.0.0).
+                  O silêncio do gestor <strong>não aprova</strong> automaticamente o pedido (NG_111
+                  v3.0.0).
                 </p>
               </div>
             </div>
             <div className="mt-3 pt-2 border-t border-amber-200/80 flex items-center justify-between text-[11px]">
               <span className="font-semibold text-slate-600">Caminho ativo:</span>
-              {gestorDecision === "aprova" && (
+              {gestorDecision === 'aprova' && (
                 <span className="font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
                   -- Aprova --&gt; Nó F (GGC)
                 </span>
               )}
-              {gestorDecision === "silencio" && (
+              {gestorDecision === 'silencio' && (
                 <span className="font-bold text-amber-900 bg-amber-200 px-2 py-0.5 rounded">
                   -- Sem decisão --&gt; Nó G (Diretor)
                 </span>
               )}
-              {gestorDecision === "recusa" && (
+              {gestorDecision === 'recusa' && (
                 <span className="font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded">
                   -- Recusa/Nova data --&gt; Retorna a D
                 </span>
@@ -202,9 +225,9 @@ export default function MermaidFlowchart({ mermaidCode }: MermaidFlowchartProps)
           {/* Node G (Director Escalation) */}
           <div
             className={`lg:col-span-4 p-4 rounded-xl border-2 transition flex flex-col justify-between ${
-              gestorDecision === "silencio"
-                ? "border-amber-500 bg-amber-100/80 ring-2 ring-amber-400/40 shadow-sm"
-                : "border-slate-200 bg-slate-100/60 opacity-60"
+              gestorDecision === 'silencio'
+                ? 'border-amber-500 bg-amber-100/80 ring-2 ring-amber-400/40 shadow-sm'
+                : 'border-slate-200 bg-slate-100/60 opacity-60'
             }`}
           >
             <div className="flex items-start gap-3">
@@ -217,14 +240,15 @@ export default function MermaidFlowchart({ mermaidCode }: MermaidFlowchartProps)
                   <ShieldAlert className="w-4 h-4 text-amber-600" />
                 </div>
                 <p className="text-xs text-slate-700 mt-1">
-                  Escalada automática quando o gestor imediato não decide em 7 dias corridos. Após aprovação, segue para o <strong>Nó F</strong>.
+                  Escalada automática quando o gestor imediato não decide em 7 dias corridos. Após
+                  aprovação, segue para o <strong>Nó F</strong>.
                 </p>
               </div>
             </div>
             <div className="mt-2 text-[11px] font-semibold text-amber-900">
-              {gestorDecision === "silencio"
-                ? "⚡ Escalada Ativa: Diretor destrava e envia para GGC (F)"
-                : "Inativo no rito padrão (acionado apenas por omissão > 7 dias)"}
+              {gestorDecision === 'silencio'
+                ? '⚡ Escalada Ativa: Diretor destrava e envia para GGC (F)'
+                : 'Inativo no rito padrão (acionado apenas por omissão > 7 dias)'}
             </div>
           </div>
         </div>
@@ -235,7 +259,7 @@ export default function MermaidFlowchart({ mermaidCode }: MermaidFlowchartProps)
         </div>
         <div
           className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 transition ${
-            gestorDecision === "recusa" ? "opacity-40 pointer-events-none" : "opacity-100"
+            gestorDecision === 'recusa' ? 'opacity-40 pointer-events-none' : 'opacity-100'
           }`}
         >
           <div className="p-3.5 rounded-xl border-2 border-emerald-600/30 bg-emerald-50/50 flex flex-col justify-between">

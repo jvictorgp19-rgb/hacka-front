@@ -14,10 +14,12 @@ describe('preservação do acervo sintético', () => {
     expect(acervo.documentos_acervo).toHaveLength(11);
     expect(acervo.documentos_substituidos_bloqueados).toHaveLength(3);
     expect(new Set(Object.values(manifest)).size).toBe(13);
-    expect(acervo.documentos_substituidos_bloqueados.every(d => !d.vigente)).toBe(true);
+    expect(acervo.documentos_substituidos_bloqueados.every((d) => !d.vigente)).toBe(true);
   });
   it('mantém os gabaritos de prazos e orçamento do acervo', () => {
-    expect(acervo.jornadas_por_tema.ferias.regras_simuladores.antecedencia_minima_dias_corridos).toBe(45);
+    expect(
+      acervo.jornadas_por_tema.ferias.regras_simuladores.antecedencia_minima_dias_corridos,
+    ).toBe(45);
     expect(acervo.jornadas_por_tema.inovacao.regras_simuladores.orcamento_total_2027).toBe(96000);
   });
 });

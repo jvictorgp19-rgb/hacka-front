@@ -18,17 +18,17 @@ A retirada da API local ocorre apenas depois de sua substituição demonstrável
 
 ## 2. Decisões de arquitetura e limites
 
-| Elemento | Decisão |
-|---|---|
-| Aplicação | Manter Next.js App Router, React e TypeScript existentes. |
-| Estilos | Tailwind com tokens semânticos e componentes reutilizáveis. |
-| Vite | Não introduzir uma segunda aplicação/build. Vitest pode ser usado para testes sem migrar o produto. |
-| Backend | Python/FastAPI, ingestão, RAG/LLM, autorização, auditoria persistente e geração oficial de relatórios pertencem ao outro repositório. |
-| Banco | NeonDB acessado exclusivamente pelo backend; nenhuma conexão, chave ou credencial de banco no navegador. |
-| Demo | Provider executado no navegador, com fixtures sintéticas verificadas e persistência local identificada. Sem servidor de API simulado no Next. |
-| API real | Provider HTTP com o mesmo contrato do provider demo. Erros explícitos, sem fallback silencioso. |
-| AWS | Preparar artefato e configuração de frontend; publicação e recursos de infraestrutura ficam fora da execução deste plano. |
-| Entrega | Manter somente `Dev`, `Homolog` e `main`; desenvolvimento na `Dev`, promoção por PR. |
+| Elemento  | Decisão                                                                                                                                       |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Aplicação | Manter Next.js App Router, React e TypeScript existentes.                                                                                     |
+| Estilos   | Tailwind com tokens semânticos e componentes reutilizáveis.                                                                                   |
+| Vite      | Não introduzir uma segunda aplicação/build. Vitest pode ser usado para testes sem migrar o produto.                                           |
+| Backend   | Python/FastAPI, ingestão, RAG/LLM, autorização, auditoria persistente e geração oficial de relatórios pertencem ao outro repositório.         |
+| Banco     | NeonDB acessado exclusivamente pelo backend; nenhuma conexão, chave ou credencial de banco no navegador.                                      |
+| Demo      | Provider executado no navegador, com fixtures sintéticas verificadas e persistência local identificada. Sem servidor de API simulado no Next. |
+| API real  | Provider HTTP com o mesmo contrato do provider demo. Erros explícitos, sem fallback silencioso.                                               |
+| AWS       | Preparar artefato e configuração de frontend; publicação e recursos de infraestrutura ficam fora da execução deste plano.                     |
+| Entrega   | Manter somente `Dev`, `Homolog` e `main`; desenvolvimento na `Dev`, promoção por PR.                                                          |
 
 **Modos de dados:** propor `NEXT_PUBLIC_DATA_MODE=demo|api` e `NEXT_PUBLIC_API_URL`.
 São parâmetros públicos, definidos por ambiente/build; nenhuma chave secreta usa
@@ -73,16 +73,16 @@ para evitar dependência desnecessária de rotas dinâmicas na exportação est�
 
 ### Uso das imagens fornecidas
 
-| Referência | Aplicação no produto |
-|---|---|
-| Imagens 1–4, identidade HACKA/TS | Referência do evento e créditos discretos; não misturar sua identidade inteira com a marca principal do produto. |
-| Imagem 5, sidebar escura | Hierarquia, recolhimento e alinhamento dos ícones. Evitar brilho decorativo e efeitos que reduzam a legibilidade. |
-| Imagem 6, timeline vertical | Marcos cronológicos com detalhes expansíveis, responsável, estado e fonte. |
-| Imagem 7, calendário | Prazos com indicadores semânticos e acesso ao detalhe. Não usar marcas de serviços de assinatura como ícones de processo. |
-| Imagem 8, abas | Controles segmentados para perspectivas e visões; estados ativo/foco consistentes. |
-| Imagens 9–15, telas do projeto | Preservar cenários e dados úteis; reduzir cabeçalhos grandes, siglas de navegação, duplicação de chats e cartões excessivamente densos. |
-| Arquivos sem extensão, manual BBTS | Aplicação de marca, proporção e paleta; não distorcer ou redesenhar logotipos. |
-| Arquivos abstratos azuis | Uso opcional e discreto em apresentação/onboarding; não como fundo das áreas de leitura. |
+| Referência                         | Aplicação no produto                                                                                                                    |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Imagens 1–4, identidade HACKA/TS   | Referência do evento e créditos discretos; não misturar sua identidade inteira com a marca principal do produto.                        |
+| Imagem 5, sidebar escura           | Hierarquia, recolhimento e alinhamento dos ícones. Evitar brilho decorativo e efeitos que reduzam a legibilidade.                       |
+| Imagem 6, timeline vertical        | Marcos cronológicos com detalhes expansíveis, responsável, estado e fonte.                                                              |
+| Imagem 7, calendário               | Prazos com indicadores semânticos e acesso ao detalhe. Não usar marcas de serviços de assinatura como ícones de processo.               |
+| Imagem 8, abas                     | Controles segmentados para perspectivas e visões; estados ativo/foco consistentes.                                                      |
+| Imagens 9–15, telas do projeto     | Preservar cenários e dados úteis; reduzir cabeçalhos grandes, siglas de navegação, duplicação de chats e cartões excessivamente densos. |
+| Arquivos sem extensão, manual BBTS | Aplicação de marca, proporção e paleta; não distorcer ou redesenhar logotipos.                                                          |
+| Arquivos abstratos azuis           | Uso opcional e discreto em apresentação/onboarding; não como fundo das áreas de leitura.                                                |
 
 No manual fornecido, as cores são **azul `#465EFF` e amarelo `#FCFC30`**. Usar como
 tokens de marca; superfícies e textos precisam de tokens próprios com contraste
@@ -148,16 +148,16 @@ existentes ou contratos aprovados. Não considerar os `/docs`, `/access`, `/repo
 e `/ingest` atuais automaticamente corretos; `/docs` pode ser reservado à documentação
 do FastAPI, e auditoria não é o mesmo recurso que ingestão.
 
-| Recurso | Capacidades esperadas |
-|---|---|
-| Conversas/mensagens | Listar, abrir, criar consulta, cancelar espera e receber resultado/abstenção/conflito/necessidade de acesso. |
-| Documentos/versões | Listar, filtrar, detalhar e obter referência autorizada para visualização da fonte. |
-| Envios/processamentos | Enviar arquivos, consultar estado do lote e distinguir sucesso/erro por arquivo. |
-| Análises | Consultar perspectivas, salvar resultado e recuperar resultados semelhantes com justificativa. |
-| Prazos | Listar eventos com datas normalizadas, responsável, criticidade e fonte. |
-| Resumos | Compor a partir de evidências selecionadas, salvar e solicitar exportação quando disponível. |
-| Feedback | Registrar útil/não útil e motivo, associado à mensagem/análise correta. |
-| Acesso/curadoria | Solicitar com justificativa, acompanhar e apresentar decisões/respostas curadas. |
+| Recurso               | Capacidades esperadas                                                                                        |
+| --------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Conversas/mensagens   | Listar, abrir, criar consulta, cancelar espera e receber resultado/abstenção/conflito/necessidade de acesso. |
+| Documentos/versões    | Listar, filtrar, detalhar e obter referência autorizada para visualização da fonte.                          |
+| Envios/processamentos | Enviar arquivos, consultar estado do lote e distinguir sucesso/erro por arquivo.                             |
+| Análises              | Consultar perspectivas, salvar resultado e recuperar resultados semelhantes com justificativa.               |
+| Prazos                | Listar eventos com datas normalizadas, responsável, criticidade e fonte.                                     |
+| Resumos               | Compor a partir de evidências selecionadas, salvar e solicitar exportação quando disponível.                 |
+| Feedback              | Registrar útil/não útil e motivo, associado à mensagem/análise correta.                                      |
+| Acesso/curadoria      | Solicitar com justificativa, acompanhar e apresentar decisões/respostas curadas.                             |
 
 Campos fundamentais:
 
@@ -512,16 +512,16 @@ aplicação servida a partir do artefato final e rotas recarregáveis.
 
 ## 7. Matriz de conclusão e ordem
 
-| Requisito | Checkpoints responsáveis | Evidência para considerar frontend concluído |
-|---|---|---|
-| R1 — Base/processamento | 05, 12 | Seleção individual/lote, fila/erros e consulta por tema; processamento demo identificado e integração preparada. |
-| R2 — Perguntas/fontes | 06, 12 | Mensagem→trecho→documento/versão; abstenção e fonte indisponível corretas. |
-| R3 — Síntese/destaques | 07, 08 | Mesmas evidências com visões de risco, prazo, obrigação e valor. |
-| R4 — Visuais | 07, 08 | Elementos interativos com fontes e alternativa textual. |
-| R5 — Perspectivas | 07, 08 | Área/tema/período combináveis e estados vazios coerentes. |
-| R6 — Resumo executivo | 09 | Síntese muda conforme seleção e mantém referências na exportação. |
-| R7 — Vigência/conflito | 05–07, 11 | Versões, camadas e divergências explícitas; curadoria sem alegar segurança local. |
-| R8 — Reaproveitamento | 10 | Análises anteriores relacionadas e avaliação persistida por resposta. |
+| Requisito               | Checkpoints responsáveis | Evidência para considerar frontend concluído                                                                     |
+| ----------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| R1 — Base/processamento | 05, 12                   | Seleção individual/lote, fila/erros e consulta por tema; processamento demo identificado e integração preparada. |
+| R2 — Perguntas/fontes   | 06, 12                   | Mensagem→trecho→documento/versão; abstenção e fonte indisponível corretas.                                       |
+| R3 — Síntese/destaques  | 07, 08                   | Mesmas evidências com visões de risco, prazo, obrigação e valor.                                                 |
+| R4 — Visuais            | 07, 08                   | Elementos interativos com fontes e alternativa textual.                                                          |
+| R5 — Perspectivas       | 07, 08                   | Área/tema/período combináveis e estados vazios coerentes.                                                        |
+| R6 — Resumo executivo   | 09                       | Síntese muda conforme seleção e mantém referências na exportação.                                                |
+| R7 — Vigência/conflito  | 05–07, 11                | Versões, camadas e divergências explícitas; curadoria sem alegar segurança local.                                |
+| R8 — Reaproveitamento   | 10                       | Análises anteriores relacionadas e avaliação persistida por resposta.                                            |
 
 Ordem obrigatória: **00 → 01 → 02 → 03 → 04 → 05 → 06 → 07 → 08 → 09 → 10 → 11 → 12**.
 Um checkpoint começa quando o anterior tem evidência de aceite. Preparação de

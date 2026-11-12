@@ -6,7 +6,10 @@ test('abre a aplicação preservada', async ({ page }) => {
 });
 test('consulta demo funciona sem chamar backend ou rota local', async ({ page }) => {
   const apiCalls: string[] = [];
-  page.on('request', request => { if (request.url().includes('/api/chat') || request.url().includes(':8000')) apiCalls.push(request.url()); });
+  page.on('request', (request) => {
+    if (request.url().includes('/api/chat') || request.url().includes(':8000'))
+      apiCalls.push(request.url());
+  });
   await page.goto('/');
   await page.getByRole('textbox').first().fill('Quero férias em 05/05/2027. Qual o prazo?');
   await page.getByRole('button', { name: 'Enviar pergunta', exact: true }).click();
@@ -19,7 +22,9 @@ test('navegação responsiva, temas e painel de fontes', async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'O que vamos esclarecer hoje?' })).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+    ).toBe(true);
   }
   await page.getByRole('button', { name: 'Alternar tema' }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
@@ -42,8 +47,12 @@ test('texto a 200% e movimento reduzido mantêm conteúdo acessível', async ({ 
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'O que vamos esclarecer hoje?' })).toBeVisible();
-  await page.evaluate(() => { document.documentElement.style.fontSize = '32px'; });
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = '32px';
+  });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
   await page.keyboard.press('Tab');
   await expect(page.getByRole('link', { name: 'Ir para conteúdo' })).toBeFocused();
 });
