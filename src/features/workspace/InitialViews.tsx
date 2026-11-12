@@ -1,13 +1,11 @@
 'use client';
 import { useState } from 'react';
-import { FileText, ArrowUpRight } from 'lucide-react';
 import { useWorkspace } from './context';
 import { PageHeading, EmptyState, EvidenceCard } from '@/components/ui/primitives';
 import FeriasSimulators from '@/components/FeriasSimulators';
 import InovacaoSimulators from '@/components/InovacaoSimulators';
 import LocacaoSimulators from '@/components/LocacaoSimulators';
 import acervo from '@/data/acervo_estruturado_acme_bbts.json';
-export function DocumentsView() { const { documents } = useWorkspace(); return <><PageHeading eyebrow="SEU CONHECIMENTO" title="Acervo documental" description="Normas, contratos e procedimentos, organizados por tema e versão."/><div className="card-grid">{documents.map(doc => <article className="evidence-card" key={doc.id}><div className="card-meta"><span>{doc.area}</span><span>{doc.fase}</span></div><h3>{doc.codigo} · v{doc.versao}</h3><p>{doc.titulo}</p><p>{doc.resumo}</p><footer>{doc.fileUrl ? <a href={doc.fileUrl} target="_blank" rel="noreferrer" className="source-link"><FileText size={14}/>Abrir PDF<ArrowUpRight size={14}/></a> : <span className="muted">PDF não disponível</span>}</footer></article>)}</div></>; }
 export function AnalysesView() { const { facts } = useWorkspace(); return <><PageHeading eyebrow="INFORMAÇÃO EM PERSPECTIVA" title="Análises" description="Explore as evidências e consulte a fundamentação de cada orientação."/><div className="card-grid">{facts.map(fact => <EvidenceCard key={fact.id} fact={fact}/>)}</div></>; }
 export function DeadlinesView() { const { deadlines, openSource } = useWorkspace(); return <><PageHeading eyebrow="ANTECIPE O QUE IMPORTA" title="Prazos e compromissos" description="Marcos do acervo com responsáveis e referências verificáveis."/><div className="card-grid">{deadlines.map(event => <article key={event.id} className="evidence-card"><div className="card-meta"><span>{event.date}</span><span>{event.priority}</span></div><h3>{event.title}</h3><p>{event.detail}</p><footer><span className="muted">{event.owner}</span><button className="source-link" onClick={() => openSource(event.fact.citation)}>Ver fonte</button></footer></article>)}</div></>; }
 export function ReportsView() { return <><PageHeading eyebrow="DO ACERVO À REUNIÃO" title="Resumos executivos" description="Reúna evidências relevantes em uma síntese com fontes."/><EmptyState title="Seu próximo resumo começa nas evidências">Reúna as evidências e suas fontes para sua próxima reunião.</EmptyState></>; }
