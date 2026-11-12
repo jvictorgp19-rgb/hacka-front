@@ -111,3 +111,15 @@ A orientação de exportação segue o [guia Next instalado e público](https://
 
 Resultados executados, SHAs e limitações estão em `docs/checkpoints/`. Mudanças de
 organização não apagam os PDFs: a suíte compara todos com o manifesto CP-00.
+
+## Script remoto de publicação manual
+
+O commit remoto `e2b61ba` adicionou `scripts/deploy.sh` durante esta implementação.
+A integração preservou sua finalidade de publicação manual em host Linux com PM2,
+com adaptação ao preview estático. Não é usado pelo CI nem pelo fluxo S3/CloudFront.
+Usar uma `DEPLOY_DIR` exclusiva e vazia: um checkout existente é recusado.
+Cada build tem sua própria release, preservando todas as anteriores; falha de build
+não muda o processo nem o marcador atual. O restart pode ter breve interrupção.
+Modo API exige URL HTTPS explícita. Mudança de configuração no mesmo SHA exige
+`FORCE=1`. O host/proxy reverso e suas permissões continuam responsabilidade da conta.
+O script foi verificado com comandos isolados simulados, sem publicar serviço algum.
