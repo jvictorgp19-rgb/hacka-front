@@ -554,7 +554,7 @@ nova permissão para tarefas rotineiras já autorizadas dentro do escopo.
 - [x] CP-04 — Sistema visual e estrutura de navegação
 - [x] CP-05 — Acervo e envio de documentos
 - [x] CP-06 — Conversas, citações e abstenção
-- [ ] CP-07 — Perspectivas, visualizações e conflitos
+- [x] CP-07 — Perspectivas, visualizações e conflitos
 - [ ] CP-08 — Simuladores e radar
 - [ ] CP-09 — Resumo executivo por seleção
 - [ ] CP-10 — Histórico, reaproveitamento e avaliação

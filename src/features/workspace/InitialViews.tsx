@@ -1,12 +1,11 @@
 'use client';
 import { useState } from 'react';
 import { useWorkspace } from './context';
-import { PageHeading, EmptyState, EvidenceCard } from '@/components/ui/primitives';
+import { PageHeading, EmptyState } from '@/components/ui/primitives';
 import FeriasSimulators from '@/components/FeriasSimulators';
 import InovacaoSimulators from '@/components/InovacaoSimulators';
 import LocacaoSimulators from '@/components/LocacaoSimulators';
 import acervo from '@/data/acervo_estruturado_acme_bbts.json';
-export function AnalysesView() { const { facts } = useWorkspace(); return <><PageHeading eyebrow="INFORMAÇÃO EM PERSPECTIVA" title="Análises" description="Explore as evidências e consulte a fundamentação de cada orientação."/><div className="card-grid">{facts.map(fact => <EvidenceCard key={fact.id} fact={fact}/>)}</div></>; }
 export function DeadlinesView() { const { deadlines, openSource } = useWorkspace(); return <><PageHeading eyebrow="ANTECIPE O QUE IMPORTA" title="Prazos e compromissos" description="Marcos do acervo com responsáveis e referências verificáveis."/><div className="card-grid">{deadlines.map(event => <article key={event.id} className="evidence-card"><div className="card-meta"><span>{event.date}</span><span>{event.priority}</span></div><h3>{event.title}</h3><p>{event.detail}</p><footer><span className="muted">{event.owner}</span><button className="source-link" onClick={() => openSource(event.fact.citation)}>Ver fonte</button></footer></article>)}</div></>; }
 export function ReportsView() { return <><PageHeading eyebrow="DO ACERVO À REUNIÃO" title="Resumos executivos" description="Reúna evidências relevantes em uma síntese com fontes."/><EmptyState title="Seu próximo resumo começa nas evidências">Reúna as evidências e suas fontes para sua próxima reunião.</EmptyState></>; }
 export function GovernanceView() { const { findings } = useWorkspace(); return <><PageHeading eyebrow="QUALIDADE DO CONHECIMENTO" title="Curadoria do acervo" description="Acompanhe inconsistências cadastradas e orientações para revisão."/><div className="card-grid">{findings.map(f => <article className="evidence-card" key={f.id}><div className="card-meta"><span>Revisão do acervo</span></div><h3>{f.title}</h3><p>{f.detail}</p><footer><span className="muted">{f.documents.join(' · ')}</span></footer></article>)}</div></>; }
