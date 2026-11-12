@@ -1,0 +1,21 @@
+name: CI
+on:
+  pull_request:
+    branches: [main, homolog-dev, homolog-demo]
+  push:
+    branches: [homolog-dev, homolog-demo]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # Só roda quando o projeto Next.js for inicializado (package.json existir)
+      - run: |
+          if [ -f package.json ]; then
+            npm ci && npm run lint --if-present && npm run build
+          else
+            echo "package.json ausente, pulando"
+          fi
