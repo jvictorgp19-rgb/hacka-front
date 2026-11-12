@@ -30,7 +30,7 @@ export const DEMO_STEPS: {
     personaId: "ana",
     tema: "ferias",
     costType: "deterministic",
-    costLabel: "⚡ Custo: R$ 0,00 (Calculadora Determinística)",
+    costLabel: "⚡ Exemplo local; custo não medido (Calculadora Determinística)",
   },
   {
     id: 2,
@@ -39,7 +39,7 @@ export const DEMO_STEPS: {
     personaId: "ana",
     tema: "ferias",
     costType: "deterministic",
-    costLabel: "⚡ Custo: R$ 0,00 (Diff Estruturado / Cache)",
+    costLabel: "⚡ Exemplo local; custo não medido (Diff Estruturado / Cache)",
   },
   {
     id: 3,
@@ -48,7 +48,7 @@ export const DEMO_STEPS: {
     personaId: "carlos",
     tema: "ferias",
     costType: "deterministic",
-    costLabel: "⚡ Custo: R$ 0,00 (Calculadora Determinística)",
+    costLabel: "⚡ Exemplo local; custo não medido (Calculadora Determinística)",
   },
   {
     id: 4,
@@ -57,7 +57,7 @@ export const DEMO_STEPS: {
     personaId: "diretora_diraf",
     tema: "inovacao",
     costType: "deterministic",
-    costLabel: "⚡ Custo: R$ 0,00 (Motor de Alçada NG_012)",
+    costLabel: "⚡ Exemplo local; custo não medido (Motor de Alçada NG_012)",
   },
   {
     id: 5,
@@ -66,7 +66,7 @@ export const DEMO_STEPS: {
     personaId: "rafael",
     tema: "locacao",
     costType: "deterministic",
-    costLabel: "⚡ Custo: R$ 0,00 (Radar Contratual D-n)",
+    costLabel: "⚡ Exemplo local; custo não medido (Radar Contratual D-n)",
   },
   {
     id: 6,
@@ -75,7 +75,7 @@ export const DEMO_STEPS: {
     personaId: "marina",
     tema: "inovacao",
     costType: "rag_llm",
-    costLabel: "🧠 Custo: ~R$ 0,004 (RAG + Guardrail Abstenção)",
+    costLabel: "🧠 Exemplo local; custo não medido (RAG + Guardrail Abstenção)",
   },
   {
     id: 7,
@@ -84,7 +84,7 @@ export const DEMO_STEPS: {
     personaId: "curadora_ggc",
     tema: "ferias",
     costType: "rag_llm",
-    costLabel: "🧠 Custo: ~R$ 0,004 (RBAC + Fluxo Data Mesh)",
+    costLabel: "🧠 Exemplo local; custo não medido (RBAC + Fluxo Data Mesh)",
   },
   {
     id: 8,
@@ -93,7 +93,7 @@ export const DEMO_STEPS: {
     personaId: "diretora_diraf",
     tema: "inovacao",
     costType: "rag_llm",
-    costLabel: "🧠 Custo: ~R$ 0,004 (Síntese Executiva Auditada)",
+    costLabel: "🧠 Exemplo local; custo não medido (Síntese Executiva Auditada)",
   },
 ];
 

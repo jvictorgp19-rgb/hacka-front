@@ -10,7 +10,7 @@ import {
   RadarEvent,
   AccessRequestItem,
   RbacLevel,
-} from "@/lib/api";
+} from "@/services/legacy-adapter";
 
 export type GovernanceSubTab = "radar" | "acesso" | "medalhao" | "finops_ppt";
 
@@ -126,7 +126,7 @@ export default function GovernanceDifferentialsPanel({
                 Monitoramento proativo de marcos contratuais (`CTR_2026-012`), travas fiscais (`PX_1130-001`) e janelas operacionais:
               </p>
               <span className="text-xs font-medium text-slate-500">
-                ⚡ Custo: R$ 0,00 (Motor Determinístico)
+                ⚡ Dados de demonstração; custo não medido
               </span>
             </div>
 
@@ -235,7 +235,7 @@ export default function GovernanceDifferentialsPanel({
                   <span className="text-xs font-bold text-[#002D72] flex items-center gap-1.5">
                     <ShieldCheck className="w-4 h-4 text-emerald-600" /> 3. Trilha de Auditoria
                   </span>
-                  <span className="text-[11px] font-medium text-emerald-700">Imutável</span>
+                  <span className="text-[11px] font-medium text-emerald-700">Registro local demonstrativo</span>
                 </div>
                 {rbacStage === "curated_approved" ? (
                   <div className="space-y-2 text-xs">
@@ -268,8 +268,8 @@ export default function GovernanceDifferentialsPanel({
               {[
                 {
                   camada: "Camada Bronze",
-                  sub: "Ingestão Bruta Imutável",
-                  desc: "Armazena os 14 PDFs originais em docs_acervo/vigentes e docs_acervo/substituidos.",
+                  sub: "Ingestão Bruta Registro local demonstrativo",
+                  desc: "Preserva os 13 PDFs sintéticos originais em docs_acervo/vigentes e docs_acervo/substituidos.",
                 },
                 {
                   camada: "Camada Silver",
@@ -421,7 +421,7 @@ export default function GovernanceDifferentialsPanel({
 
                 <div className="text-xs text-slate-600 flex justify-between pt-2 border-t border-[#E2E8F0]">
                   <span>⚡ Calculadora Determinística: <strong>R$ 0,00</strong></span>
-                  <span>🧠 Consulta RAG + LLM: <strong>~R$ 0,004</strong></span>
+                  <span>🧠 Consulta RAG + LLM: <strong>Não medido</strong></span>
                 </div>
               </div>
 
@@ -431,24 +431,24 @@ export default function GovernanceDifferentialsPanel({
                     <Award className="w-4 h-4 text-[#0038A8]" />
                     Avaliação Golden FAQ (~30 Perguntas do Desafio 2)
                   </h3>
-                  <span className="text-xs font-bold text-[#0038A8]">30 / 30 (100%)</span>
+                  <span className="text-xs font-bold text-[#0038A8]">Avaliação ainda não executada</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2.5 text-xs">
                   <div className="p-3 rounded-lg bg-white border border-[#E2E8F0]">
                     <div className="font-bold text-slate-800">Citações Vigentes</div>
-                    <div className="text-slate-500 mt-0.5">12/12 precisas (Série 1, 11 e CTR)</div>
+                    <div className="text-slate-500 mt-0.5">Exemplos cadastrados (Série 1, 11 e CTR)</div>
                   </div>
                   <div className="p-3 rounded-lg bg-white border border-[#E2E8F0]">
                     <div className="font-bold text-slate-800">Trava de Revogados</div>
-                    <div className="text-slate-500 mt-0.5">6/6 bloqueios (v2.0 e v1.0)</div>
+                    <div className="text-slate-500 mt-0.5">Casos demonstrativos (v2.0 e v1.0)</div>
                   </div>
                   <div className="p-3 rounded-lg bg-white border border-[#E2E8F0]">
                     <div className="font-bold text-slate-800">Cálculo Determinístico</div>
-                    <div className="text-slate-500 mt-0.5">7/7 exatos (D-n, 30%, Glosa)</div>
+                    <div className="text-slate-500 mt-0.5">Validação de regras pendente (D-n, 30%, Glosa)</div>
                   </div>
                   <div className="p-3 rounded-lg bg-white border border-[#E2E8F0]">
                     <div className="font-bold text-slate-800">Abstenção & RBAC</div>
-                    <div className="text-slate-500 mt-0.5">5/5 encaminhados ao NIN/GGC</div>
+                    <div className="text-slate-500 mt-0.5">Encaminhamento simulado ao NIN/GGC</div>
                   </div>
                 </div>
               </div>
@@ -539,11 +539,11 @@ export default function GovernanceDifferentialsPanel({
                     onClick={() => setEmailApprovedSent(true)}
                     className="px-4 py-2 rounded-lg bg-[#F8D117] hover:bg-[#FFCC00] text-[#002D72] font-bold text-xs transition cursor-pointer flex items-center gap-1.5"
                   >
-                    <Send className="w-3.5 h-3.5" /> Aprovar e Enviar Resumo
+                    <Send className="w-3.5 h-3.5" /> Simular aprovação do resumo
                   </button>
                   {emailApprovedSent && (
                     <span className="text-xs font-medium text-emerald-700 flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Enviado com sucesso
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Aprovação simulada neste navegador
                     </span>
                   )}
                 </div>

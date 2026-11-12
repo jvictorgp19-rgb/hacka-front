@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import acervo from "@/data/acervo_estruturado_acme_bbts.json";
-import { PERSONAS_NOMINAIS, PersonaNominal, apiChat } from "@/lib/api";
+import { PERSONAS_NOMINAIS, PersonaNominal, apiChat } from "@/services/legacy-adapter";
 import DemoPitchBar, { DEMO_STEPS, DemoStepId } from "@/components/DemoPitchBar";
 import GovernanceDifferentialsPanel, {
   GovernanceSubTab,
@@ -87,7 +87,7 @@ const PDF_LINKS: Record<string, string> = {
   "NT_2026-018": "/docs_acervo/vigentes/NT_2026-018__CONTRATACAO_DE_COWORKING__v1.0.0.pdf",
 };
 
-export default function HomePage() {
+function LegacyHomePage() {
   // Navigation & Core State
   const [activeTab, setActiveTab] = useState<MainTabKey>("inicio");
   const [governanceSubTab, setGovernanceSubTab] = useState<GovernanceSubTab>("radar");
@@ -381,6 +381,7 @@ export default function HomePage() {
       </header>
 
       {/* MAIN CONTENT CONTAINER (Renders ONLY ONE active view at a time) */}
+      <div className="px-4 py-2 text-xs font-semibold bg-amber-50 text-amber-900">{process.env.NEXT_PUBLIC_DATA_MODE === "api" ? "Modo API externa" : "Demonstração local · dados sintéticos · ações simuladas"}</div>
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-8">
         {/* Retractable Pitch Drawer + Contextual Demo Proof Card if a step was triggered */}
         <DemoPitchBar
@@ -1101,4 +1102,21 @@ export default function HomePage() {
       </footer>
     </div>
   );
+}
+
+
+// During migration, API mode must never render the legacy fixture-only catalog.
+function ApiConnectionCheck() {
+  const [status, setStatus] = useState("Conectando à API externa…");
+  useEffect(() => {
+    let active = true;
+    import("@/services").then(({ getGateway }) => getGateway()).then(gateway => gateway.identity())
+      .then(identity => { if (active) setStatus(`Conectado como ${identity.name}. As novas telas de integração estão em preparação.`); })
+      .catch(error => { if (active) setStatus(error instanceof Error ? error.message : "API indisponível."); });
+    return () => { active = false; };
+  }, []);
+  return <main className="p-10"><h1>Modo API externa</h1><p role="status">{status}</p><p>Nenhum dado de demonstração substitui a resposta do serviço.</p></main>;
+}
+export default function HomePage() {
+  return process.env.NEXT_PUBLIC_DATA_MODE === "api" ? <ApiConnectionCheck /> : <LegacyHomePage />;
 }

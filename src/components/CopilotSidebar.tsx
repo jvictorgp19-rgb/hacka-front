@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useEffectEvent } from "react";
 import { Bot, Send, FileCheck2, Sparkles, MessageSquareText, X, ChevronRight, ChevronDown, ChevronUp, ShieldAlert, HelpCircle, Lock } from "lucide-react";
-import { apiChat } from "@/lib/api";
+import { apiChat } from "@/services/legacy-adapter";
 
 export interface ChatMessage {
   id: string;
@@ -79,8 +79,8 @@ export default function CopilotSidebar({
       text: "Olá! Sou o Co-Piloto Institucional BBTS. Respondo com base nas normas vigentes e bloqueio versões revogadas.",
       costBadge: {
         type: "deterministic",
-        label: "⚡ Custo: R$ 0,00 (Calculadora Determinística / Cache)",
-        latencyMs: 5,
+        label: "⚡ Exemplo local; custo não medido (Calculadora Determinística / Cache)",
+        latencyMs: 0,
         sigiloNivel: "Interna",
       },
       bullets: [
@@ -325,7 +325,7 @@ export default function CopilotSidebar({
                         onClick={() =>
                           setActionFeedback((prev) => ({
                             ...prev,
-                            [m.id]: "Consulta encaminhada ao NIN.",
+                            [m.id]: "Encaminhamento simulado ao NIN.",
                           }))
                         }
                         className="px-2.5 py-1 rounded bg-[#0038A8] text-white font-medium text-[11px] cursor-pointer"
@@ -350,7 +350,7 @@ export default function CopilotSidebar({
                         onClick={() =>
                           setActionFeedback((prev) => ({
                             ...prev,
-                            [m.id]: "Pedido de Resposta Curada enviado à GGC.",
+                            [m.id]: "Pedido simulado à GGC.",
                           }))
                         }
                         className="px-2.5 py-1 rounded bg-rose-700 text-white font-medium text-[11px] cursor-pointer"
@@ -415,7 +415,7 @@ export default function CopilotSidebar({
           })}
 
           {loading && (
-            <div className="text-xs text-slate-400 py-2">Consultando acervo oficial BBTS...</div>
+            <div className="text-xs text-slate-400 py-2">Consultando dados sintéticos...</div>
           )}
           <div ref={messagesEndRef} />
         </div>
