@@ -1,19 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  WifiOff,
-  FileWarning,
-  Scale,
-  CalendarCheck,
-  Building2,
-  CheckCircle2,
-  AlertTriangle,
-  Receipt,
-  ShieldCheck,
-  ArrowRight,
-  Clock,
-} from "lucide-react";
+import { WifiOff, FileWarning, Scale, Building2, Receipt } from "lucide-react";
 
 interface LocacaoSimulatorsProps {
   regras: {

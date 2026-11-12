@@ -83,3 +83,7 @@ Thumbs.db
 
 # Exemplo público de configuração
 !.env.example
+
+# Evidências temporárias de navegador
+/test-results/
+/playwright-report/

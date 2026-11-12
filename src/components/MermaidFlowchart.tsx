@@ -1,20 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  GitCommit,
-  CheckCircle2,
-  XCircle,
-  AlertCircle,
-  Code2,
-  Play,
-  RotateCcw,
-  UserCheck,
-  ShieldAlert,
-  FileSignature,
-  Banknote,
-  CalendarCheck,
-} from "lucide-react";
+import { GitCommit, CheckCircle2, AlertCircle, Code2, Play, RotateCcw, UserCheck, ShieldAlert, FileSignature, Banknote, CalendarCheck } from "lucide-react";
 
 interface MermaidFlowchartProps {
   mermaidCode: string;

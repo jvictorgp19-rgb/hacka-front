@@ -1,19 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Lightbulb,
-  Trophy,
-  PieChart,
-  ShieldAlert,
-  CheckCircle2,
-  Award,
-  Coins,
-  Calendar,
-  Flame,
-  ArrowUpRight,
-  Lock,
-} from "lucide-react";
+import { Trophy, PieChart, ShieldAlert, CheckCircle2, Award, Coins, Lock } from "lucide-react";
 
 interface InovacaoSimulatorsProps {
   regras: {

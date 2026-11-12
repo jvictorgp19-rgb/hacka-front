@@ -11,26 +11,7 @@ import FeriasSimulators from "@/components/FeriasSimulators";
 import InovacaoSimulators from "@/components/InovacaoSimulators";
 import LocacaoSimulators from "@/components/LocacaoSimulators";
 import CopilotSidebar, { ChatMessage } from "@/components/CopilotSidebar";
-import {
-  Search,
-  ShieldCheck,
-  CheckSquare,
-  Square,
-  ExternalLink,
-  X,
-  ChevronRight,
-  ChevronDown,
-  ChevronUp,
-  SunMedium,
-  Sparkles,
-  FileCheck2,
-  AlertTriangle,
-  HelpCircle,
-  Lock,
-  CalendarClock,
-  Compass,
-  BookmarkCheck,
-} from "lucide-react";
+import { Search, ShieldCheck, CheckSquare, Square, ExternalLink, X, ChevronRight, ChevronDown, ChevronUp, SunMedium, FileCheck2, AlertTriangle, CalendarClock, Compass, BookmarkCheck } from "lucide-react";
 
 type TemaKey = "ferias" | "inovacao" | "locacao";
 type MainTabKey = "inicio" | "normas" | "simuladores" | "governanca";

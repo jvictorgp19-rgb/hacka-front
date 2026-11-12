@@ -1,20 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import {
-  Radar,
-  Lock,
-  Database,
-  TrendingUp,
-  Send,
-  CheckCircle2,
-  FileWarning,
-  Presentation,
-  Mail,
-  UserCheck,
-  ShieldCheck,
-  Award,
-} from "lucide-react";
+import { Radar, Lock, Database, TrendingUp, Send, CheckCircle2, FileWarning, Presentation, Mail, UserCheck, ShieldCheck, Award } from "lucide-react";
 import {
   apiIngestAudit,
   apiRadar,
@@ -36,7 +23,9 @@ export default function GovernanceDifferentialsPanel({
   initialSubTab = "radar",
   onSwitchPersona,
 }: GovernanceDifferentialsPanelProps) {
-  const [subTab, setSubTab] = useState<GovernanceSubTab>(initialSubTab);
+  const [tabChoice, setTabChoice] = useState({ base: initialSubTab, value: initialSubTab });
+  const subTab = tabChoice.base === initialSubTab ? tabChoice.value : initialSubTab;
+  const setSubTab = (value: GovernanceSubTab) => setTabChoice({ base: initialSubTab, value });
   const [radarEvents, setRadarEvents] = useState<RadarEvent[]>([]);
   const [accessRequests, setAccessRequests] = useState<AccessRequestItem[]>([]);
   const [auditFindings, setAuditFindings] = useState<IngestAuditFinding[]>([]);
@@ -62,10 +51,6 @@ export default function GovernanceDifferentialsPanel({
   const [custoHoraReais, setCustoHoraReais] = useState<number>(60);
   const [activeSlide, setActiveSlide] = useState<number>(1);
   const [emailApprovedSent, setEmailApprovedSent] = useState<boolean>(false);
-
-  useEffect(() => {
-    setSubTab(initialSubTab);
-  }, [initialSubTab]);
 
   useEffect(() => {
     apiRadar().then((r) => setRadarEvents(r.data));

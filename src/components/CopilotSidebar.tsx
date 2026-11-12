@@ -1,20 +1,7 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import {
-  Bot,
-  Send,
-  FileCheck2,
-  Sparkles,
-  MessageSquareText,
-  X,
-  ChevronRight,
-  ChevronDown,
-  ChevronUp,
-  ShieldAlert,
-  HelpCircle,
-  Lock,
-} from "lucide-react";
+import React, { useState, useRef, useEffect, useEffectEvent } from "react";
+import { Bot, Send, FileCheck2, Sparkles, MessageSquareText, X, ChevronRight, ChevronDown, ChevronUp, ShieldAlert, HelpCircle, Lock } from "lucide-react";
 import { apiChat } from "@/lib/api";
 
 export interface ChatMessage {
@@ -168,12 +155,15 @@ export default function CopilotSidebar({
     }
   };
 
+  const processExternalQuery = useEffectEvent((query: string) => {
+    void sendMessage(query);
+    onExternalQueryHandled?.();
+  });
+
   useEffect(() => {
-    if (externalQuery) {
-      sendMessage(externalQuery);
-      onExternalQueryHandled?.();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (!externalQuery) return;
+    const timer = setTimeout(() => processExternalQuery(externalQuery), 0);
+    return () => clearTimeout(timer);
   }, [externalQuery]);
 
   const toggleExpandMessage = (id: string) => {

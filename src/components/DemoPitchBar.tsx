@@ -1,20 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Play,
-  GitCompare,
-  Clock,
-  Radar,
-  CheckCircle2,
-  HelpCircle,
-  Send,
-  Lock,
-  UserCheck,
-  ShieldCheck,
-  Presentation,
-  X,
-} from "lucide-react";
+import { Play, Clock, HelpCircle, X } from "lucide-react";
 
 export type DemoStepId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 

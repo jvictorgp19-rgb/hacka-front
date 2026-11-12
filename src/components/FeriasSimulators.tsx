@@ -1,18 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Calculator,
-  Users,
-  CalendarClock,
-  AlertTriangle,
-  CheckCircle2,
-  XCircle,
-  Info,
-  ShieldAlert,
-  Banknote,
-  FileText,
-} from "lucide-react";
+import { Calculator, Users, CalendarClock, AlertTriangle, CheckCircle2, XCircle, Info, ShieldAlert } from "lucide-react";
 import MermaidFlowchart from "./MermaidFlowchart";
 
 interface FeriasSimulatorsProps {
