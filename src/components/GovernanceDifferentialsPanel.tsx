@@ -63,9 +63,13 @@ export default function GovernanceDifferentialsPanel({
   const [activeSlide, setActiveSlide] = useState<number>(1);
   const [emailApprovedSent, setEmailApprovedSent] = useState<boolean>(false);
 
-  useEffect(() => {
+  // Sincroniza a sub-aba quando a prop muda (ajuste de estado durante o render,
+  // padrão recomendado pelo React no lugar de setState dentro de useEffect).
+  const [prevInitialSubTab, setPrevInitialSubTab] = useState<GovernanceSubTab>(initialSubTab);
+  if (prevInitialSubTab !== initialSubTab) {
+    setPrevInitialSubTab(initialSubTab);
     setSubTab(initialSubTab);
-  }, [initialSubTab]);
+  }
 
   useEffect(() => {
     apiRadar().then((r) => setRadarEvents(r.data));

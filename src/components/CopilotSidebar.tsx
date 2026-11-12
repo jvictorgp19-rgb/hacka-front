@@ -169,10 +169,13 @@ export default function CopilotSidebar({
   };
 
   useEffect(() => {
-    if (externalQuery) {
+    if (!externalQuery) return;
+    // Adiado para fora do corpo do efeito: sendMessage atualiza estado.
+    const timer = setTimeout(() => {
       sendMessage(externalQuery);
       onExternalQueryHandled?.();
-    }
+    }, 0);
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [externalQuery]);
 
