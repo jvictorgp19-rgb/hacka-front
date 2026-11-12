@@ -33,6 +33,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     });
     return () => { active = false; };
   }, [gateway, context.persona]);
+  useEffect(() => { const reset = () => { if (gateway?.mode === 'demo') { setSelectedByPersona({}); openSource(null); } }; window.addEventListener('raiziq:demo-reset', reset); return () => window.removeEventListener('raiziq:demo-reset', reset); }, [gateway]);
   const setSelection = (values: Fact[]) => {
     setSelectedByPersona(current => ({ ...current, [context.persona]: values }));
     setSelectionError('');

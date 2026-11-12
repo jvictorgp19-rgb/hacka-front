@@ -2,17 +2,20 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ArrowUpRight, CalendarDays, Calculator, ChartNoAxesCombined, ChevronDown, Files, FileText, Menu, MessageSquare, Moon, PanelLeftClose, ShieldCheck, Sprout, Sun, X } from 'lucide-react';
+import { ArrowUpRight, CalendarDays, Calculator, ChartNoAxesCombined, ChevronDown, Files, FileText, History, Menu, MessageSquare, Moon, PanelLeftClose, ShieldCheck, Sprout, Sun, X } from 'lucide-react';
 import { WorkspaceProvider, useWorkspace } from '@/features/workspace/context';
+import { useConversationHistory } from '@/features/history/use-conversations';
 import { PERSONAS_NOMINAIS } from '@/features/identity/personas';
 const navigation = [
   { href: '/', label: 'Conversas', icon: MessageSquare }, { href: '/acervo/', label: 'Acervo', icon: Files },
   { href: '/analises/', label: 'Análises', icon: ChartNoAxesCombined }, { href: '/prazos/', label: 'Prazos', icon: CalendarDays },
   { href: '/resumos/', label: 'Resumos executivos', icon: FileText }, { href: '/simuladores/', label: 'Simuladores', icon: Calculator },
+  { href: '/historico/', label: 'Histórico', icon: History },
   { href: '/administracao/', label: 'Curadoria', icon: ShieldCheck },
 ];
 function Shell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const { conversations } = useConversationHistory();
   const router = useRouter();
   const { gateway, context, setContext, source, openSource, loading, error, reload, identity } = useWorkspace();
   const [collapsed, setCollapsed] = useState(false);
@@ -36,6 +39,7 @@ function Shell({ children }: { children: ReactNode }) {
       <button className="new-conversation nav-label" onClick={() => { window.dispatchEvent(new Event('raiziq:new-conversation')); router.push('/'); }}>Nova consulta <span>+</span></button>
       <div className="nav-section nav-label">SEU WORKSPACE</div>
       <nav>{navigation.map(item => <Link key={item.href} href={item.href} title={item.label} aria-current={current.href === item.href ? 'page' : undefined} className={`nav-item ${current.href === item.href ? 'active' : ''}`} onClick={() => setMobileOpen(false)}><item.icon size={19}/><span className="nav-label">{item.label}</span></Link>)}</nav>
+      <div className="recent-conversations nav-label"><div className="nav-section">RECENTES</div>{conversations.slice(0,3).map(chat=><Link key={chat.id} href={'/?conversation='+encodeURIComponent(chat.id)} title={chat.title} onClick={()=>setMobileOpen(false)}>{chat.title}</Link>)}</div>
       <div className="sidebar-bottom"><div className="workspace-note nav-label"><span className="live-dot"/>{mode === 'demo' ? 'Acervo sintético ACME' : 'Serviço corporativo'}<p>{mode === 'demo' ? 'Demonstração independente. Suas ações são salvas neste navegador.' : 'Dados e permissões fornecidos pela API externa.'}</p></div><button className="nav-item collapse-control" aria-label={collapsed ? 'Expandir navegação' : 'Recolher navegação'} onClick={() => setCollapsed(!collapsed)}><PanelLeftClose size={18}/><span className="nav-label">Recolher menu</span></button></div>
     </aside>
     <div className="workspace-content"><header className="topbar"><div className="topbar-title"><button className="icon-button mobile-menu" aria-label="Abrir navegação" onClick={() => setMobileOpen(true)}><Menu size={20}/></button><span className="breadcrumb">Workspace</span><span className="breadcrumb-divider">/</span><strong>{current.label}</strong></div><div className="topbar-actions"><span className="mode-badge"><span className="live-dot"/>{mode === 'demo' ? 'Demo local' : 'API externa'}</span><button className="icon-button" title="Alternar tema" aria-label="Alternar tema" onClick={() => { const value = theme === 'dark' ? 'light' : 'dark'; setTheme(value); try { localStorage.setItem('raiziq.theme', value); } catch { /* state still changes */ } }}>{theme === 'dark' ? <Sun size={18}/> : <Moon size={18}/>}</button><details className="accessibility"><summary aria-label="Acessibilidade">Aa</summary><div className="accessibility-options"><button onClick={() => setFontSize(n => Math.min(22, n + 2))}>Aumentar texto</button><button onClick={() => setFontSize(n => Math.max(16, n - 2))}>Reduzir texto</button><button onClick={() => setContrast(!contrast)}>Alto contraste: {contrast ? 'ativo' : 'inativo'}</button></div></details>{mode === 'demo' ? <label className="persona-select"><span className="avatar">{context.persona.slice(0, 2).toUpperCase()}</span><select aria-label="Persona de demonstração" value={context.persona} onChange={e => setContext({ ...context, persona: e.target.value })}>{PERSONAS_NOMINAIS.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}</select><ChevronDown size={13}/></label> : <span>{identity?.name || 'Sessão API'}</span>}</div></header>
