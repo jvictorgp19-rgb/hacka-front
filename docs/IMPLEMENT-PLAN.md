@@ -1,6 +1,7 @@
 # Plano de implementação — repaginação do frontend Raiz IQ
 
-Status: em implementação; acompanhar evidências em `docs/checkpoints/`.
+Status: checkpoints implementados no frontend; evidências em `docs/checkpoints/`.
+Integração com backend real e publicação permanecem fora desta execução.
 Base: `a9459afaa5826756f1396fd43d9f3add99a39c7a`, branch `Dev`.
 Data: 12/11/2026.
 
@@ -559,7 +560,7 @@ nova permissão para tarefas rotineiras já autorizadas dentro do escopo.
 - [x] CP-09 — Resumo executivo por seleção
 - [x] CP-10 — Histórico, reaproveitamento e avaliação
 - [x] CP-11 — Curadoria e pedidos de acesso
-- [ ] CP-12 — Homologação e pacote de frontend para AWS
+- [x] CP-12 — Homologação e pacote de frontend para AWS
 
 ## 10. Fontes de planejamento
 

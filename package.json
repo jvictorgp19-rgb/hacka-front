@@ -5,11 +5,14 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "eslint",
-    "typecheck": "tsc --noEmit",
+    "start": "node scripts/serve.mjs",
+    "lint": "eslint --max-warnings 0",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "preview": "node scripts/serve.mjs",
+    "format": "prettier --write src tests scripts *.ts *.mts *.json docs README.md",
+    "format:check": "prettier --check src tests scripts *.ts *.mts *.json docs README.md"
   },
   "dependencies": {
     "lucide-react": "^1.72.0",
@@ -26,6 +29,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.6",
+    "prettier": "^3.10.1",
     "tailwindcss": "4.3.3",
     "typescript": "^5",
     "vitest": "^5.1.0"
