@@ -20,6 +20,7 @@ export const factSchema = z.object({
   valueCents: z.number().int().optional(), citation: citationSchema,
 });
 export const contextSchema = z.object({
+  conversationId: z.string().default(''),
   tema: z.union([themeSchema, z.literal('todos')]), area: z.string(),
   perspective: perspectiveSchema, from: z.string(), to: z.string(), persona: z.string(),
 });
@@ -61,7 +62,7 @@ export type SavedRecord = z.infer<typeof recordSchema>;
 export type Feedback = z.infer<typeof feedbackSchema>;
 export type UploadItem = z.infer<typeof uploadSchema>;
 export type Identity = z.infer<typeof identitySchema>;
-export const defaultContext: AnalysisContext = { tema: 'todos', area: '', perspective: 'obligations', from: '', to: '', persona: 'ana' };
+export const defaultContext: AnalysisContext = { conversationId: '', tema: 'todos', area: '', perspective: 'obligations', from: '', to: '', persona: 'ana' };
 export class ApiError extends Error {
   constructor(public code: string, message: string, public retryable = false, public requestId?: string) { super(message); this.name = 'ApiError'; }
 }

@@ -3,6 +3,7 @@ export interface AppGateway {
   readonly mode: 'demo' | 'api';
   documents(signal?: AbortSignal): Promise<DocumentVersion[]>;
   facts(signal?: AbortSignal): Promise<Fact[]>;
+  messages(persona: string, signal?: AbortSignal): Promise<Answer[]>;
   ask(query: string, context: AnalysisContext, signal?: AbortSignal): Promise<Answer>;
   deadlines(signal?: AbortSignal): Promise<Deadline[]>;
   findings(signal?: AbortSignal): Promise<Finding[]>;

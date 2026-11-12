@@ -1,6 +1,6 @@
 import { ApiError, type AnalysisContext, type Answer } from '@/contracts/models';
 import type { AppGateway } from '@/services/gateway';
-import { demoDocuments, demoFacts } from './catalog';
+import { demoDocuments, demoFacts, historicalVacationCitation } from './catalog';
 import { findings } from './findings-legacy';
 import { readDemo, writeDemo, resetDemo } from './storage';
 
@@ -17,7 +17,7 @@ export function demoAnswer(query: string, context: AnalysisContext): Answer {
   let status: Answer['status'] = 'answered';
   let text = '';
   if (/restrit|sigilos|auditoria.*folha/.test(q)) { status = 'access_required'; text = 'Este cenário requer uma orientação da GGC. Registre um pedido com justificativa. A demo não concede acesso real.'; }
-  else if (/premio|rateio|divisao|dividir|afastad/.test(q)) { ids = ['inovacao-rateio']; status = 'abstained'; text = 'A divisão do prêmio não está definida nesta fonte. Consulte o NIN para orientação.'; }
+  else if (/rateio|divisao|dividir|afastad/.test(q) || (/premio/.test(q) && /equipe/.test(q))) { ids = ['inovacao-rateio']; status = 'abstained'; text = 'A divisão do prêmio não está definida nesta fonte. Consulte o NIN para orientação.'; }
   else if (/30 dias|v2\.0/.test(q) && /ferias|pedir|anteced/.test(q)) { ids = ['ferias-pedido']; status = 'conflict'; text = 'A NG_111 v2 previa 30 dias; a v3 substituiu essa regra por 45 dias. A versão anterior continua identificada no acervo.'; }
   else if (/equipe|30%/.test(q)) {
     ids = ['ferias-equipe']; const n = Number(q.match(/equipe(?: de)?\s+(\d+)/)?.[1]);
@@ -28,17 +28,18 @@ export function demoAnswer(query: string, context: AnalysisContext): Answer {
   else if (/prorrog|coworking|contrato/.test(q)) { ids = ['locacao-prorroga', 'locacao-vistoria']; text = 'O pedido de prorrogação deste contrato deve ocorrer até 30/03/2027. Confira os marcos e responsáveis nas fontes.'; }
   else if (/ideias|elegib|meses de casa/.test(q)) { ids = ['inovacao-ideias', 'inovacao-elegivel']; text = 'Na edição 2027, são até duas ideias por proponente e pelo menos seis meses de casa na abertura das inscrições.'; }
   else if (/ferias|d-45/.test(q)) {
-    ids = ['ferias-pedido', 'ferias-decisao'];
+    ids = ['ferias-pedido', 'ferias-decisao', 'ferias-pagamento'];
     text = q.includes('05/05/2027') ? 'Para início em 05/05/2027, solicite até 21/03/2027 (D-45). Pagamento no exemplo: 30/04/2027. Confira as premissas no simulador.' : 'A solicitação de férias exige 45 dias corridos de antecedência. Use o simulador para uma data concreta.';
   }
   else { status = 'abstained'; text = 'Esta demonstração não tem evidência suficiente para responder à pergunta. Escolha um cenário sugerido ou consulte a área responsável.'; }
   const facts = demoFacts.filter(f => ids.includes(f.id));
-  return { id: crypto.randomUUID(), query, status, text, facts, citations: facts.map(f => f.citation), context, origin: 'demo', createdAt: new Date().toISOString(), nextSteps: status === 'access_required' ? ['Solicitar orientação'] : ['Ver fontes', 'Explorar análise'] };
+  return { id: crypto.randomUUID(), query, status, text, facts, citations: [...facts.map(f => f.citation), ...(status === 'conflict' ? [historicalVacationCitation] : [])], context, origin: 'demo', createdAt: new Date().toISOString(), nextSteps: status === 'access_required' ? ['Solicitar orientação'] : ['Ver fontes', 'Explorar análise'] };
 }
 export function createDemoGateway(): AppGateway {
   return {
     mode: 'demo', documents: async () => demoDocuments, facts: async () => demoFacts,
-    ask: async (query, context, signal) => { if (signal?.aborted) throw new ApiError('ABORTED', 'Consulta cancelada.'); return demoAnswer(query, context); },
+    messages: async persona => readDemo().messages.filter(m => m.context.persona === persona),
+    ask: async (query, context, signal) => { if (signal?.aborted) throw new ApiError('ABORTED', 'Consulta cancelada.'); const result = demoAnswer(query, context); writeDemo(state => ({ ...state, messages: [...state.messages, result] })); return result; },
     identity: async () => ({ id: 'ana', name: 'Ana — demonstração', capabilities: [] }),
     deadlines: async () => demoFacts.filter(f => f.date).map(f => ({ id: f.id, date: f.date!, title: f.title, detail: f.text, owner: f.area, priority: f.id === 'inovacao-fiscal' || f.id === 'locacao-prorroga' ? 'Crítica' : 'Alta', fact: f })),
     findings: async () => findings.map(f => ({ id: f.id, title: f.severidade, detail: f.descricao, documents: f.documentosEnvolvidos })),

@@ -12,7 +12,8 @@ Os endpoints retornam diretamente o DTO ou array descrito, sem envelope.
 | GET /identity | sessão autenticada | Identity |
 | GET /documents | — | DocumentVersion[] |
 | GET /analyses/evidence | — | Fact[] |
-| POST /conversations/messages | query, context | Answer |
+| GET /conversations/messages?persona= | contexto de apresentação | Answer[] |
+| POST /conversations/messages | query, context (incluindo conversationId) | Answer |
 | GET /deadlines | — | Deadline[] |
 | GET /audit/findings | — | Finding[] |
 | GET /access-requests?persona= | contexto de apresentação; não autorização | AccessRequest[] |

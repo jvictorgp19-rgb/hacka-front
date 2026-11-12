@@ -27,3 +27,10 @@ export const demoDocuments = [...acervo.documentos_acervo, ...acervo.documentos_
     vigencia: 'vigencia_inicio' in doc ? `${doc.vigencia_inicio} a ${doc.vigencia_fim || 'consultar instrumento'}` : 'Versão anterior; consultar substituição',
   });
 });
+
+export const historicalVacationCitation = {
+  id: 'ferias-previous-rule', documentId: 'NG_111@2.0.0', codigo: 'NG_111', titulo: 'Férias (versão anterior)',
+  versao: '2.0.0', status: 'Versão anterior', item: '2.3', page: 1,
+  trecho: 'A solicitação deve ser feita com antecedência mínima de 30 dias.',
+  url: '/docs_acervo/substituidos/NG_111__FERIAS__v2.0.0.pdf',
+};

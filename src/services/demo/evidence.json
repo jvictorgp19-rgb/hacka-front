@@ -245,5 +245,25 @@
     },
     "date": "2027-02-28",
     "valueCents": 0
+  },
+  {
+    "id": "ferias-pagamento",
+    "title": "Antecipação do pagamento",
+    "text": "Pagamento até D-3, antecipado para o dia útil anterior em fim de semana ou feriado.",
+    "tema": "ferias",
+    "area": "GGC",
+    "perspective": "deadlines",
+    "citation": {
+      "id": "ferias-pagamento-source",
+      "documentId": "NG_111@3.0.0",
+      "codigo": "NG_111",
+      "titulo": "Férias",
+      "versao": "3.0.0",
+      "status": "Vigente",
+      "item": "4.5.5",
+      "trecho": "Pagamento: até 3 dias corridos antes; se esse dia for sábado, domingo ou feriado, o pagamento é antecipado para o dia útil anterior.",
+      "page": 3,
+      "url": "/docs_acervo/vigentes/NG_111__FERIAS__v3.0.0.pdf"
+    }
   }
 ]
