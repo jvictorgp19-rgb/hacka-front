@@ -7,8 +7,10 @@ on:
 permissions:
   contents: read
 jobs:
-  build:
+  frontend:
     runs-on: ubuntu-latest
+    env:
+      NEXT_TELEMETRY_DISABLED: 1
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -17,4 +19,25 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run format:check
+      - run: npm test
       - run: npm run build
+        env:
+          NEXT_PUBLIC_DATA_MODE: demo
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+        env:
+          TEST_STATIC: 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: raiz-iq-demo-static
+          path: out
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_DATA_MODE: api
+          NEXT_PUBLIC_API_URL: https://api.test.invalid
+      - run: npm run test:e2e
+        env:
+          TEST_STATIC: 1
+          TEST_DATA_MODE: api

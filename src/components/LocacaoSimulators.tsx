@@ -1,19 +1,8 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import {
-  WifiOff,
-  FileWarning,
-  Scale,
-  CalendarCheck,
-  Building2,
-  CheckCircle2,
-  AlertTriangle,
-  Receipt,
-  ShieldCheck,
-  ArrowRight,
-  Clock,
-} from "lucide-react";
+import { rentalFine } from '@/features/simulators/calculations';
+import React, { useState } from 'react';
+import { WifiOff, FileWarning, Scale, Building2, Receipt } from 'lucide-react';
 
 interface LocacaoSimulatorsProps {
   regras: {
@@ -57,8 +46,8 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
   // 1. Calculadora do Fiscal GOC (Quedas de internet > 4h)
   const [diasSemInternet, setDiasSemInternet] = useState<number>(2);
   const [atrasoPagamentoCulpa, setAtrasoPagamentoCulpa] = useState<
-    "em_dia" | "sem_atesto_locadora" | "culpa_acme"
-  >("em_dia");
+    'em_dia' | 'sem_atesto_locadora' | 'culpa_acme'
+  >('em_dia');
 
   // 2. Simulador de Multa de Rescisão (até 90º dia vs >= 91º dia) & Aditivo 20%
   const [diaRescisao, setDiaRescisao] = useState<number>(95);
@@ -69,22 +58,19 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
   const descontoTotalInternet = Number((diasSemInternet * descontoUnitario).toFixed(2));
   const aluguelLiquidoAtestado = Math.max(
     0,
-    Number((regras.valores.aluguel_mensal - descontoTotalInternet).toFixed(2))
+    Number((regras.valores.aluguel_mensal - descontoTotalInternet).toFixed(2)),
   );
 
   const multaAtrasoAcme =
-    atrasoPagamentoCulpa === "culpa_acme"
-      ? Number((aluguelLiquidoAtestado * 0.01).toFixed(2))
-      : 0;
+    atrasoPagamentoCulpa === 'culpa_acme' ? Number((aluguelLiquidoAtestado * 0.01).toFixed(2)) : 0;
 
   // Calculations for Simulator 2
   const isentoMultaRescisao = diaRescisao >= 91;
-  const multaRescisaoAplicavel = isentoMultaRescisao
-    ? regras.valores.multa_rescisao_a_partir_91_dia
-    : regras.valores.multa_rescisao_ate_90_dias;
+  const multaRescisaoAplicavel =
+    rentalFine(diaRescisao, Math.round(regras.valores.multa_rescisao_ate_90_dias * 100)) / 100;
 
   const pctAditivo = Number(
-    ((valorAditivoPretendido / regras.valores.valor_global_5_meses) * 100).toFixed(1)
+    ((valorAditivoPretendido / regras.valores.valor_global_5_meses) * 100).toFixed(1),
   );
   const aditivoDentroLimite = valorAditivoPretendido <= regras.valores.limite_aditivo_20_pct;
 
@@ -122,7 +108,10 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
                 Mensalidade
               </div>
               <div className="text-lg font-black text-[#FFCC00]">
-                R$ {regras.valores.aluguel_mensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                R${' '}
+                {regras.valores.aluguel_mensal.toLocaleString('pt-BR', {
+                  minimumFractionDigits: 2,
+                })}
               </div>
             </div>
             <div className="h-8 w-px bg-white/20" />
@@ -131,7 +120,10 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
                 Global (5 meses)
               </div>
               <div className="text-lg font-black text-white">
-                R$ {regras.valores.valor_global_5_meses.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                R${' '}
+                {regras.valores.valor_global_5_meses.toLocaleString('pt-BR', {
+                  minimumFractionDigits: 2,
+                })}
               </div>
             </div>
           </div>
@@ -205,16 +197,20 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
                 <div className="flex items-center justify-between text-xs text-slate-600">
                   <span>Valor Mensal Contratado (CTR_2026-012):</span>
                   <span className="font-bold text-slate-900">
-                    R$ {regras.valores.aluguel_mensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    R${' '}
+                    {regras.valores.aluguel_mensal.toLocaleString('pt-BR', {
+                      minimumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-xs text-rose-700 font-semibold">
                   <span>
-                    (-) Glosa de SLA ({diasSemInternet} dia(s) × R${" "}
-                    {descontoUnitario.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}):
+                    (-) Glosa de SLA ({diasSemInternet} dia(s) × R${' '}
+                    {descontoUnitario.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}):
                   </span>
                   <span className="font-extrabold">
-                    - R$ {descontoTotalInternet.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    - R${' '}
+                    {descontoTotalInternet.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
                 <div className="pt-2.5 border-t border-slate-200 flex items-center justify-between">
@@ -227,7 +223,8 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
                     </span>
                   </div>
                   <div className="text-2xl font-black text-[#002D72]">
-                    R$ {aluguelLiquidoAtestado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    R${' '}
+                    {aluguelLiquidoAtestado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </div>
                 </div>
               </div>
@@ -239,55 +236,57 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
                   <button
-                    onClick={() => setAtrasoPagamentoCulpa("em_dia")}
+                    onClick={() => setAtrasoPagamentoCulpa('em_dia')}
                     className={`p-2 rounded-lg text-[11px] font-bold border transition cursor-pointer ${
-                      atrasoPagamentoCulpa === "em_dia"
-                        ? "bg-[#002D72] text-white border-[#002D72]"
-                        : "bg-white text-slate-700 border-slate-200"
+                      atrasoPagamentoCulpa === 'em_dia'
+                        ? 'bg-[#002D72] text-white border-[#002D72]'
+                        : 'bg-white text-slate-700 border-slate-200'
                     }`}
                   >
                     Pago até Dia 8 (Regular)
                   </button>
                   <button
-                    onClick={() => setAtrasoPagamentoCulpa("sem_atesto_locadora")}
+                    onClick={() => setAtrasoPagamentoCulpa('sem_atesto_locadora')}
                     className={`p-2 rounded-lg text-[11px] font-bold border transition cursor-pointer ${
-                      atrasoPagamentoCulpa === "sem_atesto_locadora"
-                        ? "bg-emerald-700 text-white border-emerald-700"
-                        : "bg-white text-slate-700 border-slate-200"
+                      atrasoPagamentoCulpa === 'sem_atesto_locadora'
+                        ? 'bg-emerald-700 text-white border-emerald-700'
+                        : 'bg-white text-slate-700 border-slate-200'
                     }`}
                   >
                     Retido por Falta de Atesto
                   </button>
                   <button
-                    onClick={() => setAtrasoPagamentoCulpa("culpa_acme")}
+                    onClick={() => setAtrasoPagamentoCulpa('culpa_acme')}
                     className={`p-2 rounded-lg text-[11px] font-bold border transition cursor-pointer ${
-                      atrasoPagamentoCulpa === "culpa_acme"
-                        ? "bg-rose-600 text-white border-rose-600"
-                        : "bg-white text-slate-700 border-slate-200"
+                      atrasoPagamentoCulpa === 'culpa_acme'
+                        ? 'bg-rose-600 text-white border-rose-600'
+                        : 'bg-white text-slate-700 border-slate-200'
                     }`}
                   >
                     Atraso por Culpa ACME
                   </button>
                 </div>
                 <div className="text-[11px] text-slate-700 pt-1">
-                  {atrasoPagamentoCulpa === "em_dia" && (
+                  {atrasoPagamentoCulpa === 'em_dia' && (
                     <span>
-                      ✅ <strong>Fluxo regular:</strong> Sem encargos. GFI transfere R${" "}
-                      {aluguelLiquidoAtestado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} até o dia 8.
+                      ✅ <strong>Fluxo regular:</strong> Sem encargos. GFI transfere R${' '}
+                      {aluguelLiquidoAtestado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}{' '}
+                      até o dia 8.
                     </span>
                   )}
-                  {atrasoPagamentoCulpa === "sem_atesto_locadora" && (
+                  {atrasoPagamentoCulpa === 'sem_atesto_locadora' && (
                     <span className="text-emerald-900 font-semibold">
-                      🛡️ <strong>Proteção Contratual (CTR_2026-012):</strong> Sem atesto não há pagamento e{" "}
-                      <strong>NÃO incide multa nem juros</strong> contra a ACME quando a pendência é da Locadora!
+                      🛡️ <strong>Proteção Contratual (CTR_2026-012):</strong> Sem atesto não há
+                      pagamento e <strong>NÃO incide multa nem juros</strong> contra a ACME quando a
+                      pendência é da Locadora!
                     </span>
                   )}
-                  {atrasoPagamentoCulpa === "culpa_acme" && (
+                  {atrasoPagamentoCulpa === 'culpa_acme' && (
                     <span className="text-rose-800 font-semibold">
-                      ⚠️ <strong>Encargos por culpa exclusiva da ACME:</strong> Multa de{" "}
-                      {regras.valores.multa_atraso_pagamento_pct}% (R${" "}
-                      {multaAtrasoAcme.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}) + juros de{" "}
-                      {regras.valores.juros_atraso_pagamento_mensal_pct}% a.m. pro rata.
+                      ⚠️ <strong>Encargos por culpa exclusiva da ACME:</strong> Multa de{' '}
+                      {regras.valores.multa_atraso_pagamento_pct}% (R${' '}
+                      {multaAtrasoAcme.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}) +
+                      juros de {regras.valores.juros_atraso_pagamento_mensal_pct}% a.m. pro rata.
                     </span>
                   )}
                 </div>
@@ -375,8 +374,8 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
                 <div
                   className={`mt-3 p-3.5 rounded-xl border-2 transition flex items-center justify-between ${
                     isentoMultaRescisao
-                      ? "bg-emerald-50/80 border-emerald-500/40"
-                      : "bg-amber-50 border-amber-500/50"
+                      ? 'bg-emerald-50/80 border-emerald-500/40'
+                      : 'bg-amber-50 border-amber-500/50'
                   }`}
                 >
                   <div>
@@ -384,22 +383,23 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
                       Multa de Rescisão no {diaRescisao}º dia (Exige aviso prévio de 30 dias)
                     </span>
                     <div className="text-xl font-black text-slate-900 mt-0.5">
-                      R$ {multaRescisaoAplicavel.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                      R${' '}
+                      {multaRescisaoAplicavel.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </div>
                     <p className="text-[11px] text-slate-600 mt-0.5">
                       {isentoMultaRescisao
-                        ? "Isento de multa! A partir do 91º dia de vigência não há penalidade rescisória."
-                        : "Até o 90º dia incide multa fixa de 1 mensalidade (R$ 3.650,00)."}
+                        ? 'Isento de multa! A partir do 91º dia de vigência não há penalidade rescisória.'
+                        : 'Até o 90º dia incide multa fixa de 1 mensalidade (R$ 3.650,00).'}
                     </p>
                   </div>
                   <span
                     className={`px-2.5 py-1 rounded-full text-xs font-bold shrink-0 ${
                       isentoMultaRescisao
-                        ? "bg-emerald-600 text-white"
-                        : "bg-amber-500 text-slate-950"
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-amber-500 text-slate-950'
                     }`}
                   >
-                    {isentoMultaRescisao ? "Isento (≥ 91º dia)" : "1 Aluguel (≤ 90º dia)"}
+                    {isentoMultaRescisao ? 'Isento (≥ 91º dia)' : '1 Aluguel (≤ 90º dia)'}
                   </span>
                 </div>
               </div>
@@ -411,7 +411,10 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
                     Simulador de Termo Aditivo (Teto Legal de 20%):
                   </span>
                   <span className="text-[11px] font-bold text-slate-600">
-                    Teto: R$ {regras.valores.limite_aditivo_20_pct.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    Teto: R${' '}
+                    {regras.valores.limite_aditivo_20_pct.toLocaleString('pt-BR', {
+                      minimumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
 
@@ -426,15 +429,17 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
                     className="w-full accent-[#002D72] cursor-pointer"
                   />
                   <span className="text-xs font-extrabold px-2.5 py-1 rounded bg-white border border-slate-300 text-slate-800 shrink-0">
-                    R$ {valorAditivoPretendido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} ({pctAditivo}%)
+                    R${' '}
+                    {valorAditivoPretendido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (
+                    {pctAditivo}%)
                   </span>
                 </div>
 
                 <div
                   className={`p-2.5 rounded-lg text-xs font-semibold flex items-center justify-between ${
                     aditivoDentroLimite
-                      ? "bg-emerald-100 text-emerald-900"
-                      : "bg-rose-100 text-rose-900"
+                      ? 'bg-emerald-100 text-emerald-900'
+                      : 'bg-rose-100 text-rose-900'
                   }`}
                 >
                   <span>
@@ -446,7 +451,7 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
 
                 <div className="text-[11px] text-slate-600 flex items-center justify-between pt-1 border-t border-slate-200">
                   <span>
-                    📅 <strong>Prazo limite para pedir prorrogação:</strong> até{" "}
+                    📅 <strong>Prazo limite para pedir prorrogação:</strong> até{' '}
                     <strong className="text-[#002D72]">30/03/2027</strong> (30d antes do fim)
                   </span>
                   <span>Máx. {regras.prazo_maximo_total_meses} meses</span>
@@ -457,8 +462,13 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
 
           <div className="bg-amber-50/90 px-5 py-3 border-t border-amber-200 text-[11px] text-amber-950 flex items-center justify-between">
             <span>
-              <strong>Multa por inexecução total:</strong> 5% do valor global ={" "}
-              <strong>R$ {regras.valores.multa_inexecucao_5_pct_global.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</strong>
+              <strong>Multa por inexecução total:</strong> 5% do valor global ={' '}
+              <strong>
+                R${' '}
+                {regras.valores.multa_inexecucao_5_pct_global.toLocaleString('pt-BR', {
+                  minimumFractionDigits: 2,
+                })}
+              </strong>
             </span>
             <span>LGPD: incidente em 48h / exclusão em 90d</span>
           </div>
@@ -479,7 +489,8 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
                   3. Comparativo Oficial das 3 Cotações de Mercado (NT_2026-018)
                 </h3>
                 <p className="text-xs text-blue-100">
-                  Justificativa de preço, economia obtida e enquadramento na alçada da DIRAF (&gt; R$ 18k)
+                  Justificativa de preço, economia obtida e enquadramento na alçada da DIRAF (&gt;
+                  R$ 18k)
                 </p>
               </div>
             </div>
@@ -496,16 +507,14 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
                   key={idx}
                   className={`p-4 rounded-xl border-2 transition flex flex-wrap items-center justify-between gap-3 ${
                     isVencedor
-                      ? "bg-emerald-50/70 border-emerald-500 shadow-sm"
-                      : "bg-slate-50 border-slate-200"
+                      ? 'bg-emerald-50/70 border-emerald-500 shadow-sm'
+                      : 'bg-slate-50 border-slate-200'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <div
                       className={`w-8 h-8 rounded-lg font-extrabold text-sm flex items-center justify-center ${
-                        isVencedor
-                          ? "bg-emerald-600 text-white"
-                          : "bg-slate-200 text-slate-700"
+                        isVencedor ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-700'
                       }`}
                     >
                       {idx + 1}º
@@ -520,13 +529,14 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
                         )}
                       </div>
                       <div className="text-xs text-slate-600 mt-0.5">
-                        Mensal:{" "}
+                        Mensal:{' '}
                         <strong>
-                          R$ {cot.mensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                        </strong>{" "}
-                        • Global 5 meses:{" "}
+                          R$ {cot.mensal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </strong>{' '}
+                        • Global 5 meses:{' '}
                         <strong>
-                          R$ {cot.total_5_meses.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                          R${' '}
+                          {cot.total_5_meses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </strong>
                       </div>
                     </div>
@@ -539,7 +549,9 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
                       </span>
                     ) : (
                       <span className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-lg">
-                        + R$ {cot.diferenca_menor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} vs vencedor
+                        + R${' '}
+                        {cot.diferenca_menor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}{' '}
+                        vs vencedor
                       </span>
                     )}
                   </div>
@@ -558,12 +570,8 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
                   <Receipt className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-base">
-                    Rito Mensal de Faturamento e Atesto
-                  </h3>
-                  <p className="text-xs text-blue-100">
-                    Governança entre Locadora, GCO, GOC e GFI
-                  </p>
+                  <h3 className="font-bold text-base">Rito Mensal de Faturamento e Atesto</h3>
+                  <p className="text-xs text-blue-100">Governança entre Locadora, GCO, GOC e GFI</p>
                 </div>
               </div>
             </div>

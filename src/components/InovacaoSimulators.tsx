@@ -1,19 +1,8 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import {
-  Lightbulb,
-  Trophy,
-  PieChart,
-  ShieldAlert,
-  CheckCircle2,
-  Award,
-  Coins,
-  Calendar,
-  Flame,
-  ArrowUpRight,
-  Lock,
-} from "lucide-react";
+import { approvalIndex, gamification } from '@/features/simulators/calculations';
+import React, { useState } from 'react';
+import { Trophy, PieChart, ShieldAlert, CheckCircle2, Award, Coins, Lock } from 'lucide-react';
 
 interface InovacaoSimulatorsProps {
   regras: {
@@ -58,10 +47,7 @@ interface InovacaoSimulatorsProps {
   }[];
 }
 
-export default function InovacaoSimulators({
-  regras,
-  alcadasNg012,
-}: InovacaoSimulatorsProps) {
+export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSimulatorsProps) {
   // 1. Simulador de Alçada de Prototipagem
   const [custoPrototipo, setCustoPrototipo] = useState<number>(15000);
   const [mesesCasa, setMesesCasa] = useState<number>(8);
@@ -74,38 +60,34 @@ export default function InovacaoSimulators({
   const [prototipoNoPrazo, setPrototipoNoPrazo] = useState<boolean>(true);
   const [bancaFinal, setBancaFinal] = useState<boolean>(true);
 
-  const [colocacaoGeral, setColocacaoGeral] = useState<"nenhum" | "1" | "2" | "3">("1");
+  const [colocacaoGeral, setColocacaoGeral] = useState<'nenhum' | '1' | '2' | '3'>('1');
   const [destaqueArena, setDestaqueArena] = useState<boolean>(true);
   const [arenaSelecionada, setArenaSelecionada] = useState<string>(regras.arenas[0]);
 
   // Compute Alçada
-  let faixaAlcada = alcadasNg012[0];
-  let corAlcada = "emerald";
-  if (custoPrototipo > 120000) {
-    faixaAlcada = alcadasNg012[2];
-    corAlcada = "rose";
-  } else if (custoPrototipo > 18000) {
-    faixaAlcada = alcadasNg012[1];
-    corAlcada = "amber";
-  }
+  const faixaIndex = approvalIndex(Math.round(custoPrototipo * 100));
+  const faixaAlcada = alcadasNg012[faixaIndex];
+  const corAlcada = ['emerald', 'amber', 'rose'][faixaIndex];
 
   // Compute Gamificação Points
-  const ptsIdeia = ideiaElegivel ? 100 : 0;
   const ptsVotos = Math.min(5, Math.max(0, votosEmitidos)) * 10;
-  const ptsImersao = imersaoCompleta ? 150 : 0;
-  const ptsPrototipo = prototipoNoPrazo ? 300 : 0;
-  const ptsBanca = bancaFinal ? 200 : 0;
-  const totalPontos = ptsIdeia + ptsVotos + ptsImersao + ptsPrototipo + ptsBanca;
+  const totalPontos = gamification(
+    ideiaElegivel,
+    votosEmitidos,
+    imersaoCompleta,
+    prototipoNoPrazo,
+    bancaFinal,
+  );
 
   // Compute Premiação Cumulativa
   const valorColocacao =
-    colocacaoGeral === "1"
+    colocacaoGeral === '1'
       ? 8000
-      : colocacaoGeral === "2"
-      ? 5000
-      : colocacaoGeral === "3"
-      ? 3000
-      : 0;
+      : colocacaoGeral === '2'
+        ? 5000
+        : colocacaoGeral === '3'
+          ? 3000
+          : 0;
   const valorArena = destaqueArena ? 2000 : 0;
   const premioTotal = valorColocacao + valorArena;
 
@@ -205,11 +187,11 @@ export default function InovacaoSimulators({
               {/* Dynamic Alçada Result Card */}
               <div
                 className={`p-4 rounded-xl border-2 transition ${
-                  corAlcada === "emerald"
-                    ? "bg-emerald-50/70 border-emerald-500/40"
-                    : corAlcada === "amber"
-                    ? "bg-amber-50/80 border-amber-500/50"
-                    : "bg-rose-50 border-rose-500/50"
+                  corAlcada === 'emerald'
+                    ? 'bg-emerald-50/70 border-emerald-500/40'
+                    : corAlcada === 'amber'
+                      ? 'bg-amber-50/80 border-amber-500/50'
+                      : 'bg-rose-50 border-rose-500/50'
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -221,12 +203,12 @@ export default function InovacaoSimulators({
                       {faixaAlcada.aprovador_inovacao_prototipo}
                     </div>
                     <p className="text-xs text-slate-600 mt-1">
-                      Faixa enquadrada: <strong>{faixaAlcada.faixa}</strong> (Alçada geral equivalente:{" "}
-                      {faixaAlcada.aprovador_geral})
+                      Faixa enquadrada: <strong>{faixaAlcada.faixa}</strong> (Alçada geral
+                      equivalente: {faixaAlcada.aprovador_geral})
                     </p>
                   </div>
                   <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#002D72] text-[#FFCC00] shrink-0">
-                    R$ {custoPrototipo.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    R$ {custoPrototipo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
               </div>
@@ -258,7 +240,8 @@ export default function InovacaoSimulators({
                   </div>
                   <div>
                     <label className="text-[11px] font-semibold text-slate-600 block mb-1">
-                      Ideias inscritas (indiv. + equipe): <strong>{qtdIdeiasInscritas} ideia(s)</strong>
+                      Ideias inscritas (indiv. + equipe):{' '}
+                      <strong>{qtdIdeiasInscritas} ideia(s)</strong>
                     </label>
                     <div className="flex gap-1.5">
                       {[1, 2, 3, 4].map((n) => (
@@ -268,12 +251,12 @@ export default function InovacaoSimulators({
                           className={`flex-1 py-1 rounded text-xs font-bold border transition cursor-pointer ${
                             qtdIdeiasInscritas === n
                               ? n <= 2
-                                ? "bg-[#002D72] text-white border-[#002D72]"
-                                : "bg-rose-600 text-white border-rose-600"
-                              : "bg-white text-slate-700 border-slate-200"
+                                ? 'bg-[#002D72] text-white border-[#002D72]'
+                                : 'bg-rose-600 text-white border-rose-600'
+                              : 'bg-white text-slate-700 border-slate-200'
                           }`}
                         >
-                          {n} {n === 3 ? "(v1.0!)" : ""}
+                          {n} {n === 3 ? '(v1.0!)' : ''}
                         </button>
                       ))}
                     </div>
@@ -283,15 +266,16 @@ export default function InovacaoSimulators({
                 <div
                   className={`p-2.5 rounded-lg text-xs font-semibold flex items-center gap-2 ${
                     elegivelCasa && elegivelLimiteIdeias
-                      ? "bg-emerald-100 text-emerald-900"
-                      : "bg-rose-100 text-rose-900"
+                      ? 'bg-emerald-100 text-emerald-900'
+                      : 'bg-rose-100 text-rose-900'
                   }`}
                 >
                   {elegivelCasa && elegivelLimiteIdeias ? (
                     <>
                       <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
                       <span>
-                        Inscrição Válida! Cumpre ≥ 6 meses de casa e limite de até 2 ideias por pessoa.
+                        Inscrição Válida! Cumpre ≥ 6 meses de casa e limite de até 2 ideias por
+                        pessoa.
                       </span>
                     </>
                   ) : (
@@ -299,9 +283,9 @@ export default function InovacaoSimulators({
                       <ShieldAlert className="w-4 h-4 text-rose-700 shrink-0" />
                       <span>
                         {!elegivelCasa &&
-                          "Bloqueado: RG_1100 v2.0.0 exige mínimo de 6 meses de casa em 01/02/2027. "}
+                          'Bloqueado: RG_1100 v2.0.0 exige mínimo de 6 meses de casa em 01/02/2027. '}
                         {!elegivelLimiteIdeias &&
-                          "Bloqueado: O limite caiu de 3 (v1.0.0 revogada) para no máximo 2 ideias por pessoa na v2.0.0!"}
+                          'Bloqueado: O limite caiu de 3 (v1.0.0 revogada) para no máximo 2 ideias por pessoa na v2.0.0!'}
                       </span>
                     </>
                   )}
@@ -345,7 +329,9 @@ export default function InovacaoSimulators({
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
                   <span>Etapas Conquistadas na Jornada:</span>
-                  <span className="text-[#002D72]">{Math.round((totalPontos / 800) * 100)}% da pontuação máxima</span>
+                  <span className="text-[#002D72]">
+                    {Math.round((totalPontos / 800) * 100)}% da pontuação máxima
+                  </span>
                 </div>
 
                 <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden mb-3">
@@ -383,8 +369,8 @@ export default function InovacaoSimulators({
                         onClick={() => setVotosEmitidos(v)}
                         className={`w-6 h-6 rounded text-xs font-bold cursor-pointer transition ${
                           votosEmitidos === v
-                            ? "bg-[#002D72] text-[#FFCC00]"
-                            : "bg-white border border-slate-300 text-slate-700"
+                            ? 'bg-[#002D72] text-[#FFCC00]'
+                            : 'bg-white border border-slate-300 text-slate-700'
                         }`}
                       >
                         {v}
@@ -465,18 +451,18 @@ export default function InovacaoSimulators({
                     </label>
                     <div className="grid grid-cols-4 gap-1">
                       {[
-                        { id: "1", label: "1º (R$ 8k)" },
-                        { id: "2", label: "2º (R$ 5k)" },
-                        { id: "3", label: "3º (R$ 3k)" },
-                        { id: "nenhum", label: "Sem pódio" },
+                        { id: '1', label: '1º (R$ 8k)' },
+                        { id: '2', label: '2º (R$ 5k)' },
+                        { id: '3', label: '3º (R$ 3k)' },
+                        { id: 'nenhum', label: 'Sem pódio' },
                       ].map((opt) => (
                         <button
                           key={opt.id}
-                          onClick={() => setColocacaoGeral(opt.id as "1" | "2" | "3" | "nenhum")}
+                          onClick={() => setColocacaoGeral(opt.id as '1' | '2' | '3' | 'nenhum')}
                           className={`py-1.5 px-1 rounded text-[11px] font-bold transition cursor-pointer ${
                             colocacaoGeral === opt.id
-                              ? "bg-[#FFCC00] text-[#002D72]"
-                              : "bg-white/10 text-white hover:bg-white/20"
+                              ? 'bg-[#FFCC00] text-[#002D72]'
+                              : 'bg-white/10 text-white hover:bg-white/20'
                           }`}
                         >
                           {opt.label}
@@ -493,12 +479,10 @@ export default function InovacaoSimulators({
                       <button
                         onClick={() => setDestaqueArena(!destaqueArena)}
                         className={`px-3 py-1.5 rounded text-xs font-bold transition cursor-pointer shrink-0 ${
-                          destaqueArena
-                            ? "bg-emerald-500 text-slate-950"
-                            : "bg-white/10 text-white"
+                          destaqueArena ? 'bg-emerald-500 text-slate-950' : 'bg-white/10 text-white'
                         }`}
                       >
-                        {destaqueArena ? "✓ Venceu Arena (+R$ 2k)" : "Não venceu Arena"}
+                        {destaqueArena ? '✓ Venceu Arena (+R$ 2k)' : 'Não venceu Arena'}
                       </button>
                       <select
                         value={arenaSelecionada}
@@ -520,7 +504,7 @@ export default function InovacaoSimulators({
                     Prêmio Total Simulado ({arenaSelecionada}):
                   </div>
                   <div className="text-2xl font-black text-[#FFCC00]">
-                    R$ {premioTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    R$ {premioTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </div>
                 </div>
               </div>
@@ -529,7 +513,8 @@ export default function InovacaoSimulators({
 
           <div className="bg-amber-50/90 px-5 py-3 border-t border-amber-200 text-[11px] text-amber-950 flex items-center justify-between">
             <span>
-              <strong>Pegadinha histórica:</strong> Na v1.0.0 revogada o teto era R$ 5.000 sem arenas; na v2.0.0 chega a <strong>R$ 10.000,00</strong>!
+              <strong>Pegadinha histórica:</strong> Na v1.0.0 revogada o teto era R$ 5.000 sem
+              arenas; na v2.0.0 chega a <strong>R$ 10.000,00</strong>!
             </span>
           </div>
         </div>
@@ -546,7 +531,10 @@ export default function InovacaoSimulators({
               </div>
               <div>
                 <h3 className="font-bold text-base">
-                  Dashboard do Orçamento 2027 — R$ {regras.orcamento_total_2027.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  Dashboard do Orçamento 2027 — R${' '}
+                  {regras.orcamento_total_2027.toLocaleString('pt-BR', {
+                    minimumFractionDigits: 2,
+                  })}
                 </h3>
                 <p className="text-xs text-blue-100">
                   Composição oficial aprovada pela DIRAF na Nota Técnica NT_2026-021 v1.0.0
@@ -565,7 +553,7 @@ export default function InovacaoSimulators({
                   <span className="font-bold text-slate-800">{item.item}</span>
                   <div className="flex items-center gap-2">
                     <span className="font-extrabold text-[#002D72]">
-                      R$ {item.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                      R$ {item.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                     <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 w-14 text-right">
                       {item.participacao_pct}%
@@ -593,7 +581,9 @@ export default function InovacaoSimulators({
                 <div className="text-[10px] text-slate-600">Máx. 6 por Arena</div>
               </div>
               <div className="p-2.5 rounded-xl bg-blue-50/70 border border-blue-200/60">
-                <div className="text-[10px] font-bold uppercase text-slate-500">Liberação Horas</div>
+                <div className="text-[10px] font-bold uppercase text-slate-500">
+                  Liberação Horas
+                </div>
                 <div className="text-sm font-black text-[#002D72]">Até 4h / sem</div>
                 <div className="text-[10px] text-slate-600">Protótipo (TRL 4) e MVP</div>
               </div>
@@ -622,22 +612,20 @@ export default function InovacaoSimulators({
 
             <div className="p-5 space-y-3">
               {regras.ciclo_incentivo_fiscal.map((marco, i) => {
-                const isCritico = marco.data_fixa.includes("31 de março");
+                const isCritico = marco.data_fixa.includes('31 de março');
                 return (
                   <div
                     key={i}
                     className={`p-3.5 rounded-xl border-2 transition ${
                       isCritico
-                        ? "bg-amber-50 border-amber-500 shadow-sm"
-                        : "bg-slate-50 border-slate-200"
+                        ? 'bg-amber-50 border-amber-500 shadow-sm'
+                        : 'bg-slate-50 border-slate-200'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span
                         className={`text-xs font-extrabold px-2 py-0.5 rounded ${
-                          isCritico
-                            ? "bg-amber-500 text-slate-950"
-                            : "bg-[#002D72] text-white"
+                          isCritico ? 'bg-amber-500 text-slate-950' : 'bg-[#002D72] text-white'
                         }`}
                       >
                         {marco.data_fixa}
