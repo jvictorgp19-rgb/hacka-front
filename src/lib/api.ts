@@ -1,3 +1,4 @@
+import { createHttpGateway } from "@/services/http/client";
 import acervo from "@/data/acervo_estruturado_acme_bbts.json";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -217,6 +218,13 @@ export async function apiDocs(tema?: string) {
 
 // 3. /radar client
 export async function apiRadar(): Promise<{ data: RadarEvent[]; source: "fastapi" | "local_fallback" }> {
+  if (process.env.NEXT_PUBLIC_DATA_MODE === "api") {
+    const events = await createHttpGateway(process.env.NEXT_PUBLIC_API_URL || "").deadlines();
+    return { source: "fastapi", data: events.map(event => ({
+      id: event.id, dataLimite: event.date, titulo: event.title, documento: event.fact.citation.codigo,
+      responsavel: event.owner, criticidade: event.priority, detalhe: event.detail,
+    })) };
+  }
   return fetchWithFallback("/radar", { method: "GET" }, () => [
     {
       id: "rad-1",

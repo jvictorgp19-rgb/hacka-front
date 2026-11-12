@@ -549,7 +549,7 @@ nova permissão para tarefas rotineiras já autorizadas dentro do escopo.
 
 - [x] CP-00 — Preservação e linha de base
 - [x] CP-01 — Ambiente e validação mínima
-- [ ] CP-02 — Contratos e camada de serviços
+- [x] CP-02 — Contratos e camada de serviços
 - [ ] CP-03 — Demo independente e retirada do backend local
 - [ ] CP-04 — Sistema visual e estrutura de navegação
 - [ ] CP-05 — Acervo e envio de documentos
