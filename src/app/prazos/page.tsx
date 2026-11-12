@@ -1,2 +1,2 @@
-import { DeadlinesView } from "@/features/workspace/InitialViews";
-export default function Page() { return <DeadlinesView/>; }
+import Deadlines from "@/features/deadlines/Deadlines";
+export default function Page() { return <Deadlines/>; }

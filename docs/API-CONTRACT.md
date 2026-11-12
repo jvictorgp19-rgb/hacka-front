@@ -14,6 +14,7 @@ Os endpoints retornam diretamente o DTO ou array descrito, sem envelope.
 | GET /analyses/evidence | — | Fact[] |
 | GET /conversations/messages?persona= | contexto de apresentação | Answer[] |
 | POST /conversations/messages | query, context (incluindo conversationId) | Answer |
+| GET /simulation-rules | — | SimulationRules (src/contracts/simulation.ts) |
 | GET /deadlines | — | Deadline[] |
 | GET /audit/findings | — | Finding[] |
 | GET /access-requests?persona= | contexto de apresentação; não autorização | AccessRequest[] |

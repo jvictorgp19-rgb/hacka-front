@@ -1,5 +1,6 @@
 "use client";
 
+import { rentalFine } from "@/features/simulators/calculations";
 import React, { useState } from "react";
 import { WifiOff, FileWarning, Scale, Building2, Receipt } from "lucide-react";
 
@@ -67,9 +68,7 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
 
   // Calculations for Simulator 2
   const isentoMultaRescisao = diaRescisao >= 91;
-  const multaRescisaoAplicavel = isentoMultaRescisao
-    ? regras.valores.multa_rescisao_a_partir_91_dia
-    : regras.valores.multa_rescisao_ate_90_dias;
+  const multaRescisaoAplicavel = rentalFine(diaRescisao, Math.round(regras.valores.multa_rescisao_ate_90_dias * 100)) / 100;
 
   const pctAditivo = Number(
     ((valorAditivoPretendido / regras.valores.valor_global_5_meses) * 100).toFixed(1)

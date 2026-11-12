@@ -1,3 +1,4 @@
+import { simulationSchema } from "@/contracts/simulation";
 import { z } from 'zod';
 import { ApiError, accessSchema, answerSchema, deadlineSchema, documentSchema, factSchema, feedbackSchema, findingSchema, identitySchema, recordSchema, uploadSchema } from '@/contracts/models';
 import type { AppGateway } from '@/services/gateway';
@@ -31,6 +32,7 @@ export function createHttpGateway(baseUrl: string, transport: typeof fetch = fet
   const post = <T>(path: string, schema: z.ZodType<T>, body: unknown, signal?: AbortSignal) => request(path, schema, { method: 'POST', body: JSON.stringify(body) }, signal);
   return {
     mode: 'api',
+    simulationRules: signal => request('/simulation-rules', simulationSchema, {}, signal),
     documents: signal => request('/documents', z.array(documentSchema), {}, signal),
     facts: signal => request('/analyses/evidence', z.array(factSchema), {}, signal),
     messages: (persona, signal) => request('/conversations/messages?persona=' + encodeURIComponent(persona), z.array(answerSchema), {}, signal),

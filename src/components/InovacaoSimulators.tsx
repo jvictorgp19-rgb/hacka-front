@@ -1,5 +1,6 @@
 "use client";
 
+import { approvalIndex, gamification } from "@/features/simulators/calculations";
 import React, { useState } from "react";
 import { Trophy, PieChart, ShieldAlert, CheckCircle2, Award, Coins, Lock } from "lucide-react";
 
@@ -67,23 +68,13 @@ export default function InovacaoSimulators({
   const [arenaSelecionada, setArenaSelecionada] = useState<string>(regras.arenas[0]);
 
   // Compute Alçada
-  let faixaAlcada = alcadasNg012[0];
-  let corAlcada = "emerald";
-  if (custoPrototipo > 120000) {
-    faixaAlcada = alcadasNg012[2];
-    corAlcada = "rose";
-  } else if (custoPrototipo > 18000) {
-    faixaAlcada = alcadasNg012[1];
-    corAlcada = "amber";
-  }
+  const faixaIndex = approvalIndex(Math.round(custoPrototipo * 100));
+  const faixaAlcada = alcadasNg012[faixaIndex];
+  const corAlcada = ["emerald", "amber", "rose"][faixaIndex];
 
   // Compute Gamificação Points
-  const ptsIdeia = ideiaElegivel ? 100 : 0;
   const ptsVotos = Math.min(5, Math.max(0, votosEmitidos)) * 10;
-  const ptsImersao = imersaoCompleta ? 150 : 0;
-  const ptsPrototipo = prototipoNoPrazo ? 300 : 0;
-  const ptsBanca = bancaFinal ? 200 : 0;
-  const totalPontos = ptsIdeia + ptsVotos + ptsImersao + ptsPrototipo + ptsBanca;
+  const totalPontos = gamification(ideiaElegivel, votosEmitidos, imersaoCompleta, prototipoNoPrazo, bancaFinal);
 
   // Compute Premiação Cumulativa
   const valorColocacao =

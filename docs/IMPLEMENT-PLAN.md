@@ -555,7 +555,7 @@ nova permissão para tarefas rotineiras já autorizadas dentro do escopo.
 - [x] CP-05 — Acervo e envio de documentos
 - [x] CP-06 — Conversas, citações e abstenção
 - [x] CP-07 — Perspectivas, visualizações e conflitos
-- [ ] CP-08 — Simuladores e radar
+- [x] CP-08 — Simuladores e radar
 - [ ] CP-09 — Resumo executivo por seleção
 - [ ] CP-10 — Histórico, reaproveitamento e avaliação
 - [ ] CP-11 — Curadoria e pedidos de acesso

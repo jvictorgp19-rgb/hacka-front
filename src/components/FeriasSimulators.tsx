@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Calculator, Users, CalendarClock, AlertTriangle, CheckCircle2, XCircle, Info, ShieldAlert } from "lucide-react";
+import { teamLimit, vacationTimeline, shiftDate } from "@/features/simulators/calculations";
 import MermaidFlowchart from "./MermaidFlowchart";
 
 interface FeriasSimulatorsProps {
@@ -67,32 +68,22 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
   const diasGozoEfetivo = querAbono && diasDireito > 0 ? diasDireito - diasAbonoMax : diasDireito;
 
   // Compute 30% team limit
-  const maxSimultaneos =
-    tamanhoEquipe <= 0
-      ? 0
-      : tamanhoEquipe <= 3
-      ? 1
-      : Math.floor(tamanhoEquipe * 0.3);
+  const maxSimultaneos = teamLimit(tamanhoEquipe);
 
   const vagasDisponiveis = Math.max(0, maxSimultaneos - jaAusentes);
   const podeAprovarNovo = jaAusentes + 1 <= maxSimultaneos;
 
   // Helper to compute exact dates from dataGozo for D-n (with NG_111 item 4.5 weekend/holiday anticipation on D-3)
-  const calcDataMarco = (offsetDays: number) => {
-    if (!dataGozo) return "";
-    const d = new Date(dataGozo + "T12:00:00");
-    d.setDate(d.getDate() + offsetDays);
-    if (offsetDays === -3) {
-      // Anticipate if Sunday (0), Saturday (6), or May 1st Holiday
-      while (
-        d.getDay() === 0 ||
-        d.getDay() === 6 ||
-        (d.getDate() === 1 && d.getMonth() === 4)
-      ) {
-        d.setDate(d.getDate() - 1);
-      }
-    }
-    return d.toLocaleDateString("pt-BR");
+  const calcDataMarco = (marco: string) => {
+    if (!dataGozo || diasGozoEfetivo <= 0) return "Sem gozo";
+    if (dataGozo < "2026-01-01" || dataGozo > "2028-12-31") return "Fora do calendário demo";
+    try {
+      if (marco.includes("D-19")) return new Date(shiftDate(dataGozo, -19) + "T12:00:00Z").toLocaleDateString("pt-BR", { timeZone: "UTC" });
+      const timeline = vacationTimeline(dataGozo, ["2026-05-01", "2027-05-01", "2028-05-01"], regras.antecedencia_minima_dias_corridos, undefined, undefined, diasGozoEfetivo);
+      const key = marco.includes("D-45") ? "request" : marco.includes("7 dias") ? "manager" : marco.includes("3 dias") ? "director" : marco.includes("D-35") ? "notice" : marco.includes("D-30") ? "signature" : marco.includes("D-20") ? "change" : marco.includes("D-19") ? "change" : marco.includes("D-3") ? "payment" : "return";
+      const value = timeline.find(m => m.id === key)?.date;
+      return value ? new Date(value + "T12:00:00Z").toLocaleDateString("pt-BR", { timeZone: "UTC" }) : "Consulte a fonte";
+    } catch { return "Data inválida"; }
   };
 
   return (
@@ -475,17 +466,7 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
           <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-9 gap-2.5">
             {regras.marcos_dn.map((m, idx) => {
               const isSelected = selectedMarcoIdx === idx;
-              // Map marco string to approximate day offset for live date preview
-              let offset: number | null = null;
-              if (m.marco.includes("D-45")) offset = -45;
-              else if (m.marco.includes("7 dias")) offset = -38;
-              else if (m.marco.includes("3 dias")) offset = -35;
-              else if (m.marco.includes("D-35")) offset = -35;
-              else if (m.marco.includes("D-30")) offset = -30;
-              else if (m.marco.includes("D-20")) offset = -20;
-              else if (m.marco.includes("D-19")) offset = -19;
-              else if (m.marco.includes("D-3")) offset = -3;
-              else if (m.marco.includes("D+1")) offset = 1;
+
 
               return (
                 <button
@@ -509,13 +490,13 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
                         {m.marco}
                       </span>
                     </div>
-                    {offset !== null && (
+                    {dataGozo && (
                       <div
                         className={`text-[10px] font-mono font-bold mb-1 ${
                           isSelected ? "text-amber-300" : "text-slate-500"
                         }`}
                       >
-                        📅 {calcDataMarco(offset)}
+                        📅 {calcDataMarco(m.marco)}
                       </div>
                     )}
                     <p

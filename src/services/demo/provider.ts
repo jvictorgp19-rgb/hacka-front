@@ -1,3 +1,4 @@
+import simulationSources from "./simulation-sources.json";
 import { ApiError, type AnalysisContext, type Answer } from '@/contracts/models';
 import type { AppGateway } from '@/services/gateway';
 import { demoDocuments, demoFacts, historicalVacationCitation } from './catalog';
@@ -37,6 +38,13 @@ export function demoAnswer(query: string, context: AnalysisContext): Answer {
 }
 export function createDemoGateway(): AppGateway {
   return {
+    simulationRules: async () => ({ advanceDays:45, absencePercent:30,
+      absenceTiers:[{max:5,days:30},{max:14,days:24},{max:23,days:18},{max:32,days:12}],
+      managerCapCents:1800000,directorCapCents:12000000,rentCents:365000,dailyDiscountCents:12167,
+      globalCents:1825000,fineThroughDay:90,
+      calendar:{from:'2026-01-01',to:'2028-12-31',complete:false,holidays:['2026-05-01','2027-05-01','2028-05-01'],description:'Calendário parcial da demonstração: fins de semana e 1º de maio. Feriados locais e outros feriados precisam de validação da unidade.'},
+      citations:[...demoFacts.map(f=>f.citation),...simulationSources],
+    }),
     mode: 'demo', documents: async () => demoDocuments, facts: async () => demoFacts,
     messages: async persona => readDemo().messages.filter(m => m.context.persona === persona),
     ask: async (query, context, signal) => { if (signal?.aborted) throw new ApiError('ABORTED', 'Consulta cancelada.'); const result = demoAnswer(query, context); writeDemo(state => ({ ...state, messages: [...state.messages, result] })); return result; },

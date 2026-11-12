@@ -1,5 +1,7 @@
+import type { SimulationRules } from "@/contracts/simulation";
 import type { AccessRequest, AnalysisContext, Answer, Deadline, DocumentVersion, Fact, Feedback, Finding, Identity, SavedRecord, UploadItem } from '@/contracts/models';
 export interface AppGateway {
+  simulationRules(signal?: AbortSignal): Promise<SimulationRules>;
   readonly mode: 'demo' | 'api';
   documents(signal?: AbortSignal): Promise<DocumentVersion[]>;
   facts(signal?: AbortSignal): Promise<Fact[]>;
