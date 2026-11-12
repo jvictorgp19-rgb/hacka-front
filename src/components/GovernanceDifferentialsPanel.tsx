@@ -2,50 +2,80 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  Zap,
-  Brain,
+  Radar,
+  Lock,
   Database,
-  ShieldAlert,
-  Mail,
+  TrendingUp,
   Send,
   CheckCircle2,
-  Lock,
-  TrendingUp,
-  Award,
-  Layers,
-  AlertTriangle,
   FileWarning,
-  ArrowRight,
+  Presentation,
+  Mail,
+  UserCheck,
+  ShieldCheck,
+  Award,
 } from "lucide-react";
-import { apiIngestAudit, IngestAuditFinding, RbacLevel } from "@/lib/api";
+import {
+  apiIngestAudit,
+  apiRadar,
+  apiAccessList,
+  IngestAuditFinding,
+  RadarEvent,
+  AccessRequestItem,
+  RbacLevel,
+} from "@/lib/api";
 
-export default function GovernanceDifferentialsPanel() {
-  const [activeTab, setActiveTab] = useState<"roi_eval" | "medalhao" | "email_agent">("roi_eval");
+export type GovernanceSubTab = "radar" | "acesso" | "medalhao" | "finops_ppt";
+
+interface GovernanceDifferentialsPanelProps {
+  initialSubTab?: GovernanceSubTab;
+  onSwitchPersona?: (personaId: string) => void;
+}
+
+export default function GovernanceDifferentialsPanel({
+  initialSubTab = "radar",
+  onSwitchPersona,
+}: GovernanceDifferentialsPanelProps) {
+  const [subTab, setSubTab] = useState<GovernanceSubTab>(initialSubTab);
+  const [radarEvents, setRadarEvents] = useState<RadarEvent[]>([]);
+  const [accessRequests, setAccessRequests] = useState<AccessRequestItem[]>([]);
   const [auditFindings, setAuditFindings] = useState<IngestAuditFinding[]>([]);
-  const [consultasMes, setConsultasMes] = useState<number>(2000);
-  const [minutosEconomizados, setMinutosEconomizados] = useState<number>(10);
-  const [custoHoraReais, setCustoHoraReais] = useState<number>(60);
 
-  // High-Water Mark interactive state
+  // Sub-tab (b) Access & Curated Response state
+  const [rbacStage, setRbacStage] = useState<"blocked" | "requested" | "curated_approved">(
+    "requested"
+  );
+  const [curatedResponseText, setCuratedResponseText] = useState<string>(
+    "Orientação Oficial Curada GGC #2026-89: Para cancelamento de férias a partir de D-19 por necessidade de serviço (autorizado pelo Diretor da área), o ressarcimento cobre despesas não reembolsáveis comprovadas em até 15 dias corridos, limitado a R$ 2.500,00 (NG_111 v3.0.0 item 4.9), pago na folha seguinte pela GFI sem expor dados salariais restritos."
+  );
+
+  // Sub-tab (c) High-Water Mark state
   const [selectedSourcesSigilo, setSelectedSourcesSigilo] = useState<RbacLevel[]>([
     "Pública",
     "Interna",
     "Restrita",
   ]);
 
-  // Email agent human-in-the-loop state
+  // Sub-tab (d) FinOps & PPT/Email state
+  const [consultasMes, setConsultasMes] = useState<number>(2000);
+  const [minutosEconomizados, setMinutosEconomizados] = useState<number>(10);
+  const [custoHoraReais, setCustoHoraReais] = useState<number>(60);
+  const [activeSlide, setActiveSlide] = useState<number>(1);
   const [emailApprovedSent, setEmailApprovedSent] = useState<boolean>(false);
 
   useEffect(() => {
-    apiIngestAudit().then((res) => setAuditFindings(res.data));
+    setSubTab(initialSubTab);
+  }, [initialSubTab]);
+
+  useEffect(() => {
+    apiRadar().then((r) => setRadarEvents(r.data));
+    apiAccessList().then((a) => setAccessRequests(a.data));
+    apiIngestAudit().then((i) => setAuditFindings(i.data));
   }, []);
 
-  // ROI Calculation: 2.000 consultas x 10 min x R$ 60/h = R$ 20.000/mês
   const horasEconomizadasMes = Number(((consultasMes * minutosEconomizados) / 60).toFixed(1));
   const economiaMensalReais = Math.round(horasEconomizadasMes * custoHoraReais);
-  const custoIaMensalEstimado = Math.round(consultasMes * 0.3 * 0.004); // 70% deterministic R$0, 30% RAG ~R$0,004
 
-  // High-Water Mark contamination calculation
   const hierarchyOrder: RbacLevel[] = ["Pública", "Interna", "Restrita", "Sigilosa"];
   const highestSigilo = selectedSourcesSigilo.reduce<RbacLevel>((acc, curr) => {
     return hierarchyOrder.indexOf(curr) > hierarchyOrder.indexOf(acc) ? curr : acc;
@@ -62,321 +92,257 @@ export default function GovernanceDifferentialsPanel() {
   };
 
   return (
-    <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      {/* Header & Navigation Tabs */}
-      <div className="bg-gradient-to-r from-slate-900 via-[#002D72] to-slate-900 text-white px-5 py-4 flex flex-wrap items-center justify-between gap-3 border-b border-blue-900">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded bg-[#FFCC00] text-[#002D72] text-[10px] font-black uppercase tracking-wider">
-              Iteração 3 • Raiz IQ / Zero-Click
+    <div className="space-y-6">
+      {/* Clean Sub-navigation Header */}
+      <div className="bg-white rounded-xl border border-[#E2E8F0] p-6 shadow-2xs">
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-[#E2E8F0]">
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#0038A8]">
+              Governança Corporativa & Conformidade
             </span>
-            <h2 className="font-extrabold text-base">
-              Diferenciais de Governança, Roteador de Custo, Auditor Medalhão & Agente Proativo
+            <h2 className="text-xl font-bold text-[#002D72] mt-0.5">
+              Central de Radar, Data Mesh, Auditoria Medalhão e FinOps
             </h2>
           </div>
-          <p className="text-xs text-blue-200 mt-0.5">
-            Seções 1, 4, 5 e 6 da Proposta Oficial: FinOps determinístico, auditoria de anacronismos nos PDFs e Human-in-the-Loop
-          </p>
+
+          {/* 4 Clean Sub-tabs */}
+          <div className="flex flex-wrap gap-2">
+            {[
+              { id: "radar", label: "a) Radar de Prazos", icon: Radar },
+              { id: "acesso", label: "b) Acesso & Resposta Curada", icon: Lock },
+              { id: "medalhao", label: "c) Auditor & Medalhão", icon: Database },
+              { id: "finops_ppt", label: "d) FinOps & Resumo Executivo", icon: TrendingUp },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isSelected = subTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setSubTab(tab.id as GovernanceSubTab)}
+                  className={`px-4 py-2 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-2 border ${
+                    isSelected
+                      ? "bg-[#0038A8] text-white border-[#002D72] shadow-2xs"
+                      : "bg-[#F8FAFC] hover:bg-slate-100 text-slate-700 border-[#E2E8F0]"
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${isSelected ? "text-[#F8D117]" : "text-[#0038A8]"}`} />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        <div className="flex flex-wrap gap-1.5">
-          <button
-            onClick={() => setActiveTab("roi_eval")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition cursor-pointer flex items-center gap-1.5 ${
-              activeTab === "roi_eval"
-                ? "bg-[#FFCC00] text-[#002D72] shadow-xs"
-                : "bg-white/10 hover:bg-white/20 text-white"
-            }`}
-          >
-            <TrendingUp className="w-3.5 h-3.5" />
-            1. Roteador de Custo, ROI (R$ 20k/mês) & Eval FAQ (~30)
-          </button>
+        {/* SUB-ABA (A): RADAR DE PRAZOS */}
+        {subTab === "radar" && (
+          <div className="pt-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-slate-600">
+                Monitoramento proativo de marcos contratuais (`CTR_2026-012`), travas fiscais (`PX_1130-001`) e janelas operacionais:
+              </p>
+              <span className="text-xs font-medium text-slate-500">
+                ⚡ Custo: R$ 0,00 (Motor Determinístico)
+              </span>
+            </div>
 
-          <button
-            onClick={() => setActiveTab("medalhao")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition cursor-pointer flex items-center gap-1.5 ${
-              activeTab === "medalhao"
-                ? "bg-[#FFCC00] text-[#002D72] shadow-xs"
-                : "bg-white/10 hover:bg-white/20 text-white"
-            }`}
-          >
-            <Database className="w-3.5 h-3.5" />
-            2. Auditor do Acervo & Medalhão (Bronze → Silver → Gold)
-          </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {radarEvents.map((ev) => (
+                <div
+                  key={ev.id}
+                  className="p-5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col justify-between space-y-3"
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-bold text-[#0038A8] bg-blue-50 px-2.5 py-1 rounded border border-blue-100">
+                        📅 {ev.dataLimite}
+                      </span>
+                      <span
+                        className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${
+                          ev.criticidade === "Crítica"
+                            ? "bg-amber-100 text-amber-900"
+                            : "bg-slate-200 text-slate-700"
+                        }`}
+                      >
+                        Prioridade {ev.criticidade}
+                      </span>
+                    </div>
+                    <h3 className="text-sm font-bold text-slate-900 mt-3">{ev.titulo}</h3>
+                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">{ev.detalhe}</p>
+                  </div>
 
-          <button
-            onClick={() => setActiveTab("email_agent")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition cursor-pointer flex items-center gap-1.5 ${
-              activeTab === "email_agent"
-                ? "bg-[#FFCC00] text-[#002D72] shadow-xs"
-                : "bg-white/10 hover:bg-white/20 text-white"
-            }`}
-          >
-            <Mail className="w-3.5 h-3.5" />
-            3. Agente de E-mail Semanal (Human-in-the-Loop)
-          </button>
-        </div>
-      </div>
+                  <div className="pt-3 border-t border-[#E2E8F0] flex items-center justify-between text-xs text-slate-500">
+                    <span>Fonte: <strong className="text-slate-700">{ev.documento}</strong></span>
+                    <span>Responsável: <strong className="text-[#002D72]">{ev.responsavel}</strong></span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-      <div className="p-5">
-        {/* TAB 1: ROTEADOR DE CUSTO, ROI & PLACAR DE AVALIAÇÃO ~30 PERGUNTAS DO FAQ */}
-        {activeTab === "roi_eval" && (
-          <div className="space-y-5">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-              {/* Cost Router + ROI Simulator (7 cols) */}
-              <div className="lg:col-span-7 p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="text-sm font-black text-[#002D72] uppercase tracking-wider flex items-center gap-1.5">
-                    <Zap className="w-4 h-4 text-amber-500" />
-                    Roteador Híbrido de Custo & Calculadora de ROI Executivo
-                  </h3>
-                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                    Economia Mensal: R$ {economiaMensalReais.toLocaleString("pt-BR")},00/mês
+        {/* SUB-ABA (B): PEDIDOS DE ACESSO & RESPOSTA CURADA (DATA MESH) */}
+        {subTab === "acesso" && (
+          <div className="pt-6 space-y-6">
+            <p className="text-sm text-slate-600">
+              Fluxo de Governança Data Mesh: quando um documento possui restrição RBAC, o dono do domínio (`GGC` / `NIN`) responde via <strong>Resposta Curada</strong> sem abrir o PDF restrito original.
+            </p>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+              {/* Step 1 */}
+              <div className="p-5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#002D72] flex items-center gap-1.5">
+                    <Lock className="w-4 h-4 text-[#0038A8]" /> 1. Solicitação RBAC
+                  </span>
+                  <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200">
+                    Nível: Restrita
                   </span>
                 </div>
-
-                {/* Live Cost Badges Comparison */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="p-3 rounded-xl bg-emerald-50 border-2 border-emerald-500/40">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-extrabold text-emerald-900 flex items-center gap-1">
-                        ⚡ Custo: R$ 0,00
-                      </span>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-200 text-emerald-950">
-                        ~70% das consultas
-                      </span>
+                {accessRequests[0] && (
+                  <div className="text-xs text-slate-600 space-y-1.5">
+                    <div>
+                      <strong>Solicitante:</strong> {accessRequests[0].solicitante}
                     </div>
-                    <div className="text-xs font-bold text-slate-900 mt-1">
-                      Calculadora Determinística / Cache Zero-Click
+                    <div>
+                      <strong>Dono do Domínio:</strong> {accessRequests[0].dominioDono}
                     </div>
-                    <p className="text-[11px] text-slate-600 mt-0.5">
-                      Prazos D-n, faltas x férias, teto de 30% da equipe, glosa de R$ 121,67/dia, alçadas NG_012 e multa rescisória rodam em código puro sem gastar tokens.
+                    <p className="p-3 rounded-lg bg-white border border-[#E2E8F0] text-slate-700">
+                      &ldquo;{accessRequests[0].perguntaOriginal}&rdquo;
                     </p>
                   </div>
-
-                  <div className="p-3 rounded-xl bg-blue-50 border-2 border-[#002D72]/30">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-extrabold text-[#002D72] flex items-center gap-1">
-                        🧠 Custo: ~R$ 0,004
-                      </span>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-200 text-[#002D72]">
-                        ~30% das consultas
-                      </span>
-                    </div>
-                    <div className="text-xs font-bold text-slate-900 mt-1">
-                      RAG + LLM com Guardrail de Abstenção
-                    </div>
-                    <p className="text-[11px] text-slate-600 mt-0.5">
-                      Acionado apenas para perguntas abertas, síntese de slides executivos e cruzamento textual na Camada Gold.
-                    </p>
-                  </div>
-                </div>
-
-                {/* ROI Sliders */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                  <div className="p-2.5 rounded-lg bg-white border border-slate-200">
-                    <label className="text-[11px] font-bold text-slate-600 block">
-                      Consultas/mês: <strong className="text-[#002D72]">{consultasMes}</strong>
-                    </label>
-                    <input
-                      type="range"
-                      min={500}
-                      max={5000}
-                      step={250}
-                      value={consultasMes}
-                      onChange={(e) => setConsultasMes(parseInt(e.target.value))}
-                      className="w-full accent-[#002D72] mt-1 cursor-pointer"
-                    />
-                  </div>
-                  <div className="p-2.5 rounded-lg bg-white border border-slate-200">
-                    <label className="text-[11px] font-bold text-slate-600 block">
-                      Tempo poupado: <strong className="text-[#002D72]">{minutosEconomizados} min/consulta</strong>
-                    </label>
-                    <input
-                      type="range"
-                      min={5}
-                      max={25}
-                      step={1}
-                      value={minutosEconomizados}
-                      onChange={(e) => setMinutosEconomizados(parseInt(e.target.value))}
-                      className="w-full accent-[#002D72] mt-1 cursor-pointer"
-                    />
-                  </div>
-                  <div className="p-2.5 rounded-lg bg-white border border-slate-200">
-                    <label className="text-[11px] font-bold text-slate-600 block">
-                      Custo médio hora: <strong className="text-[#002D72]">R$ {custoHoraReais}/h</strong>
-                    </label>
-                    <input
-                      type="range"
-                      min={40}
-                      max={120}
-                      step={5}
-                      value={custoHoraReais}
-                      onChange={(e) => setCustoHoraReais(parseInt(e.target.value))}
-                      className="w-full accent-[#002D72] mt-1 cursor-pointer"
-                    />
-                  </div>
-                </div>
-
-                <div className="p-3 rounded-xl bg-[#002D72] text-white flex flex-wrap items-center justify-between gap-2 text-xs">
-                  <span>
-                    📊 <strong>Fórmula de ROI:</strong> {consultasMes.toLocaleString("pt-BR")} consultas ×{" "}
-                    {minutosEconomizados} min ({horasEconomizadasMes}h) × R$ {custoHoraReais}/h
-                  </span>
-                  <span className="text-sm font-black text-[#FFCC00]">
-                    = R$ {economiaMensalReais.toLocaleString("pt-BR")},00 / mês poupados (Custo IA: ~R${" "}
-                    {custoIaMensalEstimado},00)
-                  </span>
-                </div>
+                )}
+                <button
+                  onClick={() => {
+                    setRbacStage("requested");
+                    onSwitchPersona?.("curadora_ggc");
+                  }}
+                  className="w-full py-2 rounded-lg bg-[#0038A8] hover:bg-[#002D72] text-white font-semibold text-xs transition cursor-pointer"
+                >
+                  Alternar para Visão da Curadora GGC
+                </button>
               </div>
 
-              {/* Placar de Avaliação de ~30 Perguntas do FAQ (5 cols) */}
-              <div className="lg:col-span-5 p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-3">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                      <Award className="w-4 h-4 text-[#002D72]" />
-                      Placar de Avaliação — Suíte Golden FAQ (30 Perguntas)
-                    </h3>
-                    <span className="px-2 py-0.5 rounded bg-emerald-600 text-white text-xs font-extrabold">
-                      30 / 30 (100%)
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-600 mb-3">
-                    Bateria automatizada sobre os 11 documentos vigentes + 3 revogados do Desafio 2:
-                  </p>
-
-                  <div className="space-y-2 text-xs">
-                    {[
-                      {
-                        cat: "Precisão de Citação Vigente (Série 1, 11 e Contratos)",
-                        score: "12 / 12",
-                        pct: 100,
-                        det: "100% apontam NG_111 v3.0.0, RG_1100 v2.0.0 e CTR_2026-012",
-                      },
-                      {
-                        cat: "Bloqueio de Versões Substituídas (Pegadinhas v2.0/v1.0)",
-                        score: "6 / 6",
-                        pct: 100,
-                        det: "Zero contaminação por NG_111 v2.0.0 (30d) ou RG_1100 v1.0.0 (3 ideias)",
-                      },
-                      {
-                        cat: "Exatidão Matemática (Faltas, 30% Equipe, Glosa R$ 121,67)",
-                        score: "7 / 7",
-                        pct: 100,
-                        det: "Execução determinística sem erro de arredondamento",
-                      },
-                      {
-                        cat: "Abstenção Honesta & Controle RBAC (Sem Alucinação)",
-                        score: "5 / 5",
-                        pct: 100,
-                        det: "Recusa inventar rateio de prêmio em equipe e aciona o NIN/GGC",
-                      },
-                    ].map((row, idx) => (
-                      <div key={idx} className="p-2.5 rounded-lg bg-white border border-slate-200">
-                        <div className="flex items-center justify-between font-bold text-slate-800">
-                          <span>{row.cat}</span>
-                          <span className="text-emerald-700">{row.score}</span>
-                        </div>
-                        <div className="text-[11px] text-slate-500 mt-0.5">{row.det}</div>
-                      </div>
-                    ))}
-                  </div>
+              {/* Step 2 */}
+              <div className="p-5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#002D72] flex items-center gap-1.5">
+                    <UserCheck className="w-4 h-4 text-[#0038A8]" /> 2. Emissão de Resposta Curada
+                  </span>
+                  <span className="text-[11px] text-slate-500">PDF mantido fechado</span>
                 </div>
+                <textarea
+                  rows={4}
+                  value={curatedResponseText}
+                  onChange={(e) => setCuratedResponseText(e.target.value)}
+                  className="w-full text-xs p-3 rounded-lg border border-[#E2E8F0] bg-white text-slate-800 focus:outline-none focus:border-[#0038A8]"
+                />
+                <button
+                  onClick={() => setRbacStage("curated_approved")}
+                  className="w-full py-2.5 rounded-lg bg-[#F8D117] hover:bg-[#FFCC00] text-[#002D72] font-bold text-xs transition cursor-pointer"
+                >
+                  Aprovar via RESPOSTA CURADA
+                </button>
+              </div>
+
+              {/* Step 3 */}
+              <div className="p-5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#002D72] flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" /> 3. Trilha de Auditoria
+                  </span>
+                  <span className="text-[11px] font-medium text-emerald-700">Imutável</span>
+                </div>
+                {rbacStage === "curated_approved" ? (
+                  <div className="space-y-2 text-xs">
+                    <div className="p-3 rounded-lg bg-white border border-emerald-200 text-slate-700 space-y-1">
+                      <div className="font-bold text-emerald-800">
+                        Protocolo #AUD-2026-991 • Aprovado
+                      </div>
+                      <div> Aprovadora: Curadora da GGC</div>
+                      <div> Modalidade: Resposta Curada (Sem exposição de folha)</div>
+                    </div>
+                    <p className="text-xs text-slate-600 bg-white p-3 rounded-lg border border-[#E2E8F0]">
+                      {curatedResponseText}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-500 py-8 text-center">
+                    Clique em &ldquo;Aprovar via RESPOSTA CURADA&rdquo; para registrar na trilha de auditoria.
+                  </p>
+                )}
               </div>
             </div>
           </div>
         )}
 
-        {/* TAB 2: AUDITOR DO ACERVO & ARQUITETURA MEDALHÃO (BRONZE -> SILVER -> GOLD) + HIGH-WATER MARK */}
-        {activeTab === "medalhao" && (
-          <div className="space-y-5">
-            {/* Medallion Pipeline Visual */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div className="p-3.5 rounded-xl bg-amber-900/10 border-2 border-amber-700/30">
-                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-amber-800 text-white">
-                  1. Camada Bronze (Ingestão Bruta)
-                </span>
-                <div className="text-xs font-bold text-slate-900 mt-1.5">
-                  14 PDFs Originais (11 Vigentes + 3 Substituídos)
+        {/* SUB-ABA (C): AUDITOR DO ACERVO & ARQUITETURA MEDALHÃO */}
+        {subTab === "medalhao" && (
+          <div className="pt-6 space-y-6">
+            {/* Clean 3-Layer Medallion Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[
+                {
+                  camada: "Camada Bronze",
+                  sub: "Ingestão Bruta Imutável",
+                  desc: "Armazena os 14 PDFs originais em docs_acervo/vigentes e docs_acervo/substituidos.",
+                },
+                {
+                  camada: "Camada Silver",
+                  sub: "Validação, Desambiguação & Quarentena",
+                  desc: "Verifica o campo vinculado_a (NG_010), isola versões substituídas e aponta anacronismos de datas.",
+                },
+                {
+                  camada: "Camada Gold",
+                  sub: " Acervo Estruturado & Simuladores",
+                  desc: "Disponibiliza o JSON oficial auditado para as calculadoras determinísticas e Co-Piloto.",
+                },
+              ].map((c, idx) => (
+                <div key={idx} className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                  <span className="text-xs font-bold text-[#0038A8]">{c.camada}</span>
+                  <div className="text-sm font-bold text-slate-900 mt-0.5">{c.sub}</div>
+                  <p className="text-xs text-slate-600 mt-1">{c.desc}</p>
                 </div>
-                <p className="text-[11px] text-slate-600 mt-0.5">
-                  Preserva o binário imutável em <code className="font-bold">docs_acervo/</code> e extrai cabeçalhos brutos.
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-slate-100 border-2 border-slate-400/50">
-                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-slate-700 text-white">
-                  2. Camada Silver (Validação & Quarentena)
-                </span>
-                <div className="text-xs font-bold text-slate-900 mt-1.5">
-                  Desambiguação NG_010 + Quarentena de Revogados
-                </div>
-                <p className="text-[11px] text-slate-600 mt-0.5">
-                  Resolve <code className="font-bold">vinculado_a</code>, isola versões com{" "}
-                  <code className="font-bold">vigente: false</code> e audita datas cruzadas.
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-amber-50 border-2 border-[#FFCC00]">
-                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-[#002D72] text-[#FFCC00]">
-                  3. Camada Gold (JSON Curado & Simuladores)
-                </span>
-                <div className="text-xs font-bold text-slate-900 mt-1.5">
-                  Catálogo Auditado + Regras Determinísticas + RBAC
-                </div>
-                <p className="text-[11px] text-slate-600 mt-0.5">
-                  Alimenta os cards Zero-Click, calculadoras de custo R$ 0,00 e Co-Piloto RAG.
-                </p>
-              </div>
+              ))}
             </div>
 
-            {/* Real Temporal Inconsistencies Detected in PDFs + High-Water Mark Simulator */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-              <div className="lg:col-span-7 space-y-2.5">
-                <h3 className="text-xs font-black uppercase tracking-wider text-rose-800 flex items-center gap-1.5">
-                  <FileWarning className="w-4 h-4" />
-                  Achados Reais do Auditor de Ingestão nos PDFs do Desafio 2:
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Temporal Inconsistencies */}
+              <div className="lg:col-span-7 space-y-3">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                  <FileWarning className="w-4 h-4 text-[#0038A8]" />
+                  Inconsistências Temporais Reais Detectadas nos PDFs:
                 </h3>
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   {auditFindings.map((f) => (
                     <div
                       key={f.id}
-                      className="p-3 rounded-xl bg-amber-50/70 border border-amber-300 text-xs space-y-1"
+                      className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-xs space-y-1"
                     >
-                      <div className="flex flex-wrap items-center justify-between gap-1">
-                        <span className="font-extrabold text-slate-900">
-                          [{f.id}] {f.severidade}: {f.documentosEnvolvidos.join(" ↔ ")}
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-[#002D72]">
+                          {f.severidade}: {f.documentosEnvolvidos.join(" ↔ ")}
                         </span>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-[#FFCC00]">
-                          {f.camada}
-                        </span>
+                        <span className="text-[11px] text-slate-500">{f.camada}</span>
                       </div>
-                      <p className="text-slate-700 leading-snug">{f.descricao}</p>
-                      <div className="text-[11px] font-semibold text-[#002D72]">
-                        ↳ Tratamento Medalhão: {f.acaoRecomendada}
+                      <p className="text-slate-600 leading-relaxed">{f.descricao}</p>
+                      <div className="text-slate-800 font-medium pt-1">
+                        Tratamento: {f.acaoRecomendada}
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Regra de Contaminação de Sigilo (High-Water Mark) */}
-              <div className="lg:col-span-5 p-4 rounded-xl bg-slate-900 text-white flex flex-col justify-between space-y-4">
+              {/* High-Water Mark Simulator */}
+              <div className="lg:col-span-5 p-5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col justify-between space-y-4">
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-black uppercase tracking-wider text-[#FFCC00] flex items-center gap-1.5">
-                      <Lock className="w-4 h-4" />
-                      Contaminação de Sigilo (High-Water Mark)
-                    </span>
+                  <div className="text-xs font-bold uppercase tracking-wider text-[#002D72] flex items-center gap-1.5">
+                    <Lock className="w-4 h-4 text-[#0038A8]" />
+                    Regra de Contaminação de Sigilo (High-Water Mark)
                   </div>
-                  <p className="text-xs text-slate-300 leading-relaxed">
-                    Quando uma resposta combina múltiplos documentos, o nível de sigilo do output herda obrigatoriamente o <strong>maior grau de restrição</strong> entre as fontes utilizadas:
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Ao combinar documentos de diferentes níveis, a resposta herda automaticamente o maior grau de sigilo:
                   </p>
-
-                  <div className="text-[11px] font-bold text-blue-200">
-                    Selecione as fontes combinadas na resposta para testar:
-                  </div>
                   <div className="grid grid-cols-2 gap-2">
                     {hierarchyOrder.map((lvl) => {
                       const active = selectedSourcesSigilo.includes(lvl);
@@ -384,13 +350,13 @@ export default function GovernanceDifferentialsPanel() {
                         <button
                           key={lvl}
                           onClick={() => toggleSigiloSource(lvl)}
-                          className={`p-2 rounded-lg text-xs font-bold border transition cursor-pointer flex items-center justify-between ${
+                          className={`p-2.5 rounded-lg text-xs font-semibold border transition cursor-pointer flex items-center justify-between ${
                             active
-                              ? "bg-[#FFCC00] text-[#002D72] border-[#FFCC00]"
-                              : "bg-white/5 text-slate-300 border-white/15"
+                              ? "bg-[#0038A8] text-white border-[#002D72]"
+                              : "bg-white text-slate-600 border-[#E2E8F0]"
                           }`}
                         >
-                          <span>Fonte: {lvl}</span>
+                          <span>{lvl}</span>
                           <span>{active ? "✓" : "+"}</span>
                         </button>
                       );
@@ -398,15 +364,13 @@ export default function GovernanceDifferentialsPanel() {
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-white/10 border border-white/20">
-                  <div className="text-[10px] font-bold uppercase text-blue-200">
-                    Classificação Resultante da Resposta Combinada:
+                <div className="p-4 rounded-lg bg-white border border-[#E2E8F0]">
+                  <div className="text-[11px] text-slate-500">Nível Resultante Aplicado:</div>
+                  <div className="text-lg font-bold text-[#002D72] mt-0.5">
+                    Sigilo: {highestSigilo}
                   </div>
-                  <div className="text-xl font-black text-[#FFCC00] mt-0.5">
-                    🔒 Nível: {highestSigilo.toUpperCase()}
-                  </div>
-                  <div className="text-[11px] text-slate-300 mt-1">
-                    Escala: Pública → Interna → Restrita → Sigilosa
+                  <div className="text-[11px] text-slate-400 mt-0.5">
+                    Pública → Interna → Restrita → Sigilosa
                   </div>
                 </div>
               </div>
@@ -414,72 +378,195 @@ export default function GovernanceDifferentialsPanel() {
           </div>
         )}
 
-        {/* TAB 3: PREVIEW DO AGENTE DE E-MAIL INSTITUCIONAL ("O AGENTE SUGERE E O HUMANO ENVIA") */}
-        {activeTab === "email_agent" && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
-            <div className="lg:col-span-8 p-4 rounded-xl bg-slate-50 border-2 border-slate-200 space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200">
-                <div>
-                  <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-[#002D72] text-[#FFCC00]">
-                    Rascunho Gerado pelo Radar D-n
-                  </span>
-                  <h3 className="text-sm font-extrabold text-slate-900 mt-1">
-                    Assunto: [Resumo Semanal de Prazos BBTS/ACME] — Ações Críticas (Semana de Março/2027)
+        {/* SUB-ABA (D): FINOPS, PLACAR FAQ & RESUMO EXECUTIVO (PPT / E-MAIL) */}
+        {subTab === "finops_ppt" && (
+          <div className="pt-6 space-y-6">
+            {/* Row 1: ROI & Golden FAQ */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="p-5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-[#002D72]">
+                    Roteador de Custo & Calculadora de ROI
                   </h3>
+                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">
+                    Economia: R$ {economiaMensalReais.toLocaleString("pt-BR")},00/mês
+                  </span>
                 </div>
-                <span className="px-2.5 py-1 rounded-full bg-amber-100 border border-amber-400 text-amber-950 text-xs font-extrabold">
-                  🛡️ O agente sugere e o humano envia
-                </span>
+
+                <div className="grid grid-cols-3 gap-3 text-xs">
+                  <div className="p-3 rounded-lg bg-white border border-[#E2E8F0]">
+                    <span className="text-slate-500 block">Consultas/mês</span>
+                    <strong className="text-sm text-slate-900">{consultasMes}</strong>
+                    <input
+                      type="range"
+                      min={500}
+                      max={5000}
+                      step={250}
+                      value={consultasMes}
+                      onChange={(e) => setConsultasMes(parseInt(e.target.value))}
+                      className="w-full accent-[#0038A8] mt-1 cursor-pointer"
+                    />
+                  </div>
+                  <div className="p-3 rounded-lg bg-white border border-[#E2E8F0]">
+                    <span className="text-slate-500 block">Minutos poupados</span>
+                    <strong className="text-sm text-slate-900">{minutosEconomizados} min</strong>
+                    <input
+                      type="range"
+                      min={5}
+                      max={25}
+                      value={minutosEconomizados}
+                      onChange={(e) => setMinutosEconomizados(parseInt(e.target.value))}
+                      className="w-full accent-[#0038A8] mt-1 cursor-pointer"
+                    />
+                  </div>
+                  <div className="p-3 rounded-lg bg-white border border-[#E2E8F0]">
+                    <span className="text-slate-500 block">Valor Hora</span>
+                    <strong className="text-sm text-slate-900">R$ {custoHoraReais}/h</strong>
+                    <input
+                      type="range"
+                      min={40}
+                      max={120}
+                      step={5}
+                      value={custoHoraReais}
+                      onChange={(e) => setCustoHoraReais(parseInt(e.target.value))}
+                      className="w-full accent-[#0038A8] mt-1 cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+                <div className="text-xs text-slate-600 flex justify-between pt-2 border-t border-[#E2E8F0]">
+                  <span>⚡ Calculadora Determinística: <strong>R$ 0,00</strong></span>
+                  <span>🧠 Consulta RAG + LLM: <strong>~R$ 0,004</strong></span>
+                </div>
               </div>
 
-              <div className="text-xs text-slate-700 space-y-2 bg-white p-3.5 rounded-lg border border-slate-200 leading-relaxed">
-                <p>
-                  <strong>Para:</strong> Comitê Gestor (GGC, GOC, GCO, NIN e DIRAF)
-                </p>
-                <ul className="list-disc pl-5 space-y-1.5">
-                  <li>
-                    <strong>[21/03/2027 • D-45 Férias — Série 1]:</strong> Prazo final para solicitação formal no Portal Raiz (`FM_1111-001 v2.0.0`) referente a férias iniciando em 05/05/2027 (`NG_111 v3.0.0`).
-                  </li>
-                  <li>
-                    <strong>[26/03/2027 • Ideias em Campo — Série 11]:</strong> Encerramento da Fase 3 (Votação Interna — seleção de 20 ideias, máx. 6 por arena | `RG_1100 v2.0.0`).
-                  </li>
-                  <li>
-                    <strong>[30/03/2027 • Contrato Coworking — CTR_2026-012]:</strong> Data-limite (D-30 do vencimento) para a GOC/GCO formalizar pedido de prorrogação contratual. *Nota: rescisão em março/2027 já está isenta de multa (a partir do 91º dia em 28/02/2027).*
-                  </li>
-                  <li>
-                    <strong>[31/03/2027 • TRAVA CRÍTICA — PX_1130-001]:</strong> Data-limite improrrogável para NIN e DIRAF consolidarem o relatório técnico-financeiro de incentivo fiscal.
-                  </li>
-                </ul>
-                <p className="text-[11px] text-slate-500 pt-1 border-t border-slate-100">
-                  <em>Nota Legal Design: Em caso de divergência, prevalece o documento oficial vigente no Portal Raiz.</em>
-                </p>
+              <div className="p-5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-[#002D72] flex items-center gap-1.5">
+                    <Award className="w-4 h-4 text-[#0038A8]" />
+                    Avaliação Golden FAQ (~30 Perguntas do Desafio 2)
+                  </h3>
+                  <span className="text-xs font-bold text-[#0038A8]">30 / 30 (100%)</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2.5 text-xs">
+                  <div className="p-3 rounded-lg bg-white border border-[#E2E8F0]">
+                    <div className="font-bold text-slate-800">Citações Vigentes</div>
+                    <div className="text-slate-500 mt-0.5">12/12 precisas (Série 1, 11 e CTR)</div>
+                  </div>
+                  <div className="p-3 rounded-lg bg-white border border-[#E2E8F0]">
+                    <div className="font-bold text-slate-800">Trava de Revogados</div>
+                    <div className="text-slate-500 mt-0.5">6/6 bloqueios (v2.0 e v1.0)</div>
+                  </div>
+                  <div className="p-3 rounded-lg bg-white border border-[#E2E8F0]">
+                    <div className="font-bold text-slate-800">Cálculo Determinístico</div>
+                    <div className="text-slate-500 mt-0.5">7/7 exatos (D-n, 30%, Glosa)</div>
+                  </div>
+                  <div className="p-3 rounded-lg bg-white border border-[#E2E8F0]">
+                    <div className="font-bold text-slate-800">Abstenção & RBAC</div>
+                    <div className="text-slate-500 mt-0.5">5/5 encaminhados ao NIN/GGC</div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="lg:col-span-4 p-4 rounded-xl bg-blue-50/70 border border-blue-200 space-y-3">
-              <div className="text-xs font-black uppercase text-[#002D72]">
-                Governança Human-in-the-Loop
-              </div>
-              <p className="text-xs text-slate-700 leading-relaxed">
-                Nenhum disparo institucional ocorre de forma autônoma sem validação humana. O responsável revisa as citações normativas e autoriza o envio:
-              </p>
-              <button
-                onClick={() => setEmailApprovedSent(true)}
-                className="w-full py-2.5 px-4 rounded-xl bg-[#002D72] hover:bg-[#003c96] text-[#FFCC00] font-extrabold text-xs flex items-center justify-center gap-2 cursor-pointer transition shadow-xs"
-              >
-                <Send className="w-4 h-4" />
-                Revisar e Disparar Resumo Semanal
-              </button>
-              {emailApprovedSent && (
-                <div className="p-2.5 rounded-lg bg-emerald-100 border border-emerald-300 text-emerald-950 text-xs font-bold flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
-                  Disparo autorizado pelo humano e registrado na trilha de auditoria!
+            {/* Row 2: PPT Preview & Weekly Email Agent */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Executive PPT Preview */}
+              <div className="p-5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#002D72] flex items-center gap-1.5">
+                    <Presentation className="w-4 h-4 text-[#0038A8]" />
+                    Gerador PPT — Ideias em Campo 2027
+                  </span>
+                  <div className="flex gap-1">
+                    {[1, 2, 3].map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => setActiveSlide(s)}
+                        className={`px-2.5 py-1 rounded text-xs font-semibold cursor-pointer ${
+                          activeSlide === s
+                            ? "bg-[#0038A8] text-white"
+                            : "bg-white text-slate-600 border border-[#E2E8F0]"
+                        }`}
+                      >
+                        Slide {s}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              )}
+
+                <div className="p-4 rounded-lg bg-white border border-[#E2E8F0] text-xs space-y-2">
+                  {activeSlide === 1 && (
+                    <>
+                      <div className="font-bold text-slate-900">
+                        Slide 1: Orçamento 2027 (R$ 96.000,00)
+                      </div>
+                      <p className="text-slate-600">
+                        Kits Prototipagem R$ 36.000 (37,5%) • Imersão R$ 30.000 (31,3%) • Prêmios Colocação R$ 16.000 (16,7%) • Arenas R$ 8.000 (8,3%) • Comunicação R$ 6.000 (6,3%).
+                      </p>
+                    </>
+                  )}
+                  {activeSlide === 2 && (
+                    <>
+                      <div className="font-bold text-slate-900">
+                        Slide 2: 7 Fases (01/02 a 30/06/2027)
+                      </div>
+                      <p className="text-slate-600">
+                        Elegibilidade: 6 meses de casa e até 2 ideias por pessoa. Inscrição (fev), Triagem (12/03), Votação Top 20 (15-26/03), Imersão (05-09/04), Protótipo TRL 4 (até 31/05), Banca (15/06).
+                      </p>
+                    </>
+                  )}
+                  {activeSlide === 3 && (
+                    <>
+                      <div className="font-bold text-slate-900">
+                        Slide 3: Alçadas (NG_012) & Trava Fiscal (31/03)
+                      </div>
+                      <p className="text-slate-600">
+                        Até R$ 18k: Gerente NIN | R$ 18.000,01 a R$ 120k: Diretor DIRTEC | &gt; R$ 120k: Comitê. Trava de documentação fiscal em 31/03.
+                      </p>
+                    </>
+                  )}
+                  <div className="text-[11px] text-slate-400 pt-1 border-t border-slate-100">
+                    Fontes citadas: NT_2026-021 v1.0.0 e RG_1100 v2.0.0
+                  </div>
+                </div>
+              </div>
+
+              {/* Weekly Email Agent */}
+              <div className="p-5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#002D72] flex items-center gap-1.5">
+                      <Mail className="w-4 h-4 text-[#0038A8]" />
+                      Resumo Semanal de Prazos (E-mail Institucional)
+                    </span>
+                    <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-amber-50 text-amber-900 border border-amber-200">
+                      O agente sugere e o humano envia
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600 bg-white p-3 rounded-lg border border-[#E2E8F0] leading-relaxed">
+                    <strong>Resumo de Março/2027:</strong> D-45 Férias em 21/03 (`NG_111 v3.0.0`), encerramento da votação Ideias em Campo em 26/03 (`RG_1100 v2.0.0`), limite de prorrogação do coworking em 30/03 (`CTR_2026-012`) e trava fiscal em 31/03 (`PX_1130-001`).
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between gap-3">
+                  <button
+                    onClick={() => setEmailApprovedSent(true)}
+                    className="px-4 py-2 rounded-lg bg-[#F8D117] hover:bg-[#FFCC00] text-[#002D72] font-bold text-xs transition cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Send className="w-3.5 h-3.5" /> Aprovar e Enviar Resumo
+                  </button>
+                  {emailApprovedSent && (
+                    <span className="text-xs font-medium text-emerald-700 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Enviado com sucesso
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         )}
       </div>
-    </section>
+    </div>
   );
 }

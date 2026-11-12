@@ -2,34 +2,38 @@
 
 import React, { useState } from "react";
 import acervo from "@/data/acervo_estruturado_acme_bbts.json";
-import { PERSONAS_NOMINAIS, PersonaNominal } from "@/lib/api";
+import { PERSONAS_NOMINAIS, PersonaNominal, apiChat } from "@/lib/api";
 import DemoPitchBar, { DEMO_STEPS, DemoStepId } from "@/components/DemoPitchBar";
-import GovernanceDifferentialsPanel from "@/components/GovernanceDifferentialsPanel";
+import GovernanceDifferentialsPanel, {
+  GovernanceSubTab,
+} from "@/components/GovernanceDifferentialsPanel";
 import FeriasSimulators from "@/components/FeriasSimulators";
 import InovacaoSimulators from "@/components/InovacaoSimulators";
 import LocacaoSimulators from "@/components/LocacaoSimulators";
-import CopilotSidebar from "@/components/CopilotSidebar";
+import CopilotSidebar, { ChatMessage } from "@/components/CopilotSidebar";
 import {
+  Search,
   ShieldCheck,
-  AlertTriangle,
   CheckSquare,
   Square,
-  UserCheck,
-  Layers,
-  Link2,
-  BookOpen,
-  Sparkles,
+  ExternalLink,
+  X,
+  ChevronRight,
   ChevronDown,
   ChevronUp,
+  SunMedium,
+  Sparkles,
+  FileCheck2,
+  AlertTriangle,
+  HelpCircle,
   Lock,
-  ExternalLink,
-  Scale,
-  RotateCcw,
-  Users,
-  BellRing,
+  CalendarClock,
+  Compass,
+  BookmarkCheck,
 } from "lucide-react";
 
 type TemaKey = "ferias" | "inovacao" | "locacao";
+type MainTabKey = "inicio" | "normas" | "simuladores" | "governanca";
 
 const TEMAS_CONFIG: {
   id: TemaKey;
@@ -37,6 +41,8 @@ const TEMAS_CONFIG: {
   sublabel: string;
   serieTag: string;
   codigosDocs: string[];
+  destaqueResumo: string;
+  prazoSemana: string;
 }[] = [
   {
     id: "ferias",
@@ -44,6 +50,10 @@ const TEMAS_CONFIG: {
     sublabel: "Gente e Cultura • NG_111 v3.0.0",
     serieTag: "1 - Gente e Cultura",
     codigosDocs: ["NG_111", "PX_1111-001", "FM_1111-001", "TB_1111-001", "FL_1111-001"],
+    destaqueResumo:
+      "Antecedência obrigatória de 45 dias corridos (D-45) e limite máximo de 30% da equipe em gozo simultâneo.",
+    prazoSemana:
+      "Solicitação até D-45 (21/03 para gozo em 05/05) e pagamento em D-3 antecipado em feriados/domingos.",
   },
   {
     id: "inovacao",
@@ -51,6 +61,10 @@ const TEMAS_CONFIG: {
     sublabel: "Programas Institucionais • NG_1130 & RG_1100 v2.0.0",
     serieTag: "11 - Programas Institucionais",
     codigosDocs: ["NG_1130", "PX_1130-001", "RG_1100", "NT_2026-021"],
+    destaqueResumo:
+      "Edição 2027 com orçamento de R$ 96 mil, gamificação até 800 pts, 6 meses de casa e até 2 ideias por pessoa.",
+    prazoSemana:
+      "Trava crítica de documentação para incentivo fiscal em 31 de março (PX_1130-001) e inscrições até 28/02.",
   },
   {
     id: "locacao",
@@ -58,6 +72,10 @@ const TEMAS_CONFIG: {
     sublabel: "Compras e Operações • CTR_2026-012 & NT_2026-018",
     serieTag: "Contratos & Instrumentos",
     codigosDocs: ["CTR_2026-012", "NT_2026-018"],
+    destaqueResumo:
+      "Espaço em Vale Azul (R$ 3.650/mês) com desconto de R$ 121,67/dia por queda de internet > 4h e isenção de multa no 91º dia.",
+    prazoSemana:
+      "Pedido de prorrogação até 30/03/2027; NF até dia 25, atesto técnico GOC em 5 dias úteis e pagamento até dia 8.",
   },
 ];
 
@@ -69,7 +87,7 @@ const PERFIL_LABELS: Record<string, string> = {
   nin_cin_diretoria: "NIN / CIN / Diretoria (DIRTEC & DIRAF)",
   gestor_contrato_gco: "Gestor de Contrato GCO (Compras e Contratos)",
   fiscal_tecnico_goc: "Fiscal Técnico GOC (Operações de Campo)",
-  diretoria_gfi_gju: "Diretoria DIRAF / GFI (Finanças) / GJU (Jurídico)",
+  diretoria_gfi_gju: "Diretoria DIRAF / GFI / GJU",
 };
 
 const PDF_LINKS: Record<string, string> = {
@@ -89,17 +107,36 @@ const PDF_LINKS: Record<string, string> = {
 };
 
 export default function HomePage() {
+  // Navigation & Core State
+  const [activeTab, setActiveTab] = useState<MainTabKey>("inicio");
+  const [governanceSubTab, setGovernanceSubTab] = useState<GovernanceSubTab>("radar");
   const [personaAtivaId, setPersonaAtivaId] = useState<string>("ana");
-  const [activeDemoStep, setActiveDemoStep] = useState<DemoStepId | null>(1);
   const [temaAtivo, setTemaAtivo] = useState<TemaKey>("ferias");
   const [perfilPorTema, setPerfilPorTema] = useState<Record<TemaKey, string>>({
     ferias: "empregado",
     inovacao: "empregado",
     locacao: "fiscal_tecnico_goc",
   });
+
+  // Accessibility Controls (A+, A-, Alto Contraste)
+  const [fontScale, setFontScale] = useState<"normal" | "lg" | "sm">("normal");
+  const [highContrast, setHighContrast] = useState<boolean>(false);
+
+  // Drawers & Modals State
+  const [isPitchDrawerOpen, setIsPitchDrawerOpen] = useState<boolean>(false);
+  const [activeDemoStep, setActiveDemoStep] = useState<DemoStepId | null>(null);
+  const [isCopilotDrawerOpen, setIsCopilotDrawerOpen] = useState<boolean>(false);
+  const [selectedDocModalCode, setSelectedDocModalCode] = useState<string | null>(null);
+  const [showVersionDiffModal, setShowVersionDiffModal] = useState<boolean>(false);
+
+  // Hero Search / Inline Co-Piloto State (Tab 1)
+  const [heroQuestion, setHeroQuestion] = useState<string>("");
+  const [heroLoading, setHeroLoading] = useState<boolean>(false);
+  const [heroResponse, setHeroResponse] = useState<ChatMessage | null>(null);
+  const [heroFoundationExpanded, setHeroFoundationExpanded] = useState<boolean>(false);
+
+  // Checklist state (Tab 2)
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
-  const [showSubstituidos, setShowSubstituidos] = useState<boolean>(false);
-  const [showTaxonomiaModal, setShowTaxonomiaModal] = useState<boolean>(false);
 
   const personaAtiva: PersonaNominal =
     PERSONAS_NOMINAIS.find((p) => p.id === personaAtivaId) || PERSONAS_NOMINAIS[0];
@@ -115,15 +152,32 @@ export default function HomePage() {
     }));
   };
 
+  // Automatic routing when a Demo Step (1..8) is clicked from the retractable drawer
   const handleSelectDemoStep = (stepId: DemoStepId) => {
     setActiveDemoStep(stepId);
     const meta = DEMO_STEPS.find((s) => s.id === stepId);
     if (meta) {
       handleSelectPersona(meta.personaId);
       setTemaAtivo(meta.tema);
-      if (stepId === 2) {
-        setShowSubstituidos(true);
-      }
+    }
+
+    if (stepId === 1 || stepId === 3 || stepId === 4) {
+      setActiveTab("simuladores");
+    } else if (stepId === 2) {
+      setActiveTab("normas");
+      setShowVersionDiffModal(true);
+    } else if (stepId === 5) {
+      setActiveTab("governanca");
+      setGovernanceSubTab("radar");
+    } else if (stepId === 6) {
+      setActiveTab("inicio");
+      executeHeroSearch("Como o prêmio é dividido em equipe no Ideias em Campo e se alguém for afastado?");
+    } else if (stepId === 7) {
+      setActiveTab("governanca");
+      setGovernanceSubTab("acesso");
+    } else if (stepId === 8) {
+      setActiveTab("governanca");
+      setGovernanceSubTab("finops_ppt");
     }
   };
 
@@ -145,7 +199,49 @@ export default function HomePage() {
     configTema.codigosDocs.includes(d.codigo)
   );
 
-  // Calculate checklist progress for current profile & theme
+  const selectedDocForModal = selectedDocModalCode
+    ? acervo.documentos_acervo.find((d) => d.codigo === selectedDocModalCode)
+    : null;
+
+  const executeHeroSearch = async (queryText: string) => {
+    const q = queryText.trim();
+    if (!q || heroLoading) return;
+    setHeroLoading(true);
+    setHeroFoundationExpanded(false);
+    try {
+      const { data } = await apiChat({
+        message: q,
+        tema: temaAtivo,
+        perfil: `${personaAtiva.nome} (${personaAtiva.papel})`,
+        personaId: personaAtiva.id,
+      });
+      setHeroResponse({
+        id: Date.now().toString(),
+        role: "assistant",
+        text: data.answer,
+        bullets: data.bullets || [],
+        citations: data.citations || [],
+        costBadge: data.costBadge,
+        revokedAlert: data.revokedAlert,
+        honestAbstention: data.honestAbstention,
+        rbacBlock: data.rbacBlock,
+      });
+    } catch {
+      setHeroResponse({
+        id: Date.now().toString(),
+        role: "assistant",
+        text: "Não foi possível consultar o acervo neste momento.",
+      });
+    } finally {
+      setHeroLoading(false);
+    }
+  };
+
+  const toggleCheckItem = (idx: number) => {
+    const key = `${temaAtivo}__${perfilSelecionado}__${idx}`;
+    setCheckedItems((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
   const totalCheckItems = dadosPerfil.checklist.length;
   const completedCheckItems = dadosPerfil.checklist.filter(
     (_, idx) => checkedItems[`${temaAtivo}__${perfilSelecionado}__${idx}`]
@@ -153,748 +249,872 @@ export default function HomePage() {
   const progressPct =
     totalCheckItems > 0 ? Math.round((completedCheckItems / totalCheckItems) * 100) : 0;
 
-  const toggleCheckItem = (idx: number) => {
-    const key = `${temaAtivo}__${perfilSelecionado}__${idx}`;
-    setCheckedItems((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const markAllChecklist = (value: boolean) => {
-    const updates: Record<string, boolean> = {};
-    dadosPerfil.checklist.forEach((_, idx) => {
-      updates[`${temaAtivo}__${perfilSelecionado}__${idx}`] = value;
-    });
-    setCheckedItems((prev) => ({ ...prev, ...updates }));
-  };
-
   const flMermaidDoc = acervo.documentos_acervo.find((d) => d.codigo === "FL_1111-001");
   const mermaidCode =
     (flMermaidDoc && "mermaid_code" in flMermaidDoc && flMermaidDoc.mermaid_code) || "";
 
+  const fontSizeClass =
+    fontScale === "lg" ? "text-[17px]" : fontScale === "sm" ? "text-[14px]" : "text-base";
+
   return (
-    <div className="min-h-screen bg-[#F4F6F9] text-slate-900 flex flex-col pb-12">
-      {/* 1. CABEÇALHO EXECUTIVO (IDENTIDADE BBTS / ACME + SELETOR DE 6 PERSONAS NOMINAIS) */}
-      <header className="sticky top-0 z-30 bg-[#002D72] text-white shadow-lg border-b-4 border-[#FFCC00]">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-3">
-          {/* Top Bar: Brand & NG_010 Taxonomy Badge */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pb-2.5 border-b border-white/15">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#FFCC00] text-[#002D72] flex flex-col items-center justify-center font-black shadow-md shrink-0">
-                <span className="text-xs leading-none">RAIZ</span>
-                <span className="text-[9px] font-extrabold tracking-tighter leading-none mt-0.5">
-                  IQ 3.0
-                </span>
-              </div>
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-sm sm:text-base font-black tracking-tight text-white">
-                    Raiz IQ (Zero-Click) — Plataforma de Inteligência Normativa BBTS / ACME
-                  </h1>
-                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-[#FFCC00] text-[#002D72]">
-                    Ctrl + Alt + Business • Iteração 3
-                  </span>
+    <div
+      className={`min-h-screen flex flex-col transition-colors ${fontSizeClass} ${
+        highContrast ? "bg-slate-950 text-white" : "bg-[#F8FAFC] text-slate-800"
+      }`}
+    >
+      {/* 1. BARRA DE TOPO INSTITUCIONAL FINA (ESTILO BBTS.COM.BR) */}
+      <div className="bg-[#002D72] text-white border-b border-white/10 text-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 h-10 flex items-center justify-between gap-4">
+          {/* Left: BBTS — Tecnologia e Serviços */}
+          <div className="flex items-center gap-2 font-medium tracking-wide">
+            <span className="w-2 h-2 rounded-full bg-[#F8D117]" />
+            <span className="font-semibold text-white">BBTS — Tecnologia e Serviços</span>
+            <span className="hidden md:inline text-blue-200 font-normal">
+              | Inteligência Empresarial & Legal Design
+            </span>
+          </div>
+
+          {/* Center: Discreet Accessibility Controls (A+, A-, Alto Contraste) */}
+          <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-blue-100">
+            <span className="text-blue-300 mr-1">Acessibilidade:</span>
+            <button
+              onClick={() => setFontScale("sm")}
+              className={`px-1.5 py-0.5 rounded hover:bg-white/10 cursor-pointer ${
+                fontScale === "sm" ? "bg-white/20 text-[#F8D117] font-bold" : ""
+              }`}
+              title="Diminuir fonte"
+            >
+              A-
+            </button>
+            <button
+              onClick={() => setFontScale("normal")}
+              className={`px-1.5 py-0.5 rounded hover:bg-white/10 cursor-pointer ${
+                fontScale === "normal" ? "bg-white/20 text-[#F8D117] font-bold" : ""
+              }`}
+              title="Fonte padrão"
+            >
+              A
+            </button>
+            <button
+              onClick={() => setFontScale("lg")}
+              className={`px-1.5 py-0.5 rounded hover:bg-white/10 cursor-pointer ${
+                fontScale === "lg" ? "bg-white/20 text-[#F8D117] font-bold" : ""
+              }`}
+              title="Aumentar fonte"
+            >
+              A+
+            </button>
+            <span className="mx-1 text-white/20">|</span>
+            <button
+              onClick={() => setHighContrast(!highContrast)}
+              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded hover:bg-white/10 cursor-pointer ${
+                highContrast ? "bg-[#F8D117] text-[#002D72] font-bold" : ""
+              }`}
+            >
+              <SunMedium className="w-3 h-3" />
+              Alto Contraste
+            </button>
+          </div>
+
+          {/* Right: Compact Active Persona Selector */}
+          <div className="flex items-center gap-2">
+            <label htmlFor="persona-select" className="text-[11px] text-blue-200 hidden sm:inline">
+              Persona:
+            </label>
+            <select
+              id="persona-select"
+              value={personaAtiva.id}
+              onChange={(e) => handleSelectPersona(e.target.value)}
+              className="bg-[#0038A8] text-white text-xs font-medium px-2.5 py-1 rounded border border-white/20 focus:outline-none focus:border-[#F8D117] cursor-pointer"
+            >
+              {PERSONAS_NOMINAIS.map((p) => (
+                <option key={p.id} value={p.id} className="bg-white text-slate-900">
+                  {p.nome} — {p.papel} ({p.rbac})
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. CABEÇALHO PRINCIPAL & NAVEGAÇÃO EM 4 ABAS LIMPAS */}
+      <header className="sticky top-0 z-30 bg-white border-b border-[#E2E8F0] shadow-2xs">
+        <div className="h-1 bg-[#F8D117] w-full" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 h-16 flex items-center justify-between gap-4">
+          {/* Brand Logo */}
+          <button
+            onClick={() => setActiveTab("inicio")}
+            className="flex items-center gap-3 text-left cursor-pointer"
+          >
+            <div className="w-10 h-10 rounded-lg bg-[#0038A8] text-[#F8D117] font-black text-sm flex items-center justify-center tracking-tight">
+              BBTS
+            </div>
+            <div>
+              <span className="font-bold text-base text-[#002D72] block leading-none">
+                Portal Raiz IQ
+              </span>
+              <span className="text-[11px] text-slate-500 mt-0.5 block">
+                ACME Tecnologia e Serviços
+              </span>
+            </div>
+          </button>
+
+          {/* 4 Clean Main Navigation Tabs */}
+          <nav className="flex items-center gap-1 sm:gap-2 overflow-x-auto">
+            {[
+              { id: "inicio", label: "Início & Co-Piloto" },
+              { id: "normas", label: "Normas & Jornada" },
+              { id: "simuladores", label: "Simuladores" },
+              { id: "governanca", label: "Governança & Radar" },
+            ].map((tab) => {
+              const isSelected = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as MainTabKey)}
+                  className={`px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition cursor-pointer whitespace-nowrap relative ${
+                    isSelected
+                      ? "text-[#002D72] bg-blue-50/70"
+                      : "text-slate-600 hover:text-[#0038A8] hover:bg-slate-50"
+                  }`}
+                >
+                  {tab.label}
+                  {isSelected && (
+                    <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-[#F8D117] rounded-full" />
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* Discreet Action Buttons: Roteiro Demo (8 Passos) & Co-Piloto */}
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => setIsPitchDrawerOpen(true)}
+              className="px-3.5 py-2 rounded-lg bg-[#F8D117] hover:bg-[#FFCC00] text-[#002D72] font-bold text-xs transition cursor-pointer shadow-2xs"
+            >
+              🎯 Roteiro Demo (8 Passos)
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* MAIN CONTENT CONTAINER (Renders ONLY ONE active view at a time) */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-8">
+        {/* Retractable Pitch Drawer + Contextual Demo Proof Card if a step was triggered */}
+        <DemoPitchBar
+          activeStep={activeDemoStep}
+          onSelectStep={handleSelectDemoStep}
+          onSwitchPersona={handleSelectPersona}
+          isDrawerOpen={isPitchDrawerOpen}
+          onCloseDrawer={() => setIsPitchDrawerOpen(false)}
+          onDismissBanner={() => setActiveDemoStep(null)}
+        />
+
+        {/* =====================================================================
+            ABA 1: INÍCIO & CO-PILOTO (Hero Clean BBTS + 3 Cards Resumidos)
+           ===================================================================== */}
+        {activeTab === "inicio" && (
+          <div className="space-y-10">
+            {/* Hero Portal BBTS */}
+            <section className="bg-gradient-to-r from-[#002D72] to-[#0038A8] rounded-2xl p-8 sm:p-12 text-white shadow-sm relative overflow-hidden">
+              <div className="max-w-3xl space-y-5">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs text-blue-100 border border-white/15">
+                  <span className="w-2 h-2 rounded-full bg-[#F8D117]" />
+                  Olá, <strong>{personaAtiva.nome}</strong> ({personaAtiva.papel} • Acesso{" "}
+                  {personaAtiva.rbac})
                 </div>
-                <p className="text-[11px] text-blue-200">
-                  {acervo.organizacao} • Governança {acervo.norma_mestra_taxonomia.codigo} (Taxonomia v
-                  {acervo.norma_mestra_taxonomia.versao_taxonomia}) • Arquitetura Medalhão & Data Mesh
+
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white leading-snug">
+                  O que você precisa resolver hoje na BBTS?
+                </h1>
+                <p className="text-sm text-blue-100 leading-relaxed">
+                  Consulte normas vigentes em linguagem simples, simule prazos e alçadas com custo zero ou tire dúvidas no Co-Piloto auditado pela taxonomia{" "}
+                  <span className="font-semibold text-white">NG_010</span>.
                 </p>
-              </div>
-            </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                onClick={() => setShowTaxonomiaModal(!showTaxonomiaModal)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-[#FFCC00] border border-white/20 transition cursor-pointer"
-              >
-                <Scale className="w-3.5 h-3.5" />
-                Matriz {acervo.norma_mestra_taxonomia.codigo} & Alçadas NG_012
-              </button>
-
-              <button
-                onClick={() => setShowSubstituidos(!showSubstituidos)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold transition cursor-pointer border ${
-                  showSubstituidos
-                    ? "bg-amber-400 text-slate-950 border-amber-300 shadow-sm"
-                    : "bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border-amber-400/40"
-                }`}
-              >
-                <AlertTriangle className="w-3.5 h-3.5" />
-                Trava Histórica ({acervo.documentos_substituidos_bloqueados.length} Revogados)
-              </button>
-            </div>
-          </div>
-
-          {/* SEÇÃO 3 DA PROPOSTA: SELETOR DAS 6 PERSONAS NOMINAIS OFICIAIS (RBAC & ZERO-CLICK) */}
-          <div className="py-2.5 border-b border-white/15">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[10px] font-black uppercase tracking-wider text-[#FFCC00] flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5" />
-                Seletor de Personas Nominais da Demo (Alterna Papel, Unidade, Jornada e Nível RBAC):
-              </span>
-              <span className="text-[11px] text-blue-200 hidden md:inline">
-                Persona Ativa: <strong className="text-white">{personaAtiva.nome}</strong> ({personaAtiva.papel} •{" "}
-                <strong className="text-[#FFCC00]">RBAC: {personaAtiva.rbac}</strong>)
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-              {PERSONAS_NOMINAIS.map((p) => {
-                const isSelected = personaAtiva.id === p.id;
-                const rbacBadgeColor =
-                  p.rbac === "Sigilosa"
-                    ? "bg-rose-500 text-white"
-                    : p.rbac === "Restrita"
-                    ? "bg-amber-400 text-slate-950"
-                    : "bg-emerald-400 text-slate-950";
-
-                return (
+                {/* Central Search Input */}
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    executeHeroSearch(heroQuestion);
+                  }}
+                  className="flex flex-col sm:flex-row gap-2.5 pt-2"
+                >
+                  <div className="relative flex-1">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={heroQuestion}
+                      onChange={(e) => setHeroQuestion(e.target.value)}
+                      placeholder="Ex: Quero sair de férias em 05/05/2027, qual o prazo limite? Ou: Posso enviar 3 ideias?"
+                      className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-white text-slate-900 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#F8D117]"
+                    />
+                  </div>
                   <button
-                    key={p.id}
-                    onClick={() => handleSelectPersona(p.id)}
-                    className={`p-2 rounded-xl text-left transition cursor-pointer border flex items-center gap-2.5 ${
-                      isSelected
-                        ? "bg-white text-[#002D72] border-[#FFCC00] ring-2 ring-[#FFCC00] shadow-md"
-                        : "bg-blue-950/60 hover:bg-blue-900/70 text-white border-white/15"
-                    }`}
+                    type="submit"
+                    disabled={heroLoading}
+                    className="px-6 py-3.5 rounded-xl bg-[#F8D117] hover:bg-[#FFCC00] text-[#002D72] font-bold text-sm transition cursor-pointer shrink-0"
                   >
-                    <div
-                      className={`w-8 h-8 rounded-lg font-black text-xs flex items-center justify-center shrink-0 ${
-                        isSelected
-                          ? "bg-[#002D72] text-[#FFCC00]"
-                          : "bg-white/10 text-[#FFCC00]"
-                      }`}
-                    >
-                      {p.avatarSigla}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="text-xs font-extrabold truncate">{p.nome}</span>
-                        <span
-                          className={`text-[9px] font-black uppercase px-1.5 py-0.2 rounded shrink-0 ${rbacBadgeColor}`}
-                        >
-                          {p.rbac}
-                        </span>
-                      </div>
-                      <div
-                        className={`text-[10px] truncate ${
-                          isSelected ? "text-slate-700 font-semibold" : "text-blue-200"
-                        }`}
-                      >
-                        {p.papel}
-                      </div>
-                      <div
-                        className={`text-[9px] truncate ${
-                          isSelected ? "text-[#002D72]/80 font-bold" : "text-blue-300/80"
-                        }`}
-                      >
-                        {p.unidade}
-                      </div>
-                    </div>
+                    {heroLoading ? "Consultando..." : "Consultar Norma"}
                   </button>
-                );
-              })}
-            </div>
-          </div>
+                </form>
 
-          {/* Global Selectors Bar: (a) Seletor de Jornada/Tema & (b) Seletor de Perfil */}
-          <div className="pt-2.5 grid grid-cols-1 lg:grid-cols-12 gap-3 items-center">
-            <div className="lg:col-span-7 flex flex-col sm:flex-row sm:items-center gap-2">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#FFCC00] shrink-0 flex items-center gap-1">
-                <Layers className="w-3.5 h-3.5" />
-                Jornada:
-              </span>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
+                {/* Quick Pill Triggers */}
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <span className="text-xs text-blue-200">Consultas rápidas:</span>
+                  {[
+                    "Férias em 05/05/2027 (Cronograma D-n)",
+                    "Antecedência 30 vs 45 dias",
+                    "Alçada R$ 18.000,01",
+                    "Rescisão Coworking em março tem multa?",
+                  ].map((qText, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setHeroQuestion(qText);
+                        executeHeroSearch(qText);
+                      }}
+                      className="text-xs px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/15 transition cursor-pointer"
+                    >
+                      {qText}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* Clean Inline Response Card (Maximum 3 lines initially + Expand button) */}
+            {heroResponse && (
+              <section className="bg-white rounded-xl border border-[#E2E8F0] p-6 shadow-2xs space-y-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-2 max-w-4xl">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold">
+                        Resposta Fundamentada
+                      </span>
+                      {heroResponse.revokedAlert && (
+                        <span className="px-2.5 py-0.5 rounded bg-amber-50 text-amber-900 border border-amber-200 text-xs font-semibold flex items-center gap-1">
+                          <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                          Alerta de versão revogada ({heroResponse.revokedAlert.codigo})
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="text-sm font-semibold text-[#002D72] line-clamp-2">
+                      {heroResponse.text.replace(/\*\*/g, "")}
+                    </p>
+
+                    {heroResponse.bullets && heroResponse.bullets[0] && (
+                      <p
+                        className={`text-sm text-slate-600 leading-relaxed ${
+                          !heroFoundationExpanded ? "line-clamp-2" : ""
+                        }`}
+                      >
+                        {heroResponse.bullets[0].replace(/\*\*/g, "").replace(/`/g, "")}
+                      </p>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => setHeroResponse(null)}
+                    className="text-xs text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Expandable Technical Details, Full Bullets, Citations & Cost Router */}
+                {heroFoundationExpanded && (
+                  <div className="pt-4 border-t border-[#E2E8F0] space-y-4">
+                    {heroResponse.bullets && heroResponse.bullets.length > 1 && (
+                      <ul className="space-y-2 text-xs text-slate-700 list-disc pl-5">
+                        {heroResponse.bullets.slice(1).map((b, i) => (
+                          <li key={i}>{b.replace(/\*\*/g, "").replace(/`/g, "")}</li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {heroResponse.revokedAlert && (
+                      <div className="p-3.5 rounded-lg bg-amber-50/70 border border-amber-200 text-xs text-amber-950">
+                        <strong>Trava Histórica ({heroResponse.revokedAlert.codigo}):</strong>{" "}
+                        {heroResponse.revokedAlert.pegadinha}
+                      </div>
+                    )}
+
+                    {heroResponse.honestAbstention && (
+                      <div className="p-3.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-xs text-slate-700 flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <strong className="text-[#002D72]">
+                            Abstenção Honesta ({heroResponse.honestAbstention.donoDominio}):
+                          </strong>{" "}
+                          {heroResponse.honestAbstention.lacuna}
+                        </div>
+                        <button
+                          onClick={() => setIsCopilotDrawerOpen(true)}
+                          className="px-3 py-1.5 rounded bg-[#0038A8] text-white font-semibold cursor-pointer"
+                        >
+                          {heroResponse.honestAbstention.botaoAcao}
+                        </button>
+                      </div>
+                    )}
+
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xs text-slate-500">Fontes vigentes:</span>
+                        {heroResponse.citations?.map((cit) => (
+                          <span
+                            key={cit.codigo}
+                            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-[#F8FAFC] border border-[#E2E8F0] text-xs font-medium text-[#002D72]"
+                          >
+                            <FileCheck2 className="w-3.5 h-3.5 text-emerald-600" />
+                            {cit.codigo} ({cit.versao})
+                          </span>
+                        ))}
+                      </div>
+
+                      {heroResponse.costBadge && (
+                        <span className="text-xs text-slate-500 bg-[#F8FAFC] px-3 py-1 rounded border border-[#E2E8F0]">
+                          {heroResponse.costBadge.label} • Sigilo: {heroResponse.costBadge.sigiloNivel}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                  <button
+                    onClick={() => setHeroFoundationExpanded(!heroFoundationExpanded)}
+                    className="text-xs font-semibold text-[#0038A8] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    {heroFoundationExpanded ? (
+                      <>
+                        Ocultar fundamentação e fonte <ChevronUp className="w-3.5 h-3.5" />
+                      </>
+                    ) : (
+                      <>
+                        Ver fundamentação e fonte <ChevronDown className="w-3.5 h-3.5" />
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => setIsCopilotDrawerOpen(true)}
+                    className="text-xs text-slate-500 hover:text-[#0038A8] cursor-pointer"
+                  >
+                    Abrir histórico completo no Co-Piloto →
+                  </button>
+                </div>
+              </section>
+            )}
+
+            {/* 3 Clean Summary Cards ("Prazos da Semana", "Minha Jornada", "Destaques do Tema") */}
+            <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Card 1: Prazos da Semana */}
+              <div className="bg-white rounded-xl border border-[#E2E8F0] p-6 shadow-2xs flex flex-col justify-between space-y-5">
+                <div className="space-y-3">
+                  <div className="w-10 h-10 rounded-lg bg-blue-50 text-[#0038A8] flex items-center justify-center">
+                    <CalendarClock className="w-5 h-5" />
+                  </div>
+                  <h2 className="text-base font-bold text-[#002D72]">Prazos da Semana</h2>
+                  <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed">
+                    { personaAtiva.alertasProativos[0] || configTema.prazoSemana }
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setActiveTab("governanca");
+                    setGovernanceSubTab("radar");
+                  }}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0038A8] hover:text-[#002D72] cursor-pointer"
+                >
+                  Saiba mais <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Card 2: Minha Jornada */}
+              <div className="bg-white rounded-xl border border-[#E2E8F0] p-6 shadow-2xs flex flex-col justify-between space-y-5">
+                <div className="space-y-3">
+                  <div className="w-10 h-10 rounded-lg bg-blue-50 text-[#0038A8] flex items-center justify-center">
+                    <Compass className="w-5 h-5" />
+                  </div>
+                  <h2 className="text-base font-bold text-[#002D72]">Minha Jornada</h2>
+                  <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed">
+                    {dadosPerfil.resumo_ux}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setActiveTab("normas")}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0038A8] hover:text-[#002D72] cursor-pointer"
+                >
+                  Saiba mais <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Card 3: Destaques do Tema */}
+              <div className="bg-white rounded-xl border border-[#E2E8F0] p-6 shadow-2xs flex flex-col justify-between space-y-5">
+                <div className="space-y-3">
+                  <div className="w-10 h-10 rounded-lg bg-blue-50 text-[#0038A8] flex items-center justify-center">
+                    <BookmarkCheck className="w-5 h-5" />
+                  </div>
+                  <h2 className="text-base font-bold text-[#002D72]">
+                    Destaques — {configTema.label}
+                  </h2>
+                  <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed">
+                    {configTema.destaqueResumo}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setActiveTab("simuladores")}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0038A8] hover:text-[#002D72] cursor-pointer"
+                >
+                  Saiba mais <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </section>
+          </div>
+        )}
+
+        {/* =====================================================================
+            ABA 2: NORMAS & JORNADA (Seletor Limpo + UX Writing + Cards 3 Dados + Modal)
+           ===================================================================== */}
+        {activeTab === "normas" && (
+          <div className="space-y-8">
+            {/* Clean Theme & Profile Selector Bar */}
+            <div className="bg-white rounded-xl border border-[#E2E8F0] p-6 shadow-2xs flex flex-wrap items-center justify-between gap-4">
+              <div className="flex flex-wrap gap-2">
                 {TEMAS_CONFIG.map((t) => {
                   const active = temaAtivo === t.id;
                   return (
                     <button
                       key={t.id}
                       onClick={() => setTemaAtivo(t.id)}
-                      className={`px-3 py-1.5 rounded-xl text-left transition cursor-pointer border flex flex-col justify-between ${
+                      className={`px-4 py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition cursor-pointer border ${
                         active
-                          ? "bg-[#FFCC00] text-[#002D72] border-[#FFCC00] shadow-xs font-extrabold"
-                          : "bg-white/10 hover:bg-white/15 text-white border-white/15"
+                          ? "bg-[#0038A8] text-white border-[#002D72]"
+                          : "bg-[#F8FAFC] hover:bg-slate-100 text-slate-700 border-[#E2E8F0]"
                       }`}
                     >
-                      <span className="text-xs font-extrabold leading-tight">{t.label}</span>
-                      <span
-                        className={`text-[10px] truncate ${
-                          active ? "text-[#002D72]/80 font-semibold" : "text-blue-200"
-                        }`}
-                      >
-                        {t.sublabel}
-                      </span>
+                      {t.label}
                     </button>
                   );
                 })}
               </div>
-            </div>
 
-            <div className="lg:col-span-5 flex flex-col sm:flex-row sm:items-center gap-2">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#FFCC00] shrink-0 flex items-center gap-1">
-                <UserCheck className="w-3.5 h-3.5" />
-                Visão Técnica:
-              </span>
-              <div className="flex-1 flex flex-wrap gap-1.5">
-                {perfisDisponiveis.map((chavePerfil) => {
-                  const active = perfilSelecionado === chavePerfil;
-                  return (
-                    <button
-                      key={chavePerfil}
-                      onClick={() =>
-                        setPerfilPorTema((prev) => ({ ...prev, [temaAtivo]: chavePerfil }))
-                      }
-                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer border ${
-                        active
-                          ? "bg-white text-[#002D72] border-[#FFCC00] shadow-xs"
-                          : "bg-blue-950/60 hover:bg-blue-900/70 text-blue-100 border-white/15"
-                      }`}
-                    >
-                      {PERFIL_LABELS[chavePerfil] || chavePerfil}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Collapsible Taxonomy NG_010 & Alçadas NG_012 Reference Drawer */}
-        {showTaxonomiaModal && (
-          <div className="bg-slate-900 border-t border-white/15 text-white px-4 sm:px-6 py-4">
-            <div className="max-w-[1600px] mx-auto space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-extrabold text-[#FFCC00]">
-                    Governança Mestra: {acervo.norma_mestra_taxonomia.codigo} ({acervo.norma_mestra_taxonomia.titulo}) & Alçadas Financeiras NG_012
-                  </h3>
-                  <p className="text-xs text-slate-300 mt-0.5">
-                    {acervo.norma_mestra_taxonomia.regra_desambiguacao}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowTaxonomiaModal(false)}
-                  className="text-xs font-bold text-slate-300 hover:text-white px-2.5 py-1 rounded bg-white/10 cursor-pointer"
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500">Perfil na jornada:</span>
+                <select
+                  value={perfilSelecionado}
+                  onChange={(e) =>
+                    setPerfilPorTema((prev) => ({ ...prev, [temaAtivo]: e.target.value }))
+                  }
+                  className="text-xs font-semibold text-[#002D72] bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#0038A8]"
                 >
-                  Fechar ✕
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                <div className="lg:col-span-8">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-blue-300 mb-2">
-                    Séries de Numeração Oficial ({acervo.norma_mestra_taxonomia.codigo}):
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2">
-                    {acervo.norma_mestra_taxonomia.series_numeracao.map((s) => (
-                      <div
-                        key={s.serie}
-                        className={`p-2 rounded-lg border text-xs ${
-                          s.serie === 1 || s.serie === 11 || s.serie === 4
-                            ? "bg-[#002D72]/80 border-[#FFCC00]/60 text-white"
-                            : "bg-white/5 border-white/10 text-slate-300"
-                        }`}
-                      >
-                        <div className="font-extrabold text-[#FFCC00]">Série {s.serie}</div>
-                        <div className="font-semibold text-[11px] truncate">{s.area}</div>
-                        <div className="text-[10px] font-mono opacity-75">{s.faixa}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="lg:col-span-4">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-blue-300 mb-2">
-                    Tabela de Alçadas Financeiras (NG_012):
-                  </div>
-                  <div className="space-y-2">
-                    {acervo.alcadas_financeiras_ng012.map((alc, idx) => (
-                      <div
-                        key={idx}
-                        className="p-2.5 rounded-lg bg-white/5 border border-white/15 text-xs flex items-center justify-between"
-                      >
-                        <div>
-                          <div className="font-extrabold text-[#FFCC00]">{alc.faixa}</div>
-                          <div className="text-[11px] text-slate-300">
-                            Geral: <strong>{alc.aprovador_geral}</strong>
-                          </div>
-                        </div>
-                        <div className="text-right text-[11px] bg-blue-950 px-2 py-1 rounded border border-blue-800">
-                          <span className="text-blue-300 block text-[10px]">Protótipo Inovação:</span>
-                          <strong className="text-white">{alc.aprovador_inovacao_prototipo}</strong>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                  {perfisDisponiveis.map((k) => (
+                    <option key={k} value={k}>
+                      {PERFIL_LABELS[k] || k}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
-          </div>
-        )}
-      </header>
 
-      {/* MAIN WORKSPACE */}
-      <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 py-5 space-y-6">
-        {/* SEÇÃO 8 DA PROPOSTA: BARRA "ROTEIRO DE DEMO AO VIVO - 8 PASSOS" (ZERO-CLICK PITCH) */}
-        <DemoPitchBar
-          activeStep={activeDemoStep}
-          onSelectStep={handleSelectDemoStep}
-          onSwitchPersona={handleSelectPersona}
-        />
-
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-          {/* LEFT / CENTER COLUMN (8 cols on XL) */}
-          <div className="xl:col-span-8 space-y-6">
-            {/* ÁREA DA PERSONA NOMINAL ATIVA + RESUMO UX + CHECKLIST ACIONÁVEL */}
-            <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-[#002D72] via-[#00388c] to-[#002D72] text-white p-5 border-b border-blue-900 space-y-3">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-[#FFCC00] text-[#002D72] font-black text-sm flex items-center justify-center">
-                      {personaAtiva.avatarSigla}
-                    </div>
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-base font-black text-white">
-                          {personaAtiva.nome} — {personaAtiva.papel}
-                        </span>
-                        <span className="px-2 py-0.5 rounded bg-[#FFCC00] text-[#002D72] text-[10px] font-black uppercase">
-                          RBAC: {personaAtiva.rbac}
-                        </span>
-                      </div>
-                      <div className="text-xs text-blue-200">
-                        Unidade: {personaAtiva.unidade} • Visão Normativa:{" "}
-                        {PERFIL_LABELS[perfilSelecionado] || perfilSelecionado}
-                      </div>
-                    </div>
-                  </div>
-
-                  <span className="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-white/10 text-[#FFCC00] border border-white/15">
-                    ⚡ Zero-Click Feed Ativo
-                  </span>
-                </div>
-
-                {/* Alertas Proativos Zero-Click da Persona Nominal */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {personaAtiva.alertasProativos.map((alerta, i) => (
-                    <div
-                      key={i}
-                      className="p-2.5 rounded-xl bg-amber-400/15 border border-amber-300/40 text-xs text-amber-100 flex items-start gap-2"
-                    >
-                      <BellRing className="w-4 h-4 text-[#FFCC00] shrink-0 mt-0.5" />
-                      <span className="font-medium leading-snug">{alerta}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Destaque do resumo_ux (Linguagem Simples / UX Writing) */}
-                <div className="p-3.5 rounded-xl bg-white/10 border border-white/20 backdrop-blur-xs">
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-[#FFCC00] mb-1 flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5" />
-                    Diretriz em Linguagem Simples (Resumo UX Writing do Perfil):
-                  </div>
-                  <p className="text-sm font-semibold text-white leading-relaxed">
-                    “{dadosPerfil.resumo_ux}”
-                  </p>
-                </div>
+            {/* UX Writing Summary & Enxuto Checklist */}
+            <div className="bg-white rounded-xl border border-[#E2E8F0] p-6 sm:p-8 shadow-2xs space-y-6">
+              <div className="border-l-4 border-[#0038A8] pl-4 space-y-1">
+                <span className="text-xs font-semibold uppercase tracking-wider text-[#0038A8]">
+                  Diretriz em Linguagem Simples • {PERFIL_LABELS[perfilSelecionado]}
+                </span>
+                <p className="text-base sm:text-lg font-semibold text-[#002D72] leading-relaxed">
+                  “{dadosPerfil.resumo_ux}”
+                </p>
               </div>
 
-              {/* Interactive Actionable Checklist with Progress Bar */}
-              <div className="p-5">
-                <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-                  <div>
-                    <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                      <CheckSquare className="w-4 h-4 text-[#002D72]" />
-                      Checklist Acionável do Perfil ({completedCheckItems}/{totalCheckItems} concluídos)
-                    </h2>
-                    <p className="text-xs text-slate-500">
-                      Marque os passos operacionais cumpridos para validar sua conformidade normativa
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => markAllChecklist(true)}
-                      className="text-xs font-bold px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#002D72] transition cursor-pointer"
-                    >
-                      Marcar todos
-                    </button>
-                    <button
-                      onClick={() => markAllChecklist(false)}
-                      className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition cursor-pointer flex items-center gap-1"
-                    >
-                      <RotateCcw className="w-3 h-3" /> Limpar
-                    </button>
-                  </div>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-xs text-slate-500">
+                  <span className="font-semibold text-slate-700">
+                    Checklist da Jornada ({completedCheckItems}/{totalCheckItems})
+                  </span>
+                  <span>{progressPct}% concluído</span>
                 </div>
-
-                <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden mb-4 border border-slate-200">
+                <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-[#002D72] via-blue-600 to-emerald-500 transition-all duration-300"
+                    className="h-full bg-[#0038A8] transition-all duration-300"
                     style={{ width: `${progressPct}%` }}
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-2">
                   {dadosPerfil.checklist.map((item, idx) => {
                     const isChecked = !!checkedItems[`${temaAtivo}__${perfilSelecionado}__${idx}`];
                     return (
                       <button
                         key={idx}
                         onClick={() => toggleCheckItem(idx)}
-                        className={`p-3.5 rounded-xl border text-left transition flex items-start gap-3 cursor-pointer ${
+                        className={`p-3.5 rounded-lg border text-left transition flex items-start gap-3 cursor-pointer ${
                           isChecked
-                            ? "bg-emerald-50/70 border-emerald-500/50 text-emerald-950"
-                            : "bg-slate-50/70 hover:bg-blue-50/40 border-slate-200 text-slate-800"
+                            ? "bg-emerald-50/40 border-emerald-200 text-slate-500 line-through"
+                            : "bg-[#F8FAFC] hover:bg-white border-[#E2E8F0] text-slate-700"
                         }`}
                       >
-                        <div className="mt-0.5 shrink-0">
-                          {isChecked ? (
-                            <CheckSquare className="w-4 h-4 text-emerald-600" />
-                          ) : (
-                            <Square className="w-4 h-4 text-slate-400" />
-                          )}
-                        </div>
-                        <span
-                          className={`text-xs font-medium leading-relaxed ${
-                            isChecked ? "line-through opacity-80" : ""
-                          }`}
-                        >
-                          {item}
-                        </span>
+                        {isChecked ? (
+                          <CheckSquare className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        ) : (
+                          <Square className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                        )}
+                        <span className="text-xs leading-relaxed">{item}</span>
                       </button>
                     );
                   })}
                 </div>
               </div>
-            </section>
+            </div>
 
-            {/* PAINEL "BATER O OLHO" (GOVERNANÇA E TAXONOMIA NG_010) */}
-            <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-5 py-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-[#002D72] text-[#FFCC00]">
-                    <BookOpen className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h2 className="font-extrabold text-base text-slate-900">
-                        Painel “Bater o Olho” — Governança e Taxonomia ({acervo.norma_mestra_taxonomia.codigo})
-                      </h2>
-                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                        {documentosTema.length} Documentos Vigentes no Tema
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-600">
-                      Desambiguação hierárquica obrigatória via campo{" "}
-                      <code className="px-1 py-0.5 rounded bg-slate-200 text-[#002D72] font-bold">
-                        vinculado_a
-                      </code>{" "}
-                      ({acervo.norma_mestra_taxonomia.regra_aprovacao_geral})
-                    </p>
-                  </div>
+            {/* Minimalist Document Cards (ONLY 3 visible data points: Código, Título, Selo Vigente/Dono) */}
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-bold text-[#002D72]">
+                    Acervo Normativo Vigente — {configTema.label}
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Clique em qualquer documento para abrir os metadados completos da NG_010 ou comparar versões substituídas
+                  </p>
                 </div>
 
                 <button
-                  onClick={() => setShowSubstituidos(!showSubstituidos)}
-                  className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer border-2 ${
-                    showSubstituidos
-                      ? "bg-amber-400 text-slate-950 border-amber-600 shadow-sm"
-                      : "bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-400"
-                  }`}
+                  onClick={() => setShowVersionDiffModal(true)}
+                  className="px-4 py-2 rounded-lg bg-white hover:bg-slate-50 text-[#002D72] border border-[#E2E8F0] text-xs font-semibold transition cursor-pointer flex items-center gap-2 shadow-2xs"
                 >
-                  <AlertTriangle className="w-4 h-4 text-amber-700" />
-                  Ver Versões Substituídas (Trava Histórica)
-                  {showSubstituidos ? (
-                    <ChevronUp className="w-4 h-4" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4" />
-                  )}
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                  Comparar Versões Substituídas (Trava Histórica)
                 </button>
               </div>
 
-              <div className="px-5 py-3 bg-blue-50/70 border-b border-blue-200/80 flex items-start gap-2.5 text-xs text-slate-700">
-                <Link2 className="w-4 h-4 text-[#002D72] shrink-0 mt-0.5" />
-                <div>
-                  <strong className="text-[#002D72]">
-                    Regra de Desambiguação ({acervo.norma_mestra_taxonomia.codigo}):
-                  </strong>{" "}
-                  {acervo.norma_mestra_taxonomia.regra_desambiguacao}
-                </div>
-              </div>
-
-              {showSubstituidos && (
-                <div className="p-5 bg-amber-50/90 border-b-2 border-amber-400 space-y-4">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <Lock className="w-5 h-5 text-amber-800" />
-                      <h3 className="font-black text-sm sm:text-base text-amber-950 uppercase tracking-tight">
-                        Trava Histórica — Documentos Substituídos e Bloqueados na Camada Silver
-                      </h3>
-                    </div>
-                    <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-rose-600 text-white">
-                      Proibido utilizar como fundamento normativo
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {acervo.documentos_substituidos_bloqueados.map((sub) => (
-                      <div
-                        key={`${sub.codigo}-${sub.versao}`}
-                        className="bg-white rounded-xl border-2 border-amber-400 p-4 shadow-xs flex flex-col justify-between space-y-3"
-                      >
-                        <div>
-                          <div className="flex items-center justify-between gap-2 mb-2">
-                            <span className="px-2.5 py-0.5 rounded bg-slate-900 text-[#FFCC00] font-mono font-extrabold text-xs">
-                              {sub.codigo} v{sub.versao}
-                            </span>
-                            <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-bold text-[11px]">
-                              Fase: {sub.fase}
-                            </span>
-                          </div>
-                          <h4 className="font-bold text-sm text-slate-900">{sub.titulo}</h4>
-                          <div className="text-[11px] text-slate-600 mt-1 space-y-0.5">
-                            {"vigencia_original" in sub && sub.vigencia_original && (
-                              <div>
-                                <strong>Vigência original impressa:</strong> {sub.vigencia_original}
-                              </div>
-                            )}
-                            {"aprovado_em" in sub && sub.aprovado_em && (
-                              <div>
-                                <strong>Aprovado em:</strong> {sub.aprovado_em}
-                              </div>
-                            )}
-                            <div className="text-emerald-800 font-semibold">
-                              <strong>Substituído por:</strong> {sub.substituido_por}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="p-3 rounded-lg bg-[#FFCC00]/35 border-2 border-[#FFCC00] text-slate-950">
-                          <div className="text-[10px] font-black uppercase tracking-wider text-amber-950 mb-1 flex items-center gap-1">
-                            <AlertTriangle className="w-3.5 h-3.5 text-amber-800 shrink-0" />
-                            Diferença Crítica / Pegadinha:
-                          </div>
-                          <p className="text-xs font-semibold leading-snug">
-                            {sub.diferenca_critica_pegadinha}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Vigentes Cards Grid */}
-              <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 {documentosTema.map((doc) => {
                   const gov = doc.governanca as Record<string, unknown>;
-                  const dono =
+                  const donoSigla = (
                     (gov.dono_elaborador as string) ||
                     (gov.dono_gestor_contrato as string) ||
-                    "N/A";
-                  const aprovador = (gov.aprovador as string) || "N/A";
-                  const fiscal =
-                    (gov.fiscal_tecnico as string) ||
-                    (gov.unidade_demandante as string) ||
-                    null;
-
-                  const vigenciaTexto =
-                    "vigencia_inicio" in doc && doc.vigencia_inicio
-                      ? `${doc.vigencia_inicio} a ${doc.vigencia_fim} (${doc.regra_vigencia})`
-                      : "aprovado_em" in doc && doc.aprovado_em
-                      ? `Aprovado em ${doc.aprovado_em} (${doc.regra_vigencia})`
-                      : doc.regra_vigencia;
-
-                  const resumoTexto =
-                    "resumo_legal_design" in doc && doc.resumo_legal_design
-                      ? doc.resumo_legal_design.o_que_e
-                      : "Fluxograma oficial do processo operacional no Portal Raiz.";
-
-                  const pdfUrl = PDF_LINKS[doc.codigo];
+                    ""
+                  ).split(" ")[0];
 
                   return (
                     <div
                       key={doc.codigo}
-                      className="rounded-xl border border-slate-200 hover:border-[#002D72]/50 bg-white p-4 shadow-2xs transition flex flex-col justify-between space-y-3"
+                      className="bg-white rounded-xl border border-[#E2E8F0] p-6 shadow-2xs hover:border-[#0038A8]/50 transition flex flex-col justify-between space-y-5"
                     >
-                      <div>
-                        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="px-2.5 py-1 rounded-lg bg-[#002D72] text-[#FFCC00] font-mono font-extrabold text-xs">
-                              {doc.codigo}
-                            </span>
-                            <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
-                              v{doc.versao}
-                            </span>
-                            <span className="text-[11px] font-semibold text-slate-600">
-                              {doc.categoria}
-                            </span>
-                          </div>
-
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      <div className="space-y-3">
+                        {/* Data 1 & Data 3: Código + Selo Vigente/Dono */}
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="px-2.5 py-1 rounded bg-[#002D72] text-white font-mono font-bold text-xs">
+                            {doc.codigo}
+                          </span>
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
                             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                            {doc.fase}
+                            Vigente • {donoSigla}
                           </span>
                         </div>
 
-                        <div className="flex items-center justify-between gap-2">
-                          <h3 className="font-extrabold text-base text-slate-900">
-                            {doc.titulo}
-                          </h3>
-                          {pdfUrl && (
-                            <a
-                              href={pdfUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-[11px] font-bold text-[#002D72] hover:underline shrink-0"
-                            >
-                              Abrir PDF <ExternalLink className="w-3 h-3" />
-                            </a>
-                          )}
-                        </div>
-                        <div className="text-[11px] font-semibold text-slate-500 mt-0.5">
-                          Série: <strong className="text-slate-700">{doc.serie}</strong> • Grupo:{" "}
-                          <strong className="text-slate-700">{doc.grupo}</strong>
-                        </div>
-
-                        <p className="text-xs text-slate-700 mt-2.5 leading-relaxed bg-slate-50 p-2.5 rounded-lg border border-slate-200/80">
-                          {resumoTexto}
-                        </p>
-
-                        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                          <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/70">
-                            <span className="text-[10px] font-bold uppercase text-slate-400 block">
-                              Quem é o Dono (Data Mesh)
-                            </span>
-                            <span className="font-bold text-slate-800">{dono}</span>
-                          </div>
-
-                          <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/70">
-                            <span className="text-[10px] font-bold uppercase text-slate-400 block">
-                              Quem Aprova (Alçada NG_012)
-                            </span>
-                            <span className="font-bold text-slate-800">{aprovador}</span>
-                          </div>
-
-                          {fiscal && (
-                            <div className="p-2 rounded-lg bg-blue-50/60 border border-blue-200/60 sm:col-span-2">
-                              <span className="text-[10px] font-bold uppercase text-[#002D72] block">
-                                Fiscal Técnico / Unidade Demandante
-                              </span>
-                              <span className="font-bold text-[#002D72]">{fiscal}</span>
-                            </div>
-                          )}
-
-                          <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/70 sm:col-span-2">
-                            <span className="text-[10px] font-bold uppercase text-slate-400 block">
-                              Vigência e Regra ({acervo.norma_mestra_taxonomia.codigo})
-                            </span>
-                            <span className="font-semibold text-slate-700">{vigenciaTexto}</span>
-                          </div>
-                        </div>
+                        {/* Data 2: Título */}
+                        <h3 className="text-base font-bold text-slate-900 leading-snug">
+                          {doc.titulo}
+                        </h3>
                       </div>
 
-                      <div className="pt-2.5 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-slate-500">vinculado_a:</span>
-                          {doc.vinculado_a ? (
-                            <span className="px-2 py-0.5 rounded bg-blue-100 text-[#002D72] font-mono font-extrabold">
-                              {doc.vinculado_a}
-                            </span>
-                          ) : (
-                            <span className="px-2 py-0.5 rounded bg-slate-200 text-slate-700 font-semibold text-[11px]">
-                              Norma Raiz da Série (Topo Hierárquico)
-                            </span>
-                          )}
-                        </div>
-
-                        {"substitui" in doc && doc.substitui && (
-                          <span className="text-[11px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded">
-                            Substitui: {doc.substitui}
-                          </span>
-                        )}
+                      <div className="pt-3 border-t border-[#E2E8F0] flex items-center justify-between">
+                        <button
+                          onClick={() => setSelectedDocModalCode(doc.codigo)}
+                          className="text-xs font-semibold text-[#0038A8] hover:text-[#002D72] cursor-pointer flex items-center gap-1"
+                        >
+                          Ver detalhes / Comparar versões <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     </div>
                   );
                 })}
               </div>
-            </section>
+            </div>
+          </div>
+        )}
 
-            {/* SIMULADORES INTERATIVOS POR JORNADA (CUSTO R$ 0,00 DETERMINÍSTICO) */}
-            <section className="space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <h2 className="text-lg font-black text-[#002D72] tracking-tight flex items-center gap-2">
-                    Simuladores Determinísticos (Zero-Click) — {configTema.label}
-                  </h2>
-                  <p className="text-xs text-slate-600">
-                    Cálculos em tempo real alimentados pelo nó{" "}
-                    <code className="px-1.5 py-0.5 rounded bg-slate-200 text-[#002D72] font-bold">
-                      regras_simuladores
-                    </code>{" "}
-                    da Camada Gold
-                  </p>
-                </div>
-                <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
-                  ⚡ Custo: R$ 0,00 (Calculadora Determinística / Cache)
+        {/* =====================================================================
+            ABA 3: SIMULADORES (Apenas Calculadoras Interativas em Layout Amplo)
+           ===================================================================== */}
+        {activeTab === "simuladores" && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl border border-[#E2E8F0] p-6 shadow-2xs flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <span className="text-xs font-semibold uppercase tracking-wider text-[#0038A8]">
+                  Calculadoras Determinísticas • Custo R$ 0,00
                 </span>
+                <h2 className="text-xl font-bold text-[#002D72] mt-0.5">
+                  Simuladores de Regras e Tomada de Decisão
+                </h2>
               </div>
 
-              {temaAtivo === "ferias" && (
-                <FeriasSimulators
-                  regras={acervo.jornadas_por_tema.ferias.regras_simuladores}
-                  mermaidCode={mermaidCode}
-                />
-              )}
+              <div className="flex flex-wrap gap-2">
+                {TEMAS_CONFIG.map((t) => {
+                  const active = temaAtivo === t.id;
+                  return (
+                    <button
+                      key={t.id}
+                      onClick={() => setTemaAtivo(t.id)}
+                      className={`px-4 py-2 rounded-lg text-xs font-semibold transition cursor-pointer border ${
+                        active
+                          ? "bg-[#0038A8] text-white border-[#002D72]"
+                          : "bg-[#F8FAFC] hover:bg-slate-100 text-slate-700 border-[#E2E8F0]"
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
-              {temaAtivo === "inovacao" && (
-                <InovacaoSimulators
-                  regras={acervo.jornadas_por_tema.inovacao.regras_simuladores}
-                  alcadasNg012={acervo.alcadas_financeiras_ng012}
-                />
-              )}
+            {temaAtivo === "ferias" && (
+              <FeriasSimulators
+                regras={acervo.jornadas_por_tema.ferias.regras_simuladores}
+                mermaidCode={mermaidCode}
+              />
+            )}
 
-              {temaAtivo === "locacao" && (
-                <LocacaoSimulators
-                  regras={acervo.jornadas_por_tema.locacao.regras_simuladores}
-                />
-              )}
-            </section>
+            {temaAtivo === "inovacao" && (
+              <InovacaoSimulators
+                regras={acervo.jornadas_por_tema.inovacao.regras_simuladores}
+                alcadasNg012={acervo.alcadas_financeiras_ng012}
+              />
+            )}
 
-            {/* SEÇÕES 1, 4, 5 E 6 DA PROPOSTA: DIFERENCIAIS DE GOVERNANÇA, CUSTO, AUDITOR MEDALHÃO E E-MAIL */}
-            <GovernanceDifferentialsPanel />
+            {temaAtivo === "locacao" && (
+              <LocacaoSimulators
+                regras={acervo.jornadas_por_tema.locacao.regras_simuladores}
+              />
+            )}
           </div>
+        )}
 
-          {/* RIGHT COLUMN: CO-PILOTO EXECUTIVO LATERAL (4 cols on XL) */}
-          <div className="xl:col-span-4">
-            <CopilotSidebar
-              tema={temaAtivo}
-              perfilLabel={`${personaAtiva.nome} (${personaAtiva.papel} • RBAC: ${personaAtiva.rbac})`}
-              personaId={personaAtiva.id}
-            />
-          </div>
-        </div>
+        {/* =====================================================================
+            ABA 4: GOVERNANÇA & RADAR (Com Sub-abas Limpas a, b, c, d)
+           ===================================================================== */}
+        {activeTab === "governanca" && (
+          <GovernanceDifferentialsPanel
+            initialSubTab={governanceSubTab}
+            onSwitchPersona={handleSelectPersona}
+          />
+        )}
       </main>
 
-      {/* RODAPÉ FIXO DE LEGAL DESIGN EXIGIDO PELA PROPOSTA */}
-      <footer className="fixed bottom-0 left-0 right-0 z-30 bg-slate-950/95 backdrop-blur-xs text-slate-200 text-xs py-2.5 px-4 sm:px-6 border-t-2 border-[#FFCC00] shadow-lg">
-        <div className="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded bg-[#FFCC00] text-[#002D72] font-black text-[10px]">
-              RAIZ IQ • LEGAL DESIGN
+      {/* =====================================================================
+          MODAL LIMPO: DETALHES DO DOCUMENTO & COMPARAÇÃO DE VERSÕES
+         ===================================================================== */}
+      {selectedDocForModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-xl max-w-2xl w-full overflow-hidden">
+            <div className="bg-[#002D72] text-white px-6 py-4 flex items-center justify-between border-b-2 border-[#F8D117]">
+              <div className="flex items-center gap-2.5">
+                <span className="px-2.5 py-0.5 rounded bg-[#F8D117] text-[#002D72] font-mono font-bold text-xs">
+                  {selectedDocForModal.codigo} (v{selectedDocForModal.versao})
+                </span>
+                <h3 className="font-bold text-base">{selectedDocForModal.titulo}</h3>
+              </div>
+              <button
+                onClick={() => setSelectedDocModalCode(null)}
+                className="p-1 rounded-lg text-blue-100 hover:text-white hover:bg-white/10 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5 text-xs text-slate-700 max-h-[80vh] overflow-y-auto">
+              {"resumo_legal_design" in selectedDocForModal &&
+                selectedDocForModal.resumo_legal_design && (
+                  <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1.5">
+                    <div className="font-bold text-[#002D72]">Resumo em Linguagem Simples</div>
+                    <p className="leading-relaxed">
+                      {selectedDocForModal.resumo_legal_design.o_que_e}
+                    </p>
+                  </div>
+                )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="p-3.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0]">
+                  <span className="text-slate-400 block text-[11px]">Categoria e Série</span>
+                  <strong className="text-slate-900">
+                    {selectedDocForModal.categoria} • {selectedDocForModal.serie}
+                  </strong>
+                </div>
+                <div className="p-3.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0]">
+                  <span className="text-slate-400 block text-[11px]">
+                    Desambiguação NG_010 (vinculado_a)
+                  </span>
+                  <strong className="text-[#0038A8]">
+                    {selectedDocForModal.vinculado_a || "Norma Raiz da Série (Topo Hierárquico)"}
+                  </strong>
+                </div>
+                <div className="p-3.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0]">
+                  <span className="text-slate-400 block text-[11px]">Dono / Gestor</span>
+                  <strong className="text-slate-900">
+                    {((selectedDocForModal.governanca as Record<string, unknown>)
+                      .dono_elaborador as string) ||
+                      ((selectedDocForModal.governanca as Record<string, unknown>)
+                        .dono_gestor_contrato as string)}
+                  </strong>
+                </div>
+                <div className="p-3.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0]">
+                  <span className="text-slate-400 block text-[11px]">Aprovador (NG_012)</span>
+                  <strong className="text-slate-900">
+                    {
+                      (selectedDocForModal.governanca as Record<string, unknown>)
+                        .aprovador as string
+                    }
+                  </strong>
+                </div>
+              </div>
+
+              {/* Show Historical Replacement Diff if this doc replaced an older version */}
+              {acervo.documentos_substituidos_bloqueados
+                .filter((sub) => sub.codigo === selectedDocForModal.codigo)
+                .map((sub) => (
+                  <div
+                    key={sub.versao}
+                    className="p-4 rounded-xl bg-amber-50/70 border border-amber-300 space-y-1.5"
+                  >
+                    <div className="font-bold text-amber-950 flex items-center gap-1.5">
+                      <AlertTriangle className="w-4 h-4 text-amber-700" />
+                      Comparativo com Versão Substituída ({sub.codigo} v{sub.versao})
+                    </div>
+                    <p className="text-amber-900 leading-relaxed">
+                      {sub.diferenca_critica_pegadinha}
+                    </p>
+                  </div>
+                ))}
+
+              <div className="pt-3 border-t border-[#E2E8F0] flex items-center justify-between">
+                {PDF_LINKS[selectedDocForModal.codigo] ? (
+                  <a
+                    href={PDF_LINKS[selectedDocForModal.codigo]}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#0038A8] text-white font-semibold hover:bg-[#002D72] transition"
+                  >
+                    Abrir PDF Oficial <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                ) : (
+                  <span />
+                )}
+                <button
+                  onClick={() => setSelectedDocModalCode(null)}
+                  className="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold cursor-pointer"
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================================
+          MODAL LIMPO: VERSÕES SUBSTITUÍDAS (TRAVA HISTÓRICA DIFF v2 vs v3)
+         ===================================================================== */}
+      {showVersionDiffModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-xl max-w-3xl w-full overflow-hidden">
+            <div className="bg-[#002D72] text-white px-6 py-4 flex items-center justify-between border-b-2 border-[#F8D117]">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#F8D117]">
+                  Quarentena da Camada Silver
+                </span>
+                <h3 className="font-bold text-base">
+                  Versões Substituídas e Bloqueadas (Comparativo de Mudanças)
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowVersionDiffModal(false)}
+                className="p-1 rounded-lg text-blue-100 hover:text-white hover:bg-white/10 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+              {acervo.documentos_substituidos_bloqueados.map((sub) => (
+                <div
+                  key={`${sub.codigo}-${sub.versao}`}
+                  className="p-5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-2"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="px-2.5 py-0.5 rounded bg-slate-800 text-[#F8D117] font-mono font-bold text-xs">
+                      {sub.codigo} v{sub.versao} — {sub.titulo}
+                    </span>
+                    <span className="text-xs font-semibold text-emerald-700">
+                      Substituído por: {sub.substituido_por}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-700 leading-relaxed bg-amber-50/70 p-3 rounded-lg border border-amber-200">
+                    <strong className="text-amber-950">Mudança crítica: </strong>
+                    {sub.diferenca_critica_pegadinha}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* RETRACTABLE CO-PILOTO LATERAL DRAWER */}
+      <CopilotSidebar
+        tema={temaAtivo}
+        perfilLabel={`${personaAtiva.nome} (${personaAtiva.papel} • RBAC: ${personaAtiva.rbac})`}
+        personaId={personaAtiva.id}
+        isOpenDrawer={isCopilotDrawerOpen}
+        onToggleDrawer={() => setIsCopilotDrawerOpen(!isCopilotDrawerOpen)}
+      />
+
+      {/* 4. RODAPÉ INSTITUCIONAL BBTS (INSPIRADO NO BBTS.COM.BR) */}
+      <footer className="bg-[#002D72] text-white border-t-4 border-[#F8D117] mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+          <div className="flex items-center gap-3">
+            <span className="px-2.5 py-1 rounded bg-[#F8D117] text-[#002D72] font-black text-xs">
+              BBTS
             </span>
-            <span className="font-extrabold text-amber-300">
-              ⚖️ Em caso de divergência, prevalece o documento oficial.
+            <span className="text-blue-100">
+              BB Tecnologia e Serviços • Desafio 2 (Equipe Ctrl + Alt + Business)
             </span>
           </div>
-          <div className="hidden md:flex items-center gap-3 text-[11px] text-slate-400">
-            <span>
-              Equipe <strong className="text-white">Ctrl + Alt + Business</strong>
-            </span>
-            <span>•</span>
-            <span>
-              Cliente FastAPI: <code className="text-[#FFCC00]">src/lib/api.ts</code> (Fallback Local Ativo)
-            </span>
+
+          <div className="flex flex-wrap items-center gap-5 text-blue-200">
+            <button
+              onClick={() => {
+                setActiveTab("governanca");
+                setGovernanceSubTab("medalhao");
+              }}
+              className="hover:text-white cursor-pointer"
+            >
+              Transparência
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab("governanca");
+                setGovernanceSubTab("acesso");
+              }}
+              className="hover:text-white cursor-pointer"
+            >
+              Privacidade / LGPD
+            </button>
+            <button
+              onClick={() => setIsCopilotDrawerOpen(true)}
+              className="hover:text-white cursor-pointer"
+            >
+              Ouvidoria & Canais
+            </button>
+          </div>
+
+          <div className="text-amber-300 font-semibold">
+            Em caso de divergência, prevalece o documento oficial.
           </div>
         </div>
       </footer>
