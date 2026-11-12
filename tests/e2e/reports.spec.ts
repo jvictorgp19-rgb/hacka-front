@@ -1,0 +1,20 @@
+import { test, expect } from '@playwright/test';
+test('compõe resumo por seleção, salva e exporta com fonte',async({page})=>{
+  await page.goto('/analises/?tema=inovacao&perspectiva=values');
+  await page.getByLabel('Selecionar Alçada de prototipagem').check();
+  await page.getByRole('link',{name:'Compor resumo (1)',exact:true}).click();
+  await expect(page.locator('.report-preview')).toContainText('Até R$ 18.000,00');
+  await expect(page.locator('.report-preview')).not.toContainText('De R$ 18.000,01');
+  await page.getByLabel('Título do resumo').fill('Reunião da diretoria');
+  await page.getByRole('button',{name:'Salvar versão',exact:true}).click();
+  await expect(page.getByRole('status')).toContainText('Versão salva localmente');
+  await page.reload();
+  await expect(page.locator('.report-preview h1')).toHaveText('Reunião da diretoria');
+  const downloadPromise=page.waitForEvent('download');
+  await page.getByRole('button',{name:'Baixar texto',exact:true}).click();
+  const download=await downloadPromise;expect(download.suggestedFilename()).toBe('resumo-executivo.txt');
+  await page.getByRole('button',{name:'Criar nova versão'}).click();
+  await page.locator('.evidence-picker summary').click();
+  await page.getByLabel('Incluir Alçada de diretoria').check();
+  await expect(page.locator('.report-preview')).toContainText('De R$ 18.000,01');
+});

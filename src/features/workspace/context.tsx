@@ -9,6 +9,7 @@ interface WorkspaceState {
   deadlines: Deadline[]; findings: Finding[]; identity: Identity | null;
   context: AnalysisContext; setContext: (context: AnalysisContext) => void;
   source: Citation | null; openSource: (source: Citation | null) => void;
+  selection: Fact[]; setSelection: (facts: Fact[]) => void; selectionError: string;
   loading: boolean; error: string; reload: () => void;
 }
 const Workspace = createContext<WorkspaceState | null>(null);
@@ -23,6 +24,20 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [source, openSource] = useState<Citation | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedByPersona, setSelectedByPersona] = useState<Record<string, Fact[]>>({});
+  const [selectionError, setSelectionError] = useState('');
+  useEffect(() => {
+    let active = true;
+    if (gateway?.mode === 'demo') import('@/services/demo/storage').then(({ readDemo }) => {
+      if (active) setSelectedByPersona(current => ({ ...current, [context.persona]: readDemo().selections[context.persona] || [] }));
+    });
+    return () => { active = false; };
+  }, [gateway, context.persona]);
+  const setSelection = (values: Fact[]) => {
+    setSelectedByPersona(current => ({ ...current, [context.persona]: values }));
+    setSelectionError('');
+    if (gateway?.mode === 'demo') import('@/services/demo/storage').then(({ writeDemo }) => writeDemo(state => ({ ...state, selections: { ...state.selections, [context.persona]: values } }))).catch(() => setSelectionError('A seleção está disponível apenas nesta sessão; não foi possível persistir no navegador.'));
+  };
   const [revision, setRevision] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
@@ -35,7 +50,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }).catch(e => { if (!controller.signal.aborted) { setError(e instanceof Error ? e.message : 'Não foi possível carregar o workspace.'); setLoading(false); } });
     return () => controller.abort();
   }, [revision]);
-  return <Workspace.Provider value={{ gateway, documents, facts, deadlines, findings, identity, context, setContext, source, openSource, loading, error, reload: () => { setError(''); setLoading(true); setRevision(n => n + 1); } }}>{children}</Workspace.Provider>;
+  return <Workspace.Provider value={{ gateway, documents, facts, deadlines, findings, identity, context, setContext, source, openSource, selection: selectedByPersona[context.persona] || [], setSelection, selectionError, loading, error, reload: () => { setError(''); setLoading(true); setRevision(n => n + 1); } }}>{children}</Workspace.Provider>;
 }
 export function useWorkspace() { const context = useContext(Workspace); if (!context) throw new Error('WorkspaceProvider ausente'); return context; }
 export const themeLabels = { ferias: 'Férias', inovacao: 'Inovação', locacao: 'Locação' };

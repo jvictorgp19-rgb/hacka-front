@@ -6,7 +6,6 @@ import FeriasSimulators from '@/components/FeriasSimulators';
 import InovacaoSimulators from '@/components/InovacaoSimulators';
 import LocacaoSimulators from '@/components/LocacaoSimulators';
 import acervo from '@/data/acervo_estruturado_acme_bbts.json';
-export function ReportsView() { return <><PageHeading eyebrow="DO ACERVO À REUNIÃO" title="Resumos executivos" description="Reúna evidências relevantes em uma síntese com fontes."/><EmptyState title="Seu próximo resumo começa nas evidências">Reúna as evidências e suas fontes para sua próxima reunião.</EmptyState></>; }
 export function GovernanceView() { const { findings } = useWorkspace(); return <><PageHeading eyebrow="QUALIDADE DO CONHECIMENTO" title="Curadoria do acervo" description="Acompanhe inconsistências cadastradas e orientações para revisão."/><div className="card-grid">{findings.map(f => <article className="evidence-card" key={f.id}><div className="card-meta"><span>Revisão do acervo</span></div><h3>{f.title}</h3><p>{f.detail}</p><footer><span className="muted">{f.documents.join(' · ')}</span></footer></article>)}</div></>; }
 export function SimulatorsView() {
   const { gateway } = useWorkspace(); const [theme, setTheme] = useState('ferias');

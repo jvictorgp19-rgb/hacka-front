@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { answerSchema, accessSchema, feedbackSchema, recordSchema, ApiError } from '@/contracts/models';
-const schema = z.object({ version: z.literal(1), messages: z.array(answerSchema).default([]), records: z.array(recordSchema), feedback: z.array(feedbackSchema), requests: z.array(accessSchema) });
+import { factSchema, answerSchema, accessSchema, feedbackSchema, recordSchema, ApiError } from '@/contracts/models';
+const schema = z.object({ version: z.literal(1), selections: z.record(z.string(), z.array(factSchema)).default({}), messages: z.array(answerSchema).default([]), records: z.array(recordSchema), feedback: z.array(feedbackSchema), requests: z.array(accessSchema) });
 export type DemoState = z.infer<typeof schema>;
-const empty = (): DemoState => ({ version: 1, messages: [], records: [], feedback: [], requests: [] });
+const empty = (): DemoState => ({ version: 1, selections: {}, messages: [], records: [], feedback: [], requests: [] });
 export const DEMO_STORAGE_KEY = 'raiziq.demo.v1';
 export function readDemo(): DemoState {
   if (typeof window === 'undefined') return empty();

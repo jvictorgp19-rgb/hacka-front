@@ -556,7 +556,7 @@ nova permissão para tarefas rotineiras já autorizadas dentro do escopo.
 - [x] CP-06 — Conversas, citações e abstenção
 - [x] CP-07 — Perspectivas, visualizações e conflitos
 - [x] CP-08 — Simuladores e radar
-- [ ] CP-09 — Resumo executivo por seleção
+- [x] CP-09 — Resumo executivo por seleção
 - [ ] CP-10 — Histórico, reaproveitamento e avaliação
 - [ ] CP-11 — Curadoria e pedidos de acesso
 - [ ] CP-12 — Homologação e pacote de frontend para AWS

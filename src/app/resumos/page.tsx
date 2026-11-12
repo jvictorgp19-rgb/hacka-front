@@ -1,2 +1,2 @@
-import { ReportsView } from "@/features/workspace/InitialViews";
-export default function Page() { return <ReportsView/>; }
+import Reports from "@/features/reports/Reports";
+export default function Page() { return <Reports/>; }
