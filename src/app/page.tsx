@@ -2,6 +2,9 @@
 
 import React, { useState } from "react";
 import acervo from "@/data/acervo_estruturado_acme_bbts.json";
+import { PERSONAS_NOMINAIS, PersonaNominal } from "@/lib/api";
+import DemoPitchBar, { DEMO_STEPS, DemoStepId } from "@/components/DemoPitchBar";
+import GovernanceDifferentialsPanel from "@/components/GovernanceDifferentialsPanel";
 import FeriasSimulators from "@/components/FeriasSimulators";
 import InovacaoSimulators from "@/components/InovacaoSimulators";
 import LocacaoSimulators from "@/components/LocacaoSimulators";
@@ -11,21 +14,19 @@ import {
   AlertTriangle,
   CheckSquare,
   Square,
-  FileText,
   UserCheck,
   Layers,
   Link2,
   BookOpen,
-  Calendar,
   Sparkles,
-  Building2,
   ChevronDown,
   ChevronUp,
   Lock,
   ExternalLink,
   Scale,
   RotateCcw,
-  Info,
+  Users,
+  BellRing,
 } from "lucide-react";
 
 type TemaKey = "ferias" | "inovacao" | "locacao";
@@ -88,6 +89,8 @@ const PDF_LINKS: Record<string, string> = {
 };
 
 export default function HomePage() {
+  const [personaAtivaId, setPersonaAtivaId] = useState<string>("ana");
+  const [activeDemoStep, setActiveDemoStep] = useState<DemoStepId | null>(1);
   const [temaAtivo, setTemaAtivo] = useState<TemaKey>("ferias");
   const [perfilPorTema, setPerfilPorTema] = useState<Record<TemaKey, string>>({
     ferias: "empregado",
@@ -97,6 +100,32 @@ export default function HomePage() {
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
   const [showSubstituidos, setShowSubstituidos] = useState<boolean>(false);
   const [showTaxonomiaModal, setShowTaxonomiaModal] = useState<boolean>(false);
+
+  const personaAtiva: PersonaNominal =
+    PERSONAS_NOMINAIS.find((p) => p.id === personaAtivaId) || PERSONAS_NOMINAIS[0];
+
+  const handleSelectPersona = (personaId: string) => {
+    const found = PERSONAS_NOMINAIS.find((p) => p.id === personaId);
+    if (!found) return;
+    setPersonaAtivaId(found.id);
+    setTemaAtivo(found.temaPadrao);
+    setPerfilPorTema((prev) => ({
+      ...prev,
+      [found.temaPadrao]: found.perfilChave,
+    }));
+  };
+
+  const handleSelectDemoStep = (stepId: DemoStepId) => {
+    setActiveDemoStep(stepId);
+    const meta = DEMO_STEPS.find((s) => s.id === stepId);
+    if (meta) {
+      handleSelectPersona(meta.personaId);
+      setTemaAtivo(meta.tema);
+      if (stepId === 2) {
+        setShowSubstituidos(true);
+      }
+    }
+  };
 
   const jornadaAtual = acervo.jornadas_por_tema[temaAtivo];
   const perfisDisponiveis = Object.keys(jornadaAtual.visoes_por_perfil);
@@ -142,31 +171,31 @@ export default function HomePage() {
     (flMermaidDoc && "mermaid_code" in flMermaidDoc && flMermaidDoc.mermaid_code) || "";
 
   return (
-    <div className="min-h-screen bg-[#F4F6F9] text-slate-900 flex flex-col">
-      {/* 1. CABEÇALHO EXECUTIVO (IDENTIDADE BBTS / ACME EM AZUL MARINHO E AMARELO/DOURADO) */}
+    <div className="min-h-screen bg-[#F4F6F9] text-slate-900 flex flex-col pb-12">
+      {/* 1. CABEÇALHO EXECUTIVO (IDENTIDADE BBTS / ACME + SELETOR DE 6 PERSONAS NOMINAIS) */}
       <header className="sticky top-0 z-30 bg-[#002D72] text-white shadow-lg border-b-4 border-[#FFCC00]">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-3.5">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-3">
           {/* Top Bar: Brand & NG_010 Taxonomy Badge */}
-          <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-white/15">
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-2.5 border-b border-white/15">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-[#FFCC00] text-[#002D72] flex flex-col items-center justify-center font-black shadow-md shrink-0">
-                <span className="text-xs leading-none">BBTS</span>
+              <div className="w-10 h-10 rounded-xl bg-[#FFCC00] text-[#002D72] flex flex-col items-center justify-center font-black shadow-md shrink-0">
+                <span className="text-xs leading-none">RAIZ</span>
                 <span className="text-[9px] font-extrabold tracking-tighter leading-none mt-0.5">
-                  ACME
+                  IQ 3.0
                 </span>
               </div>
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-base sm:text-lg font-black tracking-tight text-white">
-                    Plataforma de Inteligência Empresarial & Legal Design
+                  <h1 className="text-sm sm:text-base font-black tracking-tight text-white">
+                    Raiz IQ (Zero-Click) — Plataforma de Inteligência Normativa BBTS / ACME
                   </h1>
-                  <span className="text-[11px] font-extrabold px-2 py-0.5 rounded bg-[#FFCC00] text-[#002D72]">
-                    Ctrl + Alt + Business
+                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-[#FFCC00] text-[#002D72]">
+                    Ctrl + Alt + Business • Iteração 3
                   </span>
                 </div>
-                <p className="text-xs text-blue-200">
-                  {acervo.organizacao} • Norma Mestra {acervo.norma_mestra_taxonomia.codigo} (Taxonomia v
-                  {acervo.norma_mestra_taxonomia.versao_taxonomia})
+                <p className="text-[11px] text-blue-200">
+                  {acervo.organizacao} • Governança {acervo.norma_mestra_taxonomia.codigo} (Taxonomia v
+                  {acervo.norma_mestra_taxonomia.versao_taxonomia}) • Arquitetura Medalhão & Data Mesh
                 </p>
               </div>
             </div>
@@ -177,7 +206,7 @@ export default function HomePage() {
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-[#FFCC00] border border-white/20 transition cursor-pointer"
               >
                 <Scale className="w-3.5 h-3.5" />
-                Matriz de Séries & Alçadas ({acervo.norma_mestra_taxonomia.codigo} / NG_012)
+                Matriz {acervo.norma_mestra_taxonomia.codigo} & Alçadas NG_012
               </button>
 
               <button
@@ -194,13 +223,84 @@ export default function HomePage() {
             </div>
           </div>
 
+          {/* SEÇÃO 3 DA PROPOSTA: SELETOR DAS 6 PERSONAS NOMINAIS OFICIAIS (RBAC & ZERO-CLICK) */}
+          <div className="py-2.5 border-b border-white/15">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#FFCC00] flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5" />
+                Seletor de Personas Nominais da Demo (Alterna Papel, Unidade, Jornada e Nível RBAC):
+              </span>
+              <span className="text-[11px] text-blue-200 hidden md:inline">
+                Persona Ativa: <strong className="text-white">{personaAtiva.nome}</strong> ({personaAtiva.papel} •{" "}
+                <strong className="text-[#FFCC00]">RBAC: {personaAtiva.rbac}</strong>)
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+              {PERSONAS_NOMINAIS.map((p) => {
+                const isSelected = personaAtiva.id === p.id;
+                const rbacBadgeColor =
+                  p.rbac === "Sigilosa"
+                    ? "bg-rose-500 text-white"
+                    : p.rbac === "Restrita"
+                    ? "bg-amber-400 text-slate-950"
+                    : "bg-emerald-400 text-slate-950";
+
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => handleSelectPersona(p.id)}
+                    className={`p-2 rounded-xl text-left transition cursor-pointer border flex items-center gap-2.5 ${
+                      isSelected
+                        ? "bg-white text-[#002D72] border-[#FFCC00] ring-2 ring-[#FFCC00] shadow-md"
+                        : "bg-blue-950/60 hover:bg-blue-900/70 text-white border-white/15"
+                    }`}
+                  >
+                    <div
+                      className={`w-8 h-8 rounded-lg font-black text-xs flex items-center justify-center shrink-0 ${
+                        isSelected
+                          ? "bg-[#002D72] text-[#FFCC00]"
+                          : "bg-white/10 text-[#FFCC00]"
+                      }`}
+                    >
+                      {p.avatarSigla}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-xs font-extrabold truncate">{p.nome}</span>
+                        <span
+                          className={`text-[9px] font-black uppercase px-1.5 py-0.2 rounded shrink-0 ${rbacBadgeColor}`}
+                        >
+                          {p.rbac}
+                        </span>
+                      </div>
+                      <div
+                        className={`text-[10px] truncate ${
+                          isSelected ? "text-slate-700 font-semibold" : "text-blue-200"
+                        }`}
+                      >
+                        {p.papel}
+                      </div>
+                      <div
+                        className={`text-[9px] truncate ${
+                          isSelected ? "text-[#002D72]/80 font-bold" : "text-blue-300/80"
+                        }`}
+                      >
+                        {p.unidade}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Global Selectors Bar: (a) Seletor de Jornada/Tema & (b) Seletor de Perfil */}
-          <div className="pt-3 grid grid-cols-1 lg:grid-cols-12 gap-3 items-center">
-            {/* Selector A: Jornada / Tema */}
+          <div className="pt-2.5 grid grid-cols-1 lg:grid-cols-12 gap-3 items-center">
             <div className="lg:col-span-7 flex flex-col sm:flex-row sm:items-center gap-2">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#FFCC00] shrink-0 flex items-center gap-1">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#FFCC00] shrink-0 flex items-center gap-1">
                 <Layers className="w-3.5 h-3.5" />
-                Jornada / Tema:
+                Jornada:
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
                 {TEMAS_CONFIG.map((t) => {
@@ -209,15 +309,15 @@ export default function HomePage() {
                     <button
                       key={t.id}
                       onClick={() => setTemaAtivo(t.id)}
-                      className={`px-3 py-2 rounded-xl text-left transition cursor-pointer border flex flex-col justify-between ${
+                      className={`px-3 py-1.5 rounded-xl text-left transition cursor-pointer border flex flex-col justify-between ${
                         active
-                          ? "bg-[#FFCC00] text-[#002D72] border-[#FFCC00] shadow-md font-extrabold"
+                          ? "bg-[#FFCC00] text-[#002D72] border-[#FFCC00] shadow-xs font-extrabold"
                           : "bg-white/10 hover:bg-white/15 text-white border-white/15"
                       }`}
                     >
                       <span className="text-xs font-extrabold leading-tight">{t.label}</span>
                       <span
-                        className={`text-[10px] mt-0.5 truncate ${
+                        className={`text-[10px] truncate ${
                           active ? "text-[#002D72]/80 font-semibold" : "text-blue-200"
                         }`}
                       >
@@ -229,15 +329,11 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Selector B: Perfil ("Quem é você na BBTS?") */}
             <div className="lg:col-span-5 flex flex-col sm:flex-row sm:items-center gap-2">
-              <label
-                htmlFor="seletor-perfil"
-                className="text-[11px] font-extrabold uppercase tracking-wider text-[#FFCC00] shrink-0 flex items-center gap-1"
-              >
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#FFCC00] shrink-0 flex items-center gap-1">
                 <UserCheck className="w-3.5 h-3.5" />
-                Quem é você na BBTS?
-              </label>
+                Visão Técnica:
+              </span>
               <div className="flex-1 flex flex-wrap gap-1.5">
                 {perfisDisponiveis.map((chavePerfil) => {
                   const active = perfilSelecionado === chavePerfil;
@@ -247,9 +343,9 @@ export default function HomePage() {
                       onClick={() =>
                         setPerfilPorTema((prev) => ({ ...prev, [temaAtivo]: chavePerfil }))
                       }
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer border ${
                         active
-                          ? "bg-white text-[#002D72] border-[#FFCC00] ring-2 ring-[#FFCC00] shadow-xs"
+                          ? "bg-white text-[#002D72] border-[#FFCC00] shadow-xs"
                           : "bg-blue-950/60 hover:bg-blue-900/70 text-blue-100 border-white/15"
                       }`}
                     >
@@ -336,35 +432,67 @@ export default function HomePage() {
         )}
       </header>
 
-      {/* MAIN WORKSPACE: 2-Column Responsive Layout (Main Content + Co-Piloto Lateral) */}
-      <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 py-6">
+      {/* MAIN WORKSPACE */}
+      <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 py-5 space-y-6">
+        {/* SEÇÃO 8 DA PROPOSTA: BARRA "ROTEIRO DE DEMO AO VIVO - 8 PASSOS" (ZERO-CLICK PITCH) */}
+        <DemoPitchBar
+          activeStep={activeDemoStep}
+          onSelectStep={handleSelectDemoStep}
+          onSwitchPersona={handleSelectPersona}
+        />
+
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
           {/* LEFT / CENTER COLUMN (8 cols on XL) */}
           <div className="xl:col-span-8 space-y-6">
-            {/* SECTION 4: ÁREA DO PERFIL E CHECKLIST ACIONÁVEL (Destaque Executivo) */}
+            {/* ÁREA DA PERSONA NOMINAL ATIVA + RESUMO UX + CHECKLIST ACIONÁVEL */}
             <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-[#002D72] via-[#00388c] to-[#002D72] text-white p-5 border-b border-blue-900">
-                <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-1 rounded-full bg-[#FFCC00] text-[#002D72] text-xs font-black uppercase tracking-wider">
-                      Visão do Perfil Ativo
-                    </span>
-                    <span className="text-sm font-extrabold text-white">
-                      {PERFIL_LABELS[perfilSelecionado] || perfilSelecionado}
-                    </span>
+              <div className="bg-gradient-to-r from-[#002D72] via-[#00388c] to-[#002D72] text-white p-5 border-b border-blue-900 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-[#FFCC00] text-[#002D72] font-black text-sm flex items-center justify-center">
+                      {personaAtiva.avatarSigla}
+                    </div>
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-base font-black text-white">
+                          {personaAtiva.nome} — {personaAtiva.papel}
+                        </span>
+                        <span className="px-2 py-0.5 rounded bg-[#FFCC00] text-[#002D72] text-[10px] font-black uppercase">
+                          RBAC: {personaAtiva.rbac}
+                        </span>
+                      </div>
+                      <div className="text-xs text-blue-200">
+                        Unidade: {personaAtiva.unidade} • Visão Normativa:{" "}
+                        {PERFIL_LABELS[perfilSelecionado] || perfilSelecionado}
+                      </div>
+                    </div>
                   </div>
-                  <span className="text-xs font-semibold text-blue-200">
-                    Jornada: {configTema.label}
+
+                  <span className="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-white/10 text-[#FFCC00] border border-white/15">
+                    ⚡ Zero-Click Feed Ativo
                   </span>
                 </div>
 
+                {/* Alertas Proativos Zero-Click da Persona Nominal */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {personaAtiva.alertasProativos.map((alerta, i) => (
+                    <div
+                      key={i}
+                      className="p-2.5 rounded-xl bg-amber-400/15 border border-amber-300/40 text-xs text-amber-100 flex items-start gap-2"
+                    >
+                      <BellRing className="w-4 h-4 text-[#FFCC00] shrink-0 mt-0.5" />
+                      <span className="font-medium leading-snug">{alerta}</span>
+                    </div>
+                  ))}
+                </div>
+
                 {/* Destaque do resumo_ux (Linguagem Simples / UX Writing) */}
-                <div className="p-4 rounded-xl bg-white/10 border border-white/20 backdrop-blur-xs">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-[#FFCC00] mb-1 flex items-center gap-1.5">
+                <div className="p-3.5 rounded-xl bg-white/10 border border-white/20 backdrop-blur-xs">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-[#FFCC00] mb-1 flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5" />
-                    Diretriz em Linguagem Simples (Resumo UX Writing):
+                    Diretriz em Linguagem Simples (Resumo UX Writing do Perfil):
                   </div>
-                  <p className="text-sm sm:text-base font-semibold text-white leading-relaxed">
+                  <p className="text-sm font-semibold text-white leading-relaxed">
                     “{dadosPerfil.resumo_ux}”
                   </p>
                 </div>
@@ -399,7 +527,6 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* Progress Bar */}
                 <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden mb-4 border border-slate-200">
                   <div
                     className="h-full bg-gradient-to-r from-[#002D72] via-blue-600 to-emerald-500 transition-all duration-300"
@@ -407,7 +534,6 @@ export default function HomePage() {
                   />
                 </div>
 
-                {/* Checklist Items */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                   {dadosPerfil.checklist.map((item, idx) => {
                     const isChecked = !!checkedItems[`${temaAtivo}__${perfilSelecionado}__${idx}`];
@@ -442,7 +568,7 @@ export default function HomePage() {
               </div>
             </section>
 
-            {/* SECTION 3: PAINEL "BATER O OLHO" (GOVERNANÇA E TAXONOMIA NG_010) */}
+            {/* PAINEL "BATER O OLHO" (GOVERNANÇA E TAXONOMIA NG_010) */}
             <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
               <div className="px-5 py-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
@@ -459,12 +585,15 @@ export default function HomePage() {
                       </span>
                     </div>
                     <p className="text-xs text-slate-600">
-                      Desambiguação hierárquica obrigatória via campo <code className="px-1 py-0.5 rounded bg-slate-200 text-[#002D72] font-bold">vinculado_a</code> ({acervo.norma_mestra_taxonomia.regra_aprovacao_geral})
+                      Desambiguação hierárquica obrigatória via campo{" "}
+                      <code className="px-1 py-0.5 rounded bg-slate-200 text-[#002D72] font-bold">
+                        vinculado_a
+                      </code>{" "}
+                      ({acervo.norma_mestra_taxonomia.regra_aprovacao_geral})
                     </p>
                   </div>
                 </div>
 
-                {/* Botão de Alerta "Ver Versões Substituídas (Trava Histórica)" */}
                 <button
                   onClick={() => setShowSubstituidos(!showSubstituidos)}
                   className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer border-2 ${
@@ -483,7 +612,6 @@ export default function HomePage() {
                 </button>
               </div>
 
-              {/* NG_010 Disambiguation Explainer Callout */}
               <div className="px-5 py-3 bg-blue-50/70 border-b border-blue-200/80 flex items-start gap-2.5 text-xs text-slate-700">
                 <Link2 className="w-4 h-4 text-[#002D72] shrink-0 mt-0.5" />
                 <div>
@@ -494,14 +622,13 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Collapsible Alert Panel: Documentos Substituídos / Bloqueados */}
               {showSubstituidos && (
                 <div className="p-5 bg-amber-50/90 border-b-2 border-amber-400 space-y-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <Lock className="w-5 h-5 text-amber-800" />
                       <h3 className="font-black text-sm sm:text-base text-amber-950 uppercase tracking-tight">
-                        Trava Histórica — Documentos Substituídos e Bloqueados para Aplicação
+                        Trava Histórica — Documentos Substituídos e Bloqueados na Camada Silver
                       </h3>
                     </div>
                     <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-rose-600 text-white">
@@ -521,14 +648,14 @@ export default function HomePage() {
                               {sub.codigo} v{sub.versao}
                             </span>
                             <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-bold text-[11px]">
-                              Substituído / Revogado
+                              Fase: {sub.fase}
                             </span>
                           </div>
                           <h4 className="font-bold text-sm text-slate-900">{sub.titulo}</h4>
                           <div className="text-[11px] text-slate-600 mt-1 space-y-0.5">
                             {"vigencia_original" in sub && sub.vigencia_original && (
                               <div>
-                                <strong>Vigência original:</strong> {sub.vigencia_original}
+                                <strong>Vigência original impressa:</strong> {sub.vigencia_original}
                               </div>
                             )}
                             {"aprovado_em" in sub && sub.aprovado_em && (
@@ -542,7 +669,6 @@ export default function HomePage() {
                           </div>
                         </div>
 
-                        {/* Yellow Highlight for diferenca_critica_pegadinha */}
                         <div className="p-3 rounded-lg bg-[#FFCC00]/35 border-2 border-[#FFCC00] text-slate-950">
                           <div className="text-[10px] font-black uppercase tracking-wider text-amber-950 mb-1 flex items-center gap-1">
                             <AlertTriangle className="w-3.5 h-3.5 text-amber-800 shrink-0" />
@@ -592,7 +718,6 @@ export default function HomePage() {
                       className="rounded-xl border border-slate-200 hover:border-[#002D72]/50 bg-white p-4 shadow-2xs transition flex flex-col justify-between space-y-3"
                     >
                       <div>
-                        {/* Card Top Badges */}
                         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                           <div className="flex items-center gap-2">
                             <span className="px-2.5 py-1 rounded-lg bg-[#002D72] text-[#FFCC00] font-mono font-extrabold text-xs">
@@ -606,14 +731,12 @@ export default function HomePage() {
                             </span>
                           </div>
 
-                          {/* Status Vigente Badge Verde */}
                           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">
                             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                             {doc.fase}
                           </span>
                         </div>
 
-                        {/* Title & Serie */}
                         <div className="flex items-center justify-between gap-2">
                           <h3 className="font-extrabold text-base text-slate-900">
                             {doc.titulo}
@@ -634,16 +757,14 @@ export default function HomePage() {
                           <strong className="text-slate-700">{doc.grupo}</strong>
                         </div>
 
-                        {/* Resumo Legal Design */}
                         <p className="text-xs text-slate-700 mt-2.5 leading-relaxed bg-slate-50 p-2.5 rounded-lg border border-slate-200/80">
                           {resumoTexto}
                         </p>
 
-                        {/* Governance Metadata Grid */}
                         <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                           <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/70">
                             <span className="text-[10px] font-bold uppercase text-slate-400 block">
-                              Quem é o Dono (Elaborador/Gestor)
+                              Quem é o Dono (Data Mesh)
                             </span>
                             <span className="font-bold text-slate-800">{dono}</span>
                           </div>
@@ -673,7 +794,6 @@ export default function HomePage() {
                         </div>
                       </div>
 
-                      {/* Mandatory vinculado_a Footer */}
                       <div className="pt-2.5 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
                         <div className="flex items-center gap-1.5">
                           <span className="font-bold text-slate-500">vinculado_a:</span>
@@ -700,21 +820,24 @@ export default function HomePage() {
               </div>
             </section>
 
-            {/* SECTION 5: SIMULADORES INTERATIVOS POR JORNADA */}
+            {/* SIMULADORES INTERATIVOS POR JORNADA (CUSTO R$ 0,00 DETERMINÍSTICO) */}
             <section className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <h2 className="text-lg font-black text-[#002D72] tracking-tight flex items-center gap-2">
-                    Simuladores Interativos de Regras & Decisão — {configTema.label}
+                    Simuladores Determinísticos (Zero-Click) — {configTema.label}
                   </h2>
                   <p className="text-xs text-slate-600">
-                    Cálculos em tempo real alimentados estritamente pelo nó{" "}
+                    Cálculos em tempo real alimentados pelo nó{" "}
                     <code className="px-1.5 py-0.5 rounded bg-slate-200 text-[#002D72] font-bold">
                       regras_simuladores
                     </code>{" "}
-                    do acervo JSON oficial
+                    da Camada Gold
                   </p>
                 </div>
+                <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                  ⚡ Custo: R$ 0,00 (Calculadora Determinística / Cache)
+                </span>
               </div>
 
               {temaAtivo === "ferias" && (
@@ -737,35 +860,41 @@ export default function HomePage() {
                 />
               )}
             </section>
+
+            {/* SEÇÕES 1, 4, 5 E 6 DA PROPOSTA: DIFERENCIAIS DE GOVERNANÇA, CUSTO, AUDITOR MEDALHÃO E E-MAIL */}
+            <GovernanceDifferentialsPanel />
           </div>
 
-          {/* RIGHT COLUMN: SECTION 6 - CO-PILOTO EXECUTIVO LATERAL (4 cols on XL) */}
+          {/* RIGHT COLUMN: CO-PILOTO EXECUTIVO LATERAL (4 cols on XL) */}
           <div className="xl:col-span-4">
             <CopilotSidebar
               tema={temaAtivo}
-              perfilLabel={PERFIL_LABELS[perfilSelecionado] || perfilSelecionado}
+              perfilLabel={`${personaAtiva.nome} (${personaAtiva.papel} • RBAC: ${personaAtiva.rbac})`}
+              personaId={personaAtiva.id}
             />
           </div>
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-slate-900 text-slate-400 text-xs py-5 px-6 border-t border-slate-800 mt-10">
-        <div className="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-4">
+      {/* RODAPÉ FIXO DE LEGAL DESIGN EXIGIDO PELA PROPOSTA */}
+      <footer className="fixed bottom-0 left-0 right-0 z-30 bg-slate-950/95 backdrop-blur-xs text-slate-200 text-xs py-2.5 px-4 sm:px-6 border-t-2 border-[#FFCC00] shadow-lg">
+        <div className="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 rounded bg-[#FFCC00] text-[#002D72] font-black text-[10px]">
-              BBTS / ACME
+              RAIZ IQ • LEGAL DESIGN
             </span>
-            <span>
-              Desafio 2: Plataforma de Inteligência Empresarial • Equipe{" "}
-              <strong className="text-white">Ctrl + Alt + Business</strong>
+            <span className="font-extrabold text-amber-300">
+              ⚖️ Em caso de divergência, prevalece o documento oficial.
             </span>
           </div>
-          <div>
-            Fonte de verdade única:{" "}
-            <code className="text-[#FFCC00]">src/data/acervo_estruturado_acme_bbts.json</code> •
-            Pastas: <code className="text-slate-300">docs_acervo/vigentes</code> e{" "}
-            <code className="text-slate-300">docs_acervo/substituidos</code>
+          <div className="hidden md:flex items-center gap-3 text-[11px] text-slate-400">
+            <span>
+              Equipe <strong className="text-white">Ctrl + Alt + Business</strong>
+            </span>
+            <span>•</span>
+            <span>
+              Cliente FastAPI: <code className="text-[#FFCC00]">src/lib/api.ts</code> (Fallback Local Ativo)
+            </span>
           </div>
         </div>
       </footer>

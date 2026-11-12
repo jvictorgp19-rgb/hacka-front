@@ -4,14 +4,16 @@ import React, { useState, useRef, useEffect } from "react";
 import {
   Bot,
   Send,
-  AlertTriangle,
   FileCheck2,
   Sparkles,
   MessageSquareText,
   X,
   ChevronRight,
   ShieldAlert,
+  HelpCircle,
+  Lock,
 } from "lucide-react";
+import { apiChat } from "@/lib/api";
 
 interface ChatMessage {
   id: string;
@@ -19,58 +21,92 @@ interface ChatMessage {
   text: string;
   bullets?: string[];
   citations?: { codigo: string; titulo: string; versao: string; status: string }[];
+  costBadge?: {
+    type: "deterministic" | "rag_llm";
+    label: string;
+    latencyMs: number;
+    sigiloNivel: "Pública" | "Interna" | "Restrita" | "Sigilosa";
+  };
   revokedAlert?: {
     codigo: string;
     versaoRevogada: string;
     substituidoPor: string;
     pegadinha: string;
   };
+  honestAbstention?: {
+    lacuna: string;
+    donoDominio: string;
+    botaoAcao: string;
+    detalhesExtras: string[];
+  };
+  rbacBlock?: {
+    dominioResponsavel: string;
+    nivelExigido: string;
+    mensagem: string;
+  };
 }
 
 interface CopilotSidebarProps {
   tema: "ferias" | "inovacao" | "locacao";
   perfilLabel: string;
+  personaId?: string;
 }
 
 const QUICK_PROMPTS_BY_THEME: Record<"ferias" | "inovacao" | "locacao", string[]> = {
   ferias: [
+    "Quero sair de férias em 05/05/2027. Qual o meu cronograma D-n?",
     "Posso pedir férias com 30 dias de antecedência?",
-    "Tive 8 faltas injustificadas, quantos dias de férias tenho direito?",
-    "Como funciona o limite de 30% da equipe e o cancelamento a partir de D-19?",
-    "Como funciona a desambiguação do campo vinculado_a na NG_010?",
+    "Carlos tem equipe de 9 pessoas: quantas podem sair juntas?",
+    "Qual o dossiê restrito de auditoria da folha para ressarcimento D-15?",
   ],
   inovacao: [
+    "Como o prêmio é dividido em equipe no Ideias em Campo e se alguém for afastado?",
+    "Quem aprova um protótipo de R$ 18.000,00 vs R$ 18.000,01?",
     "Posso inscrever 3 ideias no programa Ideias em Campo 2027?",
-    "Como somar 800 pontos na gamificação e ganhar R$ 10.000 cumulativos?",
-    "Quem aprova protótipos de R$ 18k, R$ 50k e R$ 150k?",
     "O que acontece se o projeto perder a trava de 31 de março do incentivo fiscal?",
   ],
   locacao: [
+    "Se rescindirmos o contrato CTR_2026-012 em março de 2027, pagamos multa?",
     "Qual o desconto se a internet do coworking cair por mais de 4h?",
-    "Se a ACME rescindir no 91º dia, qual o valor da multa?",
-    "Qual a rotina mensal entre o dia 25 (NF), Atesto GOC e dia 8 (GFI)?",
+    "Qual a data-limite para pedir prorrogação do contrato CTR_2026-012?",
     "Quais foram as 3 cotações comparadas na NT_2026-018?",
   ],
 };
 
-export default function CopilotSidebar({ tema, perfilLabel }: CopilotSidebarProps) {
+export default function CopilotSidebar({
+  tema,
+  perfilLabel,
+  personaId,
+}: CopilotSidebarProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome",
       role: "assistant",
-      text: "Olá! Sou o Co-Piloto Executivo de Legal Design & UX Writing da BBTS / ACME. Respondo estritamente com base no acervo normativo vigente e bloqueio regras revogadas automaticamente.",
+      text: "Olá! Sou o Co-Piloto Raiz IQ (Iteração 3 • Zero-Click). Opero com Roteador Híbrido de Custo, Trava Anti-Revogados, Abstenção Honesta e Controle RBAC.",
+      costBadge: {
+        type: "deterministic",
+        label: "⚡ Custo: R$ 0,00 (Calculadora Determinística / Cache)",
+        latencyMs: 5,
+        sigiloNivel: "Interna",
+      },
       bullets: [
-        "**Citação Obrigatória:** Todas as respostas indicam o código e versão vigente (ex: `NG_111 v3.0.0`, `RG_1100 v2.0.0`, `CTR_2026-012 v1.0.0`).",
-        "**Trava Histórica Ativa:** Alertarei imediatamente caso sua dúvida envolva regras revogadas (como férias com 30 dias de antecedência ou limite de 3 ideias por pessoa).",
+        "**Citação Vigente Obrigatória:** Todas as respostas citam código e versão (`NG_111 v3.0.0`, `RG_1100 v2.0.0`, `CTR_2026-012 v1.0.0`).",
+        "**Abstenção Honesta & RBAC:** Quando algo não consta no acervo (ex: rateio de prêmio em equipe no `RG_1100`), o sistema se abstém e oferece botão para acionar o Dono (`[Perguntar ao NIN]` / `[GGC]`).",
       ],
       citations: [
-        { codigo: "NG_010", titulo: "Gestão de Documentos Organizacionais", versao: "v0.2.0", status: "Vigente" },
+        {
+          codigo: "NG_010",
+          titulo: "Gestão de Documentos Organizacionais",
+          versao: "v0.2.0",
+          status: "Vigente",
+        },
       ],
     },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [actionFeedback, setActionFeedback] = useState<Record<string, string>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -92,16 +128,12 @@ export default function CopilotSidebar({ tema, perfilLabel }: CopilotSidebarProp
     setLoading(true);
 
     try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: trimmed,
-          tema,
-          perfil: perfilLabel,
-        }),
+      const { data } = await apiChat({
+        message: trimmed,
+        tema,
+        perfil: perfilLabel,
+        personaId,
       });
-      const data = await res.json();
 
       const botMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -109,7 +141,10 @@ export default function CopilotSidebar({ tema, perfilLabel }: CopilotSidebarProp
         text: data.answer || "Consulta processada no acervo oficial:",
         bullets: data.bullets || [],
         citations: data.citations || [],
+        costBadge: data.costBadge,
         revokedAlert: data.revokedAlert,
+        honestAbstention: data.honestAbstention,
+        rbacBlock: data.rbacBlock,
       };
       setMessages((prev) => [...prev, botMsg]);
     } catch {
@@ -126,7 +161,6 @@ export default function CopilotSidebar({ tema, perfilLabel }: CopilotSidebarProp
     }
   };
 
-  // Helper to format markdown bold inside bullets cleanly
   const renderFormattedText = (str: string) => {
     const parts = str.split(/(\*\*.*?\*\*|`.*?`)/g);
     return parts.map((part, idx) => {
@@ -163,14 +197,14 @@ export default function CopilotSidebar({ tema, perfilLabel }: CopilotSidebarProp
             <div>
               <div className="flex items-center gap-1.5">
                 <h2 className="font-extrabold text-sm tracking-tight">
-                  Co-Piloto Executivo RAG
+                  Co-Piloto Raiz IQ (RAG + FinOps)
                 </h2>
                 <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-                  JSON Oficial
+                  Camada Gold
                 </span>
               </div>
               <p className="text-[11px] text-blue-200">
-                UX Writing • Citação Normativa • Trava de Revogados
+                Roteador de Custo • Abstenção Honesta • RBAC
               </p>
             </div>
           </div>
@@ -189,7 +223,7 @@ export default function CopilotSidebar({ tema, perfilLabel }: CopilotSidebarProp
       <div className="bg-slate-50 px-4 py-3 border-b border-slate-200">
         <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5 flex items-center gap-1">
           <Sparkles className="w-3 h-3 text-[#002D72]" />
-          Perguntas Frequentes & Pegadinhas ({tema.toUpperCase()}):
+          Testes Rápidos do Pitch ({tema.toUpperCase()}):
         </div>
         <div className="flex flex-col gap-1.5">
           {QUICK_PROMPTS_BY_THEME[tema].map((prompt, idx) => (
@@ -215,17 +249,35 @@ export default function CopilotSidebar({ tema, perfilLabel }: CopilotSidebarProp
             }`}
           >
             <div
-              className={`max-w-[95%] rounded-2xl p-3.5 text-xs leading-relaxed ${
+              className={`max-w-[96%] rounded-2xl p-3.5 text-xs leading-relaxed ${
                 m.role === "user"
                   ? "bg-[#002D72] text-white rounded-br-xs shadow-xs"
                   : "bg-white text-slate-800 border border-slate-200 rounded-bl-xs shadow-xs space-y-3"
               }`}
             >
+              {/* Live Cost Router & Sigilo Badge inside Assistant Response */}
+              {m.role === "assistant" && m.costBadge && (
+                <div className="flex flex-wrap items-center justify-between gap-1.5 pb-2 border-b border-slate-100">
+                  <span
+                    className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md border ${
+                      m.costBadge.type === "deterministic"
+                        ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                        : "bg-blue-50 text-[#002D72] border-blue-200"
+                    }`}
+                  >
+                    {m.costBadge.label}
+                  </span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+                    🔒 Sigilo: {m.costBadge.sigiloNivel} ({m.costBadge.latencyMs}ms)
+                  </span>
+                </div>
+              )}
+
               <p className={m.role === "user" ? "font-medium" : "font-semibold text-[#002D72]"}>
-                {m.text}
+                {renderFormattedText(m.text)}
               </p>
 
-              {/* Revoked Rule Warning Banner inside Chat */}
+              {/* Revoked Rule Warning Banner */}
               {m.revokedAlert && (
                 <div className="p-3 rounded-xl bg-amber-100/90 border-2 border-amber-500 text-amber-950 space-y-1">
                   <div className="flex items-center gap-1.5 font-extrabold text-[11px] uppercase tracking-wider text-amber-900">
@@ -238,6 +290,60 @@ export default function CopilotSidebar({ tema, perfilLabel }: CopilotSidebarProp
                   <div className="text-[10px] font-bold text-amber-800 pt-1">
                     Substituído por: {m.revokedAlert.substituidoPor}
                   </div>
+                </div>
+              )}
+
+              {/* Honest Abstention Box (Step 6) */}
+              {m.honestAbstention && (
+                <div className="p-3 rounded-xl bg-amber-50 border-2 border-amber-400 text-slate-900 space-y-2">
+                  <div className="flex items-center gap-1.5 font-black text-[11px] uppercase text-amber-950">
+                    <HelpCircle className="w-4 h-4 text-amber-700 shrink-0" />
+                    Não consta no RG_1100 • Dono: {m.honestAbstention.donoDominio}
+                  </div>
+                  <p className="text-[11px] text-slate-700">{m.honestAbstention.lacuna}</p>
+                  <button
+                    onClick={() =>
+                      setActionFeedback((prev) => ({
+                        ...prev,
+                        [m.id]: "Protocolo enviado ao NIN! Aguardando Resposta Curada.",
+                      }))
+                    }
+                    className="px-3 py-1.5 rounded-lg bg-[#002D72] text-[#FFCC00] font-extrabold text-[11px] cursor-pointer hover:bg-[#003c96] transition"
+                  >
+                    {m.honestAbstention.botaoAcao}
+                  </button>
+                  {actionFeedback[m.id] && (
+                    <div className="text-[11px] font-bold text-emerald-800 bg-emerald-100 p-1.5 rounded">
+                      ✓ {actionFeedback[m.id]}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* RBAC Block Box (Step 7) */}
+              {m.rbacBlock && (
+                <div className="p-3 rounded-xl bg-rose-50 border-2 border-rose-400 text-rose-950 space-y-2">
+                  <div className="flex items-center gap-1.5 font-black text-[11px] uppercase text-rose-900">
+                    <Lock className="w-4 h-4 text-rose-700 shrink-0" />
+                    {m.rbacBlock.mensagem}
+                  </div>
+                  <button
+                    onClick={() =>
+                      setActionFeedback((prev) => ({
+                        ...prev,
+                        [m.id]:
+                          "Solicitação #REQ-2026-089 enviada à Curadora da GGC para Resposta Curada!",
+                      }))
+                    }
+                    className="px-3 py-1.5 rounded-lg bg-rose-700 text-white font-extrabold text-[11px] cursor-pointer hover:bg-rose-800 transition"
+                  >
+                    [Solicitar Resposta Curada à GGC]
+                  </button>
+                  {actionFeedback[m.id] && (
+                    <div className="text-[11px] font-bold text-emerald-800 bg-emerald-100 p-1.5 rounded">
+                      ✓ {actionFeedback[m.id]}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -281,7 +387,7 @@ export default function CopilotSidebar({ tema, perfilLabel }: CopilotSidebarProp
         {loading && (
           <div className="flex items-center gap-2 text-xs text-slate-500 p-2">
             <div className="w-2 h-2 rounded-full bg-[#002D72] animate-ping" />
-            Consultando acervo_estruturado_acme_bbts.json...
+            Roteando consulta no Raiz IQ...
           </div>
         )}
         <div ref={messagesEndRef} />
@@ -299,7 +405,7 @@ export default function CopilotSidebar({ tema, perfilLabel }: CopilotSidebarProp
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Pergunte sobre prazos, alçadas, descontos ou regras..."
+          placeholder="Pergunte ou teste uma regra do acervo..."
           className="flex-1 text-xs px-3 py-2.5 rounded-xl bg-slate-100 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#002D72] focus:bg-white text-slate-800"
         />
         <button
@@ -316,19 +422,17 @@ export default function CopilotSidebar({ tema, perfilLabel }: CopilotSidebarProp
 
   return (
     <>
-      {/* Desktop Sticky Sidebar */}
-      <div className="hidden xl:block sticky top-24 h-[calc(100vh-7rem)]">
+      <div className="hidden xl:block sticky top-28 h-[calc(100vh-8rem)]">
         {panelContent}
       </div>
 
-      {/* Mobile Floating Trigger & Drawer */}
       <div className="xl:hidden">
         <button
           onClick={() => setMobileOpen(true)}
-          className="fixed bottom-5 right-5 z-40 flex items-center gap-2 px-4 py-3 rounded-full bg-[#002D72] text-[#FFCC00] font-extrabold text-xs shadow-xl border-2 border-[#FFCC00] cursor-pointer"
+          className="fixed bottom-12 right-5 z-40 flex items-center gap-2 px-4 py-3 rounded-full bg-[#002D72] text-[#FFCC00] font-extrabold text-xs shadow-xl border-2 border-[#FFCC00] cursor-pointer"
         >
           <MessageSquareText className="w-4 h-4" />
-          Co-Piloto Executivo RAG
+          Co-Piloto Raiz IQ
         </button>
 
         {mobileOpen && (

@@ -59,12 +59,12 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
   const [querAbono, setQuerAbono] = useState<boolean>(false);
   const [quer13, setQuer13] = useState<boolean>(false);
 
-  // 2. State for 30% Team Limit Simulator
-  const [tamanhoEquipe, setTamanhoEquipe] = useState<number>(8);
+  // 2. State for 30% Team Limit Simulator (default 9 for Carlos's team)
+  const [tamanhoEquipe, setTamanhoEquipe] = useState<number>(9);
   const [jaAusentes, setJaAusentes] = useState<number>(1);
 
-  // 3. State for D-n Timeline & Date Simulator
-  const [dataGozo, setDataGozo] = useState<string>("2027-03-15");
+  // 3. State for D-n Timeline & Date Simulator (default to Ana's demo date 2027-05-05)
+  const [dataGozo, setDataGozo] = useState<string>("2027-05-05");
   const [selectedMarcoIdx, setSelectedMarcoIdx] = useState<number>(0);
 
   // Compute vacation days from faltas
@@ -88,11 +88,21 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
   const vagasDisponiveis = Math.max(0, maxSimultaneos - jaAusentes);
   const podeAprovarNovo = jaAusentes + 1 <= maxSimultaneos;
 
-  // Helper to compute exact dates from dataGozo for D-n
+  // Helper to compute exact dates from dataGozo for D-n (with NG_111 item 4.5 weekend/holiday anticipation on D-3)
   const calcDataMarco = (offsetDays: number) => {
     if (!dataGozo) return "";
     const d = new Date(dataGozo + "T12:00:00");
     d.setDate(d.getDate() + offsetDays);
+    if (offsetDays === -3) {
+      // Anticipate if Sunday (0), Saturday (6), or May 1st Holiday
+      while (
+        d.getDay() === 0 ||
+        d.getDay() === 6 ||
+        (d.getDate() === 1 && d.getMonth() === 4)
+      ) {
+        d.setDate(d.getDate() - 1);
+      }
+    }
     return d.toLocaleDateString("pt-BR");
   };
 
