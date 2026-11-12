@@ -2,7 +2,7 @@
 
 Interface web da solução do hackathon. **Next.js (App Router) + TypeScript**. Consome a API do repositório [hacka-back](https://github.com/jvictorgp19-rgb/hacka-back).
 
-> Descrição do desafio e da solução: _preencher após a ideação da equipe_.
+> **Desafio 2 — Plataforma de Inteligência Empresarial.** Proposta completa em [docs/PROPOSTA.md](docs/PROPOSTA.md).
 
 ## Equipe
 
