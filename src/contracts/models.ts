@@ -38,7 +38,7 @@ export const findingSchema = z.object({ id: z.string(), title: z.string(), detai
 export const accessSchema = z.object({
   id: z.string(), persona: z.string(), reason: z.string(), owner: z.string(),
   status: z.enum(['pending', 'curated', 'denied', 'granted']),
-  response: z.string(), createdAt: z.string(),
+  response: z.string(), createdAt: z.string(), decidedAt: z.string().optional(), decidedBy: z.string().optional(),
 });
 export const recordSchema = z.object({
   id: z.string(), title: z.string(), kind: z.enum(['analysis', 'report']),

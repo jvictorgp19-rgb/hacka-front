@@ -1,2 +1,2 @@
-import { GovernanceView } from "@/features/workspace/InitialViews";
-export default function Page() { return <GovernanceView/>; }
+import Governance from "@/features/governance/Governance";
+export default function Page() { return <Governance/>; }

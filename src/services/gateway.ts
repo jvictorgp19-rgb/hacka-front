@@ -11,7 +11,7 @@ export interface AppGateway {
   findings(signal?: AbortSignal): Promise<Finding[]>;
   identity(signal?: AbortSignal): Promise<Identity>;
   requests(persona: string, signal?: AbortSignal): Promise<AccessRequest[]>;
-  createRequest(reason: string, persona: string): Promise<AccessRequest>;
+  createRequest(reason: string, persona: string, owner?: string): Promise<AccessRequest>;
   decideRequest(id: string, status: 'curated' | 'denied' | 'granted', response: string, persona: string): Promise<AccessRequest>;
   records(persona: string, signal?: AbortSignal): Promise<SavedRecord[]>;
   saveRecord(record: SavedRecord): Promise<SavedRecord>;

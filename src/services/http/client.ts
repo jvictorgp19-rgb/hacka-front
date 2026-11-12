@@ -41,7 +41,7 @@ export function createHttpGateway(baseUrl: string, transport: typeof fetch = fet
     findings: signal => request('/audit/findings', z.array(findingSchema), {}, signal),
     identity: signal => request('/identity', identitySchema, {}, signal),
     requests: (persona, signal) => request('/access-requests?persona=' + encodeURIComponent(persona), z.array(accessSchema), {}, signal),
-    createRequest: (reason, persona) => post('/access-requests', accessSchema, { reason, persona }),
+    createRequest: (reason, persona, owner) => post('/access-requests', accessSchema, { reason, persona, owner }),
     decideRequest: (id, status, response, persona) => post('/access-requests/' + encodeURIComponent(id) + '/decision', accessSchema, { status, response, persona }),
     records: (persona, signal) => request('/analyses?persona=' + encodeURIComponent(persona), z.array(recordSchema), {}, signal),
     saveRecord: record => post('/analyses', recordSchema, record),

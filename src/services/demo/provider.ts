@@ -2,7 +2,7 @@ import simulationSources from "./simulation-sources.json";
 import { ApiError, type AnalysisContext, type Answer } from '@/contracts/models';
 import type { AppGateway } from '@/services/gateway';
 import { demoDocuments, demoFacts, historicalVacationCitation } from './catalog';
-import { findings } from './findings-legacy';
+import { findings } from './findings';
 import { readDemo, writeDemo, resetDemo } from './storage';
 
 export const demoSuggestions = [
@@ -51,17 +51,18 @@ export function createDemoGateway(): AppGateway {
     identity: async () => ({ id: 'ana', name: 'Ana — demonstração', capabilities: [] }),
     deadlines: async () => demoFacts.filter(f => f.date).map(f => ({ id: f.id, date: f.date!, title: f.title, detail: f.text, owner: f.area, priority: f.id === 'inovacao-fiscal' || f.id === 'locacao-prorroga' ? 'Crítica' : 'Alta', fact: f })),
     findings: async () => findings.map(f => ({ id: f.id, title: f.severidade, detail: f.descricao, documents: f.documentosEnvolvidos })),
-    requests: async persona => readDemo().requests.filter(r => persona === 'curadora_ggc' || r.persona === persona),
-    createRequest: async (reason, persona) => {
-      if (!reason.trim()) throw new ApiError('VALIDATION', 'Informe uma justificativa.');
-      const item = { id: crypto.randomUUID(), persona, reason, owner: 'GGC', status: 'pending' as const, response: '', createdAt: new Date().toISOString() };
+    requests: async persona => readDemo().requests.filter(r => (persona === 'curadora_ggc' && r.owner === 'GGC') || r.persona === persona),
+    createRequest: async (reason, persona, owner = 'GGC') => {
+      if (reason.trim().length < 10) throw new ApiError('VALIDATION', 'Informe uma justificativa com pelo menos 10 caracteres.');
+      const item = { id: crypto.randomUUID(), persona, reason, owner, status: 'pending' as const, response: '', createdAt: new Date().toISOString() };
       writeDemo(s => ({ ...s, requests: [...s.requests, item] })); return item;
     },
     decideRequest: async (id, status, response, persona) => {
       if (persona !== 'curadora_ggc' || !response.trim()) throw new ApiError('VALIDATION', 'Use a persona de curadoria e informe a orientação ou justificativa.');
       const item = readDemo().requests.find(r => r.id === id);
       if (!item) throw new ApiError('NOT_FOUND', 'Pedido não encontrado.');
-      const result = { ...item, status, response };
+      if (item.owner !== 'GGC') throw new ApiError('VALIDATION', 'A persona desta demonstração só faz curadoria da GGC.');
+      const result = { ...item, status, response, decidedAt: new Date().toISOString(), decidedBy: 'Curadora da GGC (demonstração)' };
       writeDemo(s => ({ ...s, requests: s.requests.map(r => r.id === id ? result : r) })); return result;
     },
     records: async persona => readDemo().records.filter(r => r.persona === persona),

@@ -42,3 +42,19 @@ it('isola registros por persona e permite reset sem afetar outras chaves', async
   map.set(DEMO_STORAGE_KEY, 'invalid'); expect(readDemo().records).toEqual([]);
   expect(() => writeDemo(s => s)).not.toThrow();
 });
+it('exige justificativa e mantém a curadoria demo no domínio GGC', async () => {
+  const map = new Map<string, string>();
+  vi.stubGlobal('window', {});
+  vi.stubGlobal('localStorage', { getItem: (key: string) => map.get(key) || null, setItem: (key: string, value: string) => map.set(key, value), removeItem: (key: string) => map.delete(key) });
+  const { createDemoGateway } = await import('@/services/demo/provider');
+  const gateway=createDemoGateway();
+  await expect(gateway.createRequest('x','ana','GGC')).rejects.toMatchObject({code:'VALIDATION'});
+  const request=await gateway.createRequest('Preciso entender o rateio do prêmio.','ana','NIN');
+  expect(await gateway.requests('curadora_ggc')).toHaveLength(0);
+  await expect(gateway.decideRequest(request.id,'curated','Orientação','curadora_ggc')).rejects.toMatchObject({code:'VALIDATION'});
+  const ggc=await gateway.createRequest('Preciso entender uma regra de férias.','ana','GGC');
+  await expect(gateway.decideRequest(ggc.id,'curated','Orientação','ana')).rejects.toMatchObject({code:'VALIDATION'});
+  const result=await gateway.decideRequest(ggc.id,'curated','Consulte o item 4.3.1 da NG_111.','curadora_ggc');
+  expect(result.status).toBe('curated');
+  expect((await gateway.requests('ana')).find(r=>r.id===ggc.id)?.response).toContain('4.3.1');
+});

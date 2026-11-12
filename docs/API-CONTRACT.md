@@ -18,7 +18,7 @@ Os endpoints retornam diretamente o DTO ou array descrito, sem envelope.
 | GET /deadlines | — | Deadline[] |
 | GET /audit/findings | — | Finding[] |
 | GET /access-requests?persona= | contexto de apresentação; não autorização | AccessRequest[] |
-| POST /access-requests | reason, persona | AccessRequest |
+| POST /access-requests | reason (mínimo 10 caracteres), persona, owner | AccessRequest |
 | POST /access-requests/:id/decision | status, response, persona | AccessRequest |
 | GET /analyses?persona= | contexto de apresentação | SavedRecord[] |
 | POST /analyses | SavedRecord | SavedRecord |
@@ -50,3 +50,8 @@ Exportação local: texto e impressão. PPTX, envio de e-mail, ingestão de PDFs
 OCR/RAG, auditoria durável e permissões ficam no backend e não estão comprovados.
 Demo é uma fonte de dados separada e identificada; API com falha nunca vira demo.
 Para contratos estáveis, os DTOs de transporte deverão ser gerados do OpenAPI.
+
+Capacidade `curate` controla a apresentação das ações de curadoria no modo API.
+A autorização por domínio e a validação da decisão são obrigatórias no backend;
+campos persona/owner não conferem acesso. Decisões podem retornar decidedAt/decidedBy.
+Concessão real com expiração não está implementada; a demo apenas registra o cenário.
