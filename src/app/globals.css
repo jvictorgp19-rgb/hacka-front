@@ -330,21 +330,6 @@ textarea {
   color: var(--muted);
   white-space: nowrap;
 }
-.persona-select {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  border-left: 1px solid var(--border);
-  padding-left: 16px;
-}
-.persona-select select {
-  border: 0;
-  padding: 0;
-  max-width: 115px;
-  font-size: 0.75rem;
-  background: transparent;
-  appearance: none;
-}
 .avatar {
   width: 29px;
   height: 29px;
@@ -784,16 +769,6 @@ textarea {
   flex: 1;
   min-width: 150px;
 }
-.tools-legacy {
-  border-radius: 12px;
-  overflow: hidden;
-}
-[data-theme='dark'] .tools-legacy {
-  color-scheme: light;
-  background: white;
-  padding: 12px;
-  color: #1e293b;
-}
 .segmented {
   display: flex;
   flex-wrap: wrap;
@@ -889,18 +864,6 @@ textarea {
   .mode-badge {
     padding: 3px 5px;
     font-size: 0.57rem;
-  }
-  .persona-select {
-    padding-left: 6px;
-    gap: 4px;
-  }
-  .persona-select select {
-    max-width: 64px;
-    font-size: 0.67rem;
-  }
-  .persona-select svg,
-  .persona-select .avatar {
-    display: none;
   }
   .workspace-main {
     padding: 26px 18px;
@@ -1246,18 +1209,6 @@ textarea {
     flex-wrap: wrap;
   }
 }
-.demo-upload-notice {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  justify-content: space-between;
-}
-@media (max-width: 760px) {
-  .demo-upload-notice {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
 .answer-details {
   margin-top: 17px;
   font-size: 0.75rem;
@@ -1482,14 +1433,6 @@ td:nth-child(2) {
 }
 .calendar-assumptions .notice {
   margin-bottom: 0;
-}
-.legacy-details {
-  margin-top: 32px;
-}
-.legacy-details > summary {
-  color: var(--muted);
-  font-size: 0.78rem;
-  margin-bottom: 20px;
 }
 .narrow-card {
   max-width: 600px;
@@ -1814,39 +1757,4 @@ td:nth-child(2) {
   font-size: 0.78rem;
   color: var(--muted);
   margin-bottom: 20px;
-}
-.demo-guide {
-  list-style: none;
-  margin: 20px 0 0;
-  padding: 0;
-  display: grid;
-  gap: 8px;
-}
-.demo-guide a {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  padding: 13px 10px;
-  border: 1px solid var(--border);
-  border-radius: 9px;
-}
-.demo-guide a > span {
-  background: var(--selected);
-  color: var(--brand-text);
-  display: grid;
-  place-items: center;
-  width: 25px;
-  height: 25px;
-  border-radius: 7px;
-  flex-shrink: 0;
-  font-size: 0.7rem;
-}
-.demo-guide strong {
-  flex: 1;
-  font-size: 0.76rem;
-  font-weight: 500;
-}
-.demo-guide svg {
-  color: var(--muted);
-  flex-shrink: 0;
 }

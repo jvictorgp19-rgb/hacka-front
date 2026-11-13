@@ -7,7 +7,6 @@ import {
   CalendarDays,
   Calculator,
   ChartNoAxesCombined,
-  ChevronDown,
   Files,
   FileText,
   History,
@@ -22,8 +21,6 @@ import {
 } from 'lucide-react';
 import { WorkspaceProvider, useWorkspace } from '@/features/workspace/context';
 import { useConversationHistory } from '@/features/history/use-conversations';
-import DemoGuide from './DemoGuide';
-import { PERSONAS_NOMINAIS } from '@/features/identity/personas';
 const navigation = [
   { href: '/', label: 'Conversas', icon: MessageSquare },
   { href: '/acervo/', label: 'Acervo', icon: Files },
@@ -38,8 +35,7 @@ function Shell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { conversations } = useConversationHistory();
   const router = useRouter();
-  const { gateway, context, setContext, source, openSource, loading, error, reload, identity } =
-    useWorkspace();
+  const { source, openSource, loading, error, reload, identity } = useWorkspace();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [theme, setTheme] = useState('light');
@@ -67,7 +63,6 @@ function Shell({ children }: { children: ReactNode }) {
   const current =
     navigation.find((n) => n.href === pathname || n.href.slice(0, -1) === pathname) ||
     navigation[0];
-  const mode = gateway?.mode || (process.env.NEXT_PUBLIC_DATA_MODE === 'api' ? 'api' : 'demo');
   return (
     <div className={`workspace ${collapsed ? 'is-collapsed' : ''}`}>
       <a className="skip-link" href="#workspace-main">
@@ -134,12 +129,8 @@ function Shell({ children }: { children: ReactNode }) {
         <div className="sidebar-bottom">
           <div className="workspace-note nav-label">
             <span className="live-dot" />
-            {mode === 'demo' ? 'Acervo sintético ACME' : 'Serviço corporativo'}
-            <p>
-              {mode === 'demo'
-                ? 'Demonstração independente. Suas ações são salvas neste navegador.'
-                : 'Dados e permissões fornecidos pela API externa.'}
-            </p>
+            Serviço corporativo
+            <p>Dados e permissões fornecidos pela API externa.</p>
           </div>
           <button
             className="nav-item collapse-control"
@@ -168,7 +159,7 @@ function Shell({ children }: { children: ReactNode }) {
           <div className="topbar-actions">
             <span className="mode-badge">
               <span className="live-dot" />
-              {mode === 'demo' ? 'Demo local' : 'API externa'}
+              API externa
             </span>
             <button
               className="icon-button"
@@ -186,7 +177,6 @@ function Shell({ children }: { children: ReactNode }) {
             >
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <DemoGuide />
             <details className="accessibility">
               <summary aria-label="Acessibilidade">Aa</summary>
               <div className="accessibility-options">
@@ -201,25 +191,7 @@ function Shell({ children }: { children: ReactNode }) {
                 </button>
               </div>
             </details>
-            {mode === 'demo' ? (
-              <label className="persona-select">
-                <span className="avatar">{context.persona.slice(0, 2).toUpperCase()}</span>
-                <select
-                  aria-label="Persona de demonstração"
-                  value={context.persona}
-                  onChange={(e) => setContext({ ...context, persona: e.target.value })}
-                >
-                  {PERSONAS_NOMINAIS.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.nome}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown size={13} />
-              </label>
-            ) : (
-              <span>{identity?.name || 'Sessão API'}</span>
-            )}
+            <span>{identity?.name || 'Sessão API'}</span>
           </div>
         </header>
         <main id="workspace-main" className="workspace-main">
@@ -234,9 +206,7 @@ function Shell({ children }: { children: ReactNode }) {
               <button className="primary-button" onClick={reload}>
                 Tentar novamente
               </button>
-              <p>
-                Modo API mantém erros visíveis e não usa dados de demonstração como substitutos.
-              </p>
+              <p>Os erros da API ficam visíveis: nenhum dado local substitui o serviço.</p>
             </div>
           ) : (
             children

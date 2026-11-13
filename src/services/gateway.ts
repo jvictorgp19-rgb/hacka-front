@@ -14,7 +14,6 @@ import type {
 } from '@/contracts/models';
 export interface AppGateway {
   simulationRules(signal?: AbortSignal): Promise<SimulationRules>;
-  readonly mode: 'demo' | 'api';
   documents(signal?: AbortSignal): Promise<DocumentVersion[]>;
   facts(signal?: AbortSignal): Promise<Fact[]>;
   messages(persona: string, signal?: AbortSignal): Promise<Answer[]>;
@@ -36,5 +35,4 @@ export interface AppGateway {
   saveFeedback(item: Feedback): Promise<Feedback>;
   uploadStatus(id: string, signal?: AbortSignal): Promise<UploadItem>;
   upload(files: File[], signal?: AbortSignal): Promise<UploadItem[]>;
-  reset(): void;
 }

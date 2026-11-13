@@ -98,7 +98,6 @@ export function createHttpGateway(
   const post = <T>(path: string, schema: z.ZodType<T>, body: unknown, signal?: AbortSignal) =>
     request(path, schema, { method: 'POST', body: JSON.stringify(body) }, signal);
   return {
-    mode: 'api',
     simulationRules: (signal) => request('/simulation-rules', simulationSchema, {}, signal),
     documents: (signal) => request('/documents', z.array(documentSchema).max(100), {}, signal),
     facts: (signal) => request('/analyses/evidence', z.array(factSchema).max(100), {}, signal),
@@ -156,9 +155,6 @@ export function createHttpGateway(
       const body = new FormData();
       files.forEach((file) => body.append('files', file));
       return request('/document-jobs', z.array(uploadSchema), { method: 'POST', body }, signal);
-    },
-    reset: () => {
-      throw new ApiError('UNSUPPORTED', 'O reset está disponível somente na demonstração.');
     },
   };
 }

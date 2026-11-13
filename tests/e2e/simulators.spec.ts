@@ -1,4 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { contractServer } from './mock-api';
+
+test.beforeEach(async ({ page }) => {
+  await contractServer(page);
+});
+
 test('simula limites, datas com premissas e alçada de fronteira', async ({ page }) => {
   await page.goto('/simuladores/');
   await expect(page.getByText('Máximo de 2 pessoa(s) simultaneamente')).toBeVisible();
@@ -10,6 +16,7 @@ test('simula limites, datas com premissas e alçada de fronteira', async ({ page
   await page.getByLabel('Valor do protótipo').fill('18000');
   await expect(page.locator('.result-box')).toContainText('Gerente do NIN');
 });
+
 test('lista e calendário mantêm o mesmo conjunto de eventos', async ({ page }) => {
   await page.goto('/prazos/');
   await expect(page.locator('.deadline-list>li')).toHaveCount(2);

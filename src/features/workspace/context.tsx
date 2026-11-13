@@ -26,7 +26,6 @@ interface WorkspaceState {
   openSource: (source: Citation | null) => void;
   selection: Fact[];
   setSelection: (facts: Fact[]) => void;
-  selectionError: string;
   loading: boolean;
   error: string;
   reload: () => void;
@@ -44,48 +43,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedByPersona, setSelectedByPersona] = useState<Record<string, Fact[]>>({});
-  const [selectionError, setSelectionError] = useState('');
-  useEffect(() => {
-    let active = true;
-    if (gateway?.mode === 'demo')
-      import('@/services/demo/storage').then(({ readDemo }) => {
-        if (active)
-          setSelectedByPersona((current) => ({
-            ...current,
-            [context.persona]: readDemo().selections[context.persona] || [],
-          }));
-      });
-    return () => {
-      active = false;
-    };
-  }, [gateway, context.persona]);
-  useEffect(() => {
-    const reset = () => {
-      if (gateway?.mode === 'demo') {
-        setSelectedByPersona({});
-        openSource(null);
-      }
-    };
-    window.addEventListener('raiziq:demo-reset', reset);
-    return () => window.removeEventListener('raiziq:demo-reset', reset);
-  }, [gateway]);
-  const setSelection = (values: Fact[]) => {
+  const setSelection = (values: Fact[]) =>
     setSelectedByPersona((current) => ({ ...current, [context.persona]: values }));
-    setSelectionError('');
-    if (gateway?.mode === 'demo')
-      import('@/services/demo/storage')
-        .then(({ writeDemo }) =>
-          writeDemo((state) => ({
-            ...state,
-            selections: { ...state.selections, [context.persona]: values },
-          })),
-        )
-        .catch(() =>
-          setSelectionError(
-            'A seleção está disponível apenas nesta sessão; não foi possível persistir no navegador.',
-          ),
-        );
-  };
   const [revision, setRevision] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
@@ -96,7 +55,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           g.documents(controller.signal),
           g.facts(controller.signal),
           g.deadlines(controller.signal),
-          g.mode === 'demo' || user.capabilities.includes('curate')
+          user.capabilities.includes('curate')
             ? g.findings(controller.signal)
             : Promise.resolve([]),
         ]);
@@ -107,7 +66,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         setDeadlines(events);
         setFindings(issues);
         setIdentity(user);
-        if (g.mode === 'api') setContext((current) => ({ ...current, persona: user.id }));
+        setContext((current) => ({ ...current, persona: user.id }));
         setLoading(false);
         setError('');
       })
@@ -134,7 +93,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         openSource,
         selection: selectedByPersona[context.persona] || [],
         setSelection,
-        selectionError,
         loading,
         error,
         reload: () => {

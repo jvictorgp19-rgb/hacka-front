@@ -178,7 +178,7 @@ function ConversationThread() {
               <div className="assistant-label">
                 <Sprout size={16} />
                 Raiz IQ <span className="tag">{stateLabels[answer.status]}</span>
-                <span className="tag">{answer.origin === 'demo' ? 'Demonstração' : 'API'}</span>
+                <span className="tag">API</span>
               </div>
               <p>{answer.text}</p>
               <details className="answer-details">
@@ -321,11 +321,7 @@ function ConversationThread() {
             )}
           </div>
         </form>
-        <p className="composer-hint">
-          {gateway?.mode === 'demo'
-            ? 'Demo com dados sintéticos e cenários limitados. Não executa RAG ou ações externas.'
-            : 'Confira as fontes antes de tomar uma decisão.'}
-        </p>
+        <p className="composer-hint">Confira as fontes antes de tomar uma decisão.</p>
       </div>
     </section>
   );
