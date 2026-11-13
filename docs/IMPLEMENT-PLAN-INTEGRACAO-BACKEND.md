@@ -1,6 +1,6 @@
 # Plano de integração — backend da Fix com UI/UX da Dev
 
-Data: 13/11/2026. Status: **execução aprovada pelo usuário em 13/11/2026**.
+Data: 13/11/2026. Status: **concluído em 13/11/2026**.
 Este documento complementa `IMPLEMENT-PLAN.md`. Evidências em `docs/checkpoints/integracao/`.
 
 ## Resultado esperado
@@ -318,7 +318,7 @@ seguem seu processo de revisão; não há deploy AWS implícito.
 - [x] IB-03 — Histórico e consistência dos envios
 - [x] IB-04 — Aprovação e download na UI atual
 - [x] IB-05 — Testes e integração real
-- [ ] IB-06 — Push, PRs e limpeza das branches
+- [x] IB-06 — Push, PRs e limpeza das branches
 
 Cada commit deve descrever problema, entrega, preservação, validação executada,
 limites e checkpoint. Nenhum teste planejado deve ser registrado como aprovado.
@@ -333,3 +333,12 @@ limites e checkpoint. Nenhum teste planejado deve ser registrado como aprovado.
   `identidade.py`, `app/schemas/api.py`, `app/core/auth.py` e `app/main.py`.
 - Front: `git log`, `diff`, ancestral comum e prévia de merge sem modificar o
   working tree; documentos `WORKFLOW.md`, `API-CONTRACT.md` e plano original.
+
+## Encerramento da execução
+
+IB-00–06 concluídos. Implementação funcional publicada em 0b80ecd; evidências e
+limites nos checkpoints. PR #5 incorporado à Homolog por outra ação durante a
+execução; histórico sincronizado na Dev sem diferença na árvore funcional. PR #4
+já incorporado, Fix removida e chore ausente. Restam Dev/Homolog/main no frontend.
+Backend validado em cópia isolada e777c4f, SQLite e AUTH_MODE=demo; não houve
+alteração ou publicação do backend da equipe, autenticação de produção ou AWS.

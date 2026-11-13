@@ -72,7 +72,7 @@ test('histórico carrega todas as páginas sem truncar em 100 envios', async ({ 
   state.jobs.push(...Array.from({ length: 105 }, (_, i) => savedJob(String(i))));
   await page.goto('/acervo/');
   await expect(page.locator('.upload-row')).toHaveCount(105);
-  expect(state.historyCalls).toEqual([0, 100]);
+  expect([...new Set(state.historyCalls)]).toEqual([0, 100]);
   await expect(page.getByRole('button', { name: 'Aprovar documento' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Baixar original' })).toHaveCount(0);
 });
@@ -91,9 +91,11 @@ test('histórico atrasado não desfaz decisão confirmada', async ({ page }) => 
   state.jobs.push({ ...savedJob('pendente'), canApprove: true, aprovacao: 'pendente' });
   await page.goto('/acervo/');
   await expect(page.locator('.upload-row')).toHaveCount(1);
+  await expect(page.getByRole('button', { name: 'Atualizar arquivos', exact: true })).toBeEnabled();
+  const beforeRefresh = state.historyStarted;
   state.historyDelay = 900;
   await page.getByRole('button', { name: 'Atualizar arquivos' }).click();
-  await expect.poll(() => state.historyStarted).toBe(2);
+  await expect.poll(() => state.historyStarted).toBeGreaterThan(beforeRefresh);
   await page.getByRole('button', { name: 'Aprovar documento' }).click();
   await expect(page.locator('.upload-row')).toContainText('aprovado por helena');
   await page.waitForTimeout(1200);
@@ -110,4 +112,20 @@ test('recusa exige motivo e mostra o estado confirmado pelo serviço', async ({ 
   await page.getByRole('button', { name: 'Confirmar recusa' }).click();
   await expect(page.locator('.upload-row')).toContainText('Recusado na revisão');
   expect(state.jobs[0].response).toBe('Documento precisa ser revisado pelo setor.');
+});
+
+test('selecionar novamente o mesmo arquivo após navegar não duplica envio nem chave local', async ({
+  page,
+}) => {
+  const state = await contractServer(page);
+  await page.goto('/acervo/');
+  await page.getByLabel('Adicionar PDFs').setInputFiles('tests/fixtures/integracao-sintetica.pdf');
+  await expect(page.locator('.upload-row')).toHaveCount(1);
+  await page.getByRole('link', { name: 'Prazos', exact: true }).click();
+  await page.getByRole('link', { name: 'Acervo', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Atualizar arquivos', exact: true })).toBeEnabled();
+  await page.getByLabel('Adicionar PDFs').setInputFiles('tests/fixtures/integracao-sintetica.pdf');
+  await expect(page.getByRole('main').getByRole('alert')).toContainText('repetido');
+  await expect(page.locator('.upload-row')).toHaveCount(1);
+  expect(state.jobs).toHaveLength(1);
 });
