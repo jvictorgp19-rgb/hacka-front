@@ -1,13 +1,5 @@
 'use client';
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-  type Dispatch,
-  type SetStateAction,
-} from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 import { getGateway } from '@/services';
 import type { AppGateway } from '@/services/gateway';
 import {
@@ -21,7 +13,6 @@ import {
   type Identity,
   type UploadItem,
 } from '@/contracts/models';
-export type UploadJob = UploadItem & { remoteId?: string };
 
 interface WorkspaceState {
   gateway: AppGateway | null;
@@ -36,28 +27,85 @@ interface WorkspaceState {
   openSource: (source: Citation | null) => void;
   selection: Fact[];
   setSelection: (facts: Fact[]) => void;
+  selectionError: string;
   loading: boolean;
   error: string;
   reload: () => void;
-  uploadJobs: UploadJob[];
-  setUploadJobs: Dispatch<SetStateAction<UploadJob[]>>;
+  uploadJobs: (UploadItem & { remoteId?: string })[];
+  setUploadJobs: React.Dispatch<React.SetStateAction<(UploadItem & { remoteId?: string })[]>>;
 }
 const Workspace = createContext<WorkspaceState | null>(null);
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
+  const [jobsByOwner, setJobsByOwner] = useState<
+    Record<string, (UploadItem & { remoteId?: string })[]>
+  >({});
   const [gateway, setGateway] = useState<AppGateway | null>(null);
   const [documents, setDocuments] = useState<DocumentVersion[]>([]);
   const [facts, setFacts] = useState<Fact[]>([]);
   const [deadlines, setDeadlines] = useState<Deadline[]>([]);
   const [findings, setFindings] = useState<Finding[]>([]);
   const [identity, setIdentity] = useState<Identity | null>(null);
-  const [uploadJobs, setUploadJobs] = useState<UploadJob[]>([]);
   const [context, setContext] = useState(defaultContext);
+  const uploadOwner =
+    gateway?.mode === 'demo' ? `demo:${context.persona}` : `api:${identity?.id || ''}`;
+  const uploadJobs = jobsByOwner[uploadOwner] || [];
+  const setUploadJobs = useCallback<
+    React.Dispatch<React.SetStateAction<(UploadItem & { remoteId?: string })[]>>
+  >(
+    (value) => {
+      setJobsByOwner((current) => ({
+        ...current,
+        [uploadOwner]: typeof value === 'function' ? value(current[uploadOwner] || []) : value,
+      }));
+    },
+    [uploadOwner],
+  );
   const [source, openSource] = useState<Citation | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedByPersona, setSelectedByPersona] = useState<Record<string, Fact[]>>({});
-  const setSelection = (values: Fact[]) =>
+  const [selectionError, setSelectionError] = useState('');
+  useEffect(() => {
+    let active = true;
+    if (gateway?.mode === 'demo')
+      import('@/services/demo/storage').then(({ readDemo }) => {
+        if (active)
+          setSelectedByPersona((current) => ({
+            ...current,
+            [context.persona]: readDemo().selections[context.persona] || [],
+          }));
+      });
+    return () => {
+      active = false;
+    };
+  }, [gateway, context.persona]);
+  useEffect(() => {
+    const reset = () => {
+      if (gateway?.mode === 'demo') {
+        setSelectedByPersona({});
+        openSource(null);
+      }
+    };
+    window.addEventListener('raiziq:demo-reset', reset);
+    return () => window.removeEventListener('raiziq:demo-reset', reset);
+  }, [gateway]);
+  const setSelection = (values: Fact[]) => {
     setSelectedByPersona((current) => ({ ...current, [context.persona]: values }));
+    setSelectionError('');
+    if (gateway?.mode === 'demo')
+      import('@/services/demo/storage')
+        .then(({ writeDemo }) =>
+          writeDemo((state) => ({
+            ...state,
+            selections: { ...state.selections, [context.persona]: values },
+          })),
+        )
+        .catch(() =>
+          setSelectionError(
+            'A seleção está disponível apenas nesta sessão; não foi possível persistir no navegador.',
+          ),
+        );
+  };
   const [revision, setRevision] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
@@ -68,7 +116,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           g.documents(controller.signal),
           g.facts(controller.signal),
           g.deadlines(controller.signal),
-          user.capabilities.includes('curate')
+          g.mode === 'demo' || user.capabilities.includes('curate')
             ? g.findings(controller.signal)
             : Promise.resolve([]),
         ]);
@@ -79,7 +127,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         setDeadlines(events);
         setFindings(issues);
         setIdentity(user);
-        setContext((current) => ({ ...current, persona: user.id }));
+        if (g.mode === 'api') setContext((current) => ({ ...current, persona: user.id }));
         setLoading(false);
         setError('');
       })
@@ -108,6 +156,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         openSource,
         selection: selectedByPersona[context.persona] || [],
         setSelection,
+        selectionError,
         loading,
         error,
         reload: () => {

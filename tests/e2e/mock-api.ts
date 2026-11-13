@@ -117,6 +117,11 @@ export async function contractServer(
     slowCompleted: false,
     posts: 0,
     uploadFails: false,
+    jobs,
+    historyCalls: [] as number[],
+    decisionStatus: 200,
+    historyDelay: 0,
+    historyStarted: 0,
   };
   await page.route('https://api.test.invalid/**', async (route) => {
     const request = route.request();
@@ -137,7 +142,7 @@ export async function contractServer(
       return;
     }
     if (url.pathname === '/identity') {
-      await reply({ id: 'contract-user', name: 'Usuário de contrato', capabilities });
+      await reply({ id: 'contract-user', name: 'Usuário de contrato', modo: 'demo', capabilities });
       return;
     }
     if (url.pathname === '/documents') {
@@ -265,7 +270,12 @@ export async function contractServer(
     }
     if (url.pathname === '/document-jobs' && request.method() === 'GET') {
       const offset = Number(url.searchParams.get('offset') || 0);
-      await reply(jobs.slice(offset, offset + 100));
+      state.historyCalls.push(offset);
+      state.historyStarted++;
+      const snapshot = structuredClone(jobs.slice(offset, offset + 100));
+      if (state.historyDelay)
+        await new Promise((resolve) => setTimeout(resolve, state.historyDelay));
+      await reply(snapshot);
       return;
     }
     if (url.pathname.startsWith('/document-jobs/')) {
@@ -276,8 +286,14 @@ export async function contractServer(
         return;
       }
       if (url.pathname.endsWith('/decision')) {
+        if (state.decisionStatus !== 200) {
+          await reply({}, state.decisionStatus);
+          return;
+        }
+        const body = request.postDataJSON();
         Object.assign(item, {
-          aprovacao: 'aprovado',
+          aprovacao: body.status,
+          response: body.response || '',
           canApprove: false,
           decidedBy: 'helena',
           decidedAt: new Date().toISOString(),

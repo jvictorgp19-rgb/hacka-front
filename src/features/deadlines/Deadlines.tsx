@@ -5,7 +5,7 @@ import { useWorkspace } from '@/features/workspace/context';
 import { PageHeading, EmptyState } from '@/components/ui/primitives';
 import { useUrlFilters } from '@/lib/url-filters';
 export default function Deadlines() {
-  const { deadlines, openSource } = useWorkspace();
+  const { deadlines, openSource, gateway } = useWorkspace();
   const { params, update } = useUrlFilters();
   const [reference, setReference] = useState('2027-03-01');
   const month = /^\d{4}-(0[1-9]|1[0-2])$/.test(params.get('mes') || '')
@@ -71,8 +71,10 @@ export default function Deadlines() {
         </label>
       </div>
       <p className="muted">
-        A situação dos eventos é calculada pela referência informada. Nenhum e-mail ou agendamento é
-        enviado.
+        {gateway?.mode === 'demo'
+          ? 'Datas do acervo sintético; referência inicial demonstrativa.'
+          : 'A situação dos eventos é calculada pela referência informada.'}{' '}
+        Nenhum e-mail ou agendamento é enviado.
       </p>
       <div className="section-heading">
         <div className="segmented">

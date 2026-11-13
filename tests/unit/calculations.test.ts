@@ -8,6 +8,7 @@ import {
   vacationTimeline,
   startRestriction,
   parseDate,
+  gamification,
 } from '@/features/simulators/calculations';
 it.each([
   [0, 30],
@@ -63,4 +64,5 @@ it('valida dados e bloqueios conhecidos sem afirmar calendário completo', () =>
   expect(startRestriction('2027-05-05', [])).toBe('');
   expect(startRestriction('2027-05-07', [])).toContain('dois dias');
   expect(startRestriction('2027-05-09', [])).toContain('dia útil');
+  expect(gamification(true, 5, true, true, true)).toBe(800);
 });

@@ -1,4 +1,5 @@
 'use client';
+import { ZeroClickSymbol } from '@/components/brand/BrandMarks';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
@@ -7,7 +8,6 @@ import {
   FileText,
   Paperclip,
   ShieldCheck,
-  Sprout,
   Square,
   Users,
 } from 'lucide-react';
@@ -141,7 +141,7 @@ function ConversationThread() {
         <>
           <header className="conversation-intro">
             <span className="intro-mark">
-              <Sprout size={27} />
+              <ZeroClickSymbol />
             </span>
             <div className="eyebrow">CONHECIMENTO QUE VIRA DECISÃO</div>
             <h1>O que vamos esclarecer hoje?</h1>
@@ -176,9 +176,9 @@ function ConversationThread() {
             </div>
             <article className="assistant-message">
               <div className="assistant-label">
-                <Sprout size={16} />
-                Raiz IQ <span className="tag">{stateLabels[answer.status]}</span>
-                <span className="tag">API</span>
+                <ZeroClickSymbol />
+                Zero Click <span className="tag">{stateLabels[answer.status]}</span>
+                <span className="tag">{answer.origin === 'demo' ? 'Demonstração' : 'API'}</span>
               </div>
               <p>{answer.text}</p>
               <details className="answer-details">
@@ -321,7 +321,11 @@ function ConversationThread() {
             )}
           </div>
         </form>
-        <p className="composer-hint">Confira as fontes antes de tomar uma decisão.</p>
+        <p className="composer-hint">
+          {gateway?.mode === 'demo'
+            ? 'Demo com dados sintéticos e cenários limitados. Não executa RAG ou ações externas.'
+            : 'Confira as fontes antes de tomar uma decisão.'}
+        </p>
       </div>
     </section>
   );

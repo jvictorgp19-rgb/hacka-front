@@ -1,14 +1,22 @@
 import { test, expect } from '@playwright/test';
-import { contractServer } from './mock-api';
-
-test.beforeEach(async ({ page }) => {
-  await contractServer(page);
-});
-test('abre a aplicação', async ({ page }) => {
+test('abre a aplicação preservada', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('main')).toBeVisible();
   await expect(page.getByText('O que vamos esclarecer hoje?', { exact: false })).toBeVisible();
 });
+test('consulta demo funciona sem chamar backend ou rota local', async ({ page }) => {
+  const apiCalls: string[] = [];
+  page.on('request', (request) => {
+    if (request.url().includes('/api/chat') || request.url().includes(':8000'))
+      apiCalls.push(request.url());
+  });
+  await page.goto('/');
+  await page.getByRole('textbox').first().fill('Quero férias em 05/05/2027. Qual o prazo?');
+  await page.getByRole('button', { name: 'Enviar pergunta', exact: true }).click();
+  await expect(page.getByText('Para início em 05/05/2027', { exact: false })).toBeVisible();
+  expect(apiCalls).toEqual([]);
+});
+
 test('navegação responsiva, temas e painel de fontes', async ({ page }) => {
   for (const width of [375, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });

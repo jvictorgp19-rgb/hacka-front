@@ -77,7 +77,9 @@ export default function Analyses() {
         createdAt: new Date().toISOString(),
       });
       setRecords((list) => [record, ...list]);
-      setSaveMessage('Análise confirmada pela API.');
+      setSaveMessage(
+        gateway.mode === 'demo' ? 'Análise salva neste navegador.' : 'Análise confirmada pela API.',
+      );
     } catch (e) {
       setSaveMessage(e instanceof Error ? e.message : 'A análise não foi salva.');
     } finally {

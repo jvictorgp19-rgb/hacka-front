@@ -7,11 +7,11 @@ contém HTML, CSS, JavaScript, fontes e PDFs sintéticos. Não depende de Node/N
 produção para executar regras de servidor. `scripts/serve.mjs` é apenas preview
 local de arquivos, não é o backend da solução.
 
-O backend real não foi conectado. `API-CONTRACT.md`, `src/contracts/` e
-`src/services/gateway.ts` definem a proposta de integração. A suíte `api.spec.ts`
-intercepta HTTP no navegador e utiliza fixtures controladas; valida o comportamento
-do frontend em sucesso/erro e não comprova autenticação, RAG, ingestão ou persistência
-reais do FastAPI.
+A integração de envios foi comprovada contra FastAPI real e777c4f em SQLite
+isolado, AUTH_MODE=demo, incluindo reinício. IB-05 registra as evidências. Os E2E
+de CI usam fixtures HTTP e não substituem essa jornada opt-in. Neon, autenticação
+de produção e indexação/RAG corporativos continuam fora da comprovação.
+`API-CONTRACT.md`, `src/contracts/` e `src/services/gateway.ts` definem a integração.
 
 ## Responsabilidades
 
@@ -36,7 +36,8 @@ reais do FastAPI.
 5. Fornecer datas ISO e valores em centavos; completar o calendário corporativo.
 6. Upload: até 10 PDFs de 20 MiB no frontend; validar novamente no backend.
    `POST /document-jobs` retorna estados e `GET /document-jobs/:id` permite atualização
-   explícita. O cliente não inventa progresso real por temporizador.
+   explícita e polling de itens pendentes, cancelado ao sair da tela. Histórico usa
+   offset, original usa download contextual e decisão depende de canApprove do item.
 7. Garantir persistência de conversas por `context.conversationId`, versões de análise,
    feedback por resposta e pedidos. Campo persona é contexto, nunca autorização.
 8. Alinhar paginação antes de superar o escopo atual: catálogo/evidências limitados

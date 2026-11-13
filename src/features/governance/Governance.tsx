@@ -28,7 +28,10 @@ function GovernancePanel() {
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState('');
-  const isCurator = !!identity?.capabilities.includes('curate');
+  const isCurator =
+    gateway?.mode === 'demo'
+      ? context.persona === 'curadora_ggc'
+      : !!identity?.capabilities.includes('curate');
   useEffect(() => {
     const controller = new AbortController();
     gateway
@@ -50,7 +53,11 @@ function GovernancePanel() {
       const result = await gateway.createRequest(reason.trim(), context.persona, owner);
       setRequests((list) => [result, ...list]);
       setReason('');
-      setMessage('Pedido confirmado pela API.');
+      setMessage(
+        gateway.mode === 'demo'
+          ? 'Pedido registrado localmente na demonstração.'
+          : 'Pedido confirmado pela API.',
+      );
     } catch (e) {
       setMessage(e instanceof Error ? e.message : 'Pedido não registrado.');
     } finally {
@@ -64,7 +71,11 @@ function GovernancePanel() {
     try {
       const result = await gateway.decideRequest(id, status, responses[id].trim(), context.persona);
       setRequests((list) => list.map((r) => (r.id === id ? result : r)));
-      setMessage('Decisão confirmada pela API.');
+      setMessage(
+        gateway.mode === 'demo'
+          ? 'Decisão salva localmente. Nenhum acesso real foi concedido.'
+          : 'Decisão confirmada pela API.',
+      );
     } catch (e) {
       setMessage(e instanceof Error ? e.message : 'Decisão não registrada.');
     } finally {
@@ -79,8 +90,9 @@ function GovernancePanel() {
         description="Peça uma orientação à área responsável e acompanhe a resposta sem expor documentos protegidos."
       />
       <div className="notice">
-        A identidade, as capacidades e as decisões são confirmadas pelo serviço. O frontend não
-        concede permissão.
+        {gateway?.mode === 'demo'
+          ? 'Simulação com dados sintéticos. Registros ficam neste navegador e não constituem auditoria imutável. A curadoria de exemplo pertence à GGC.'
+          : 'A identidade, as capacidades e as decisões são confirmadas pelo serviço. O frontend não concede permissão.'}
       </div>
       {message && (
         <p role="status" className="notice">
@@ -221,6 +233,16 @@ function GovernancePanel() {
                     >
                       Negar com justificativa
                     </button>
+                    {gateway?.mode === 'demo' && (
+                      <button
+                        className="secondary-button"
+                        type="button"
+                        disabled={!responses[request.id]?.trim() || !!busy}
+                        onClick={() => void decide(request.id, 'granted')}
+                      >
+                        Simular concessão
+                      </button>
+                    )}
                   </div>
                 </form>
               )}

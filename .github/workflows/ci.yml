@@ -24,8 +24,24 @@ jobs:
       - run: npm test
       - run: npm run build
         env:
-          NEXT_PUBLIC_API_URL: https://api.test.invalid
+          NEXT_PUBLIC_DATA_MODE: demo
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
         env:
           TEST_STATIC: 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: raiz-iq-demo-static
+          path: out
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_DATA_MODE: api
+          NEXT_PUBLIC_API_URL: https://api.test.invalid
+      - run: npm run test:e2e
+        env:
+          TEST_STATIC: 1
+          TEST_DATA_MODE: api
+      - name: Verify branding with next dev
+        run: npx playwright test tests/e2e/branding.spec.ts
+        env:
+          NEXT_PUBLIC_DATA_MODE: demo

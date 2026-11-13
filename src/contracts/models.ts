@@ -67,7 +67,7 @@ export const answerSchema = z.object({
   facts: z.array(factSchema),
   citations: z.array(citationSchema),
   context: contextSchema,
-  origin: z.literal('api'),
+  origin: z.enum(['demo', 'api']),
   createdAt: z.string(),
   nextSteps: z.array(z.string()),
 });
@@ -116,23 +116,24 @@ export const feedbackSchema = z.object({
 export const uploadSchema = z.object({
   id: z.string(),
   name: z.string(),
-  size: z.number(),
+  size: z.number().int().nonnegative(),
   status: z.enum(['waiting', 'processing', 'ready', 'failed', 'not_extracted']),
   message: z.string(),
-  createdAt: z.string().optional(),
+  createdAt: z.iso.datetime({ offset: true }).optional(),
   saved: z.boolean().optional(),
   fileAvailable: z.boolean().optional(),
   canApprove: z.boolean().optional(),
   aprovacao: z.enum(['pendente', 'aprovado', 'recusado', 'dispensado']).nullable().optional(),
   aprovadores: z.string().nullable().optional(),
   decidedBy: z.string().nullable().optional(),
-  decidedAt: z.string().nullable().optional(),
+  decidedAt: z.iso.datetime({ offset: true }).nullable().optional(),
   response: z.string().nullable().optional(),
 });
 export const identitySchema = z.object({
   id: z.string(),
   name: z.string(),
   capabilities: z.array(z.string()),
+  modo: z.enum(['demo', 'token']).optional(),
 });
 export type Citation = z.infer<typeof citationSchema>;
 export type DocumentVersion = z.infer<typeof documentSchema>;
@@ -153,7 +154,7 @@ export const defaultContext: AnalysisContext = {
   perspective: 'obligations',
   from: '',
   to: '',
-  persona: '',
+  persona: 'ana',
 };
 export class ApiError extends Error {
   constructor(

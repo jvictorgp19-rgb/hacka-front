@@ -59,11 +59,21 @@ export function createHttpGateway(
             ? 'Entre na sua conta para continuar.'
             : response.status === 403
               ? 'Seu perfil não tem acesso a este conteúdo.'
-              : 'O serviço não concluiu a solicitação.',
+              : response.status === 409
+                ? 'Este envio já foi decidido ou está indisponível para revisão.'
+                : response.status === 404
+                  ? 'Arquivo indisponível ou sem autorização para este perfil.'
+                  : response.status === 503
+                    ? 'Não foi possível confirmar os dados no serviço. Tente novamente.'
+                    : 'O serviço não concluiu a solicitação.',
           response.status >= 500 || response.status === 429,
           requestId,
         );
-      if (!schema) return (await response.blob()) as T;
+      if (!schema) {
+        if (/json|text\/html/i.test(response.headers.get('content-type') || ''))
+          throw new ApiError('INVALID_RESPONSE', 'A API não retornou um arquivo válido.');
+        return (await response.blob()) as T;
+      }
       let json: unknown;
       try {
         json = await response.json();
@@ -101,6 +111,10 @@ export function createHttpGateway(
   const post = <T>(path: string, schema: z.ZodType<T>, body: unknown, signal?: AbortSignal) =>
     request(path, schema, { method: 'POST', body: JSON.stringify(body) }, signal);
   return {
+    mode: 'api',
+    reset: () => {
+      throw new ApiError('UNSUPPORTED', 'O reset está disponível somente na demonstração.');
+    },
     simulationRules: (signal) => request('/simulation-rules', simulationSchema, {}, signal),
     documents: (signal) => request('/documents', z.array(documentSchema).max(100), {}, signal),
     facts: (signal) => request('/analyses/evidence', z.array(factSchema).max(100), {}, signal),
@@ -122,7 +136,7 @@ export function createHttpGateway(
     findings: (signal) => request('/audit/findings', z.array(findingSchema), {}, signal),
     identity: async (signal) => {
       const identity = await request('/identity', identitySchema, {}, signal);
-      personaId = identity.id;
+      personaId = identity.modo === 'demo' ? identity.id : '';
       return identity;
     },
     requests: (persona, signal) =>
@@ -160,8 +174,11 @@ export function createHttpGateway(
       request('/document-jobs/' + encodeURIComponent(id), uploadSchema, {}, signal),
     uploads: (offset = 0, signal) =>
       request('/document-jobs?limit=100&offset=' + offset, z.array(uploadSchema), {}, signal),
-    decideUpload: (id, status) =>
-      post('/document-jobs/' + encodeURIComponent(id) + '/decision', uploadSchema, { status }),
+    decideUpload: (id, status, response = '') =>
+      post('/document-jobs/' + encodeURIComponent(id) + '/decision', uploadSchema, {
+        status,
+        response,
+      }),
     downloadUpload: (id) =>
       request<Blob>('/document-jobs/' + encodeURIComponent(id) + '/file', null),
     upload: (files, signal) => {

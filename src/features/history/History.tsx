@@ -1,12 +1,14 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { FileText, MessageSquare } from 'lucide-react';
+import { FileText, MessageSquare, RotateCcw } from 'lucide-react';
+import { useWorkspace } from '@/features/workspace/context';
 import { PageHeading, EmptyState } from '@/components/ui/primitives';
 import { useRecords } from '@/features/reports/use-records';
 import { recordHref } from './related';
 import { useConversationHistory } from './use-conversations';
 export default function History() {
+  const { gateway, reload } = useWorkspace();
   const { records, error: recordError } = useRecords();
   const { conversations, error } = useConversationHistory();
   const [query, setQuery] = useState('');
@@ -20,6 +22,28 @@ export default function History() {
         eyebrow="CONHECIMENTO QUE CONTINUA"
         title="Histórico e análises salvas"
         description="Retome uma conversa ou reutilize uma análise com seu contexto e suas fontes."
+        action={
+          gateway?.mode === 'demo' && (
+            <button
+              className="secondary-button"
+              onClick={() => {
+                if (
+                  window.confirm(
+                    'Limpar conversas, resumos, avaliações e pedidos de demonstração deste navegador?',
+                  )
+                ) {
+                  gateway.reset();
+                  window.dispatchEvent(new Event('raiziq:demo-reset'));
+                  window.dispatchEvent(new Event('raiziq:conversation-updated'));
+                  reload();
+                }
+              }}
+            >
+              <RotateCcw size={15} />
+              Limpar demonstração
+            </button>
+          )
+        }
       />
       <div className="toolbar">
         <input

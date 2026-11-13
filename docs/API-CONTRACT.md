@@ -1,6 +1,7 @@
-# Contrato de integração proposto — v0.1
+# Contrato de integração — v0.2
 
-Status: proposta do frontend; precisa ser alinhada com o repositório FastAPI.
+Status: contratos conferidos com FastAPI e777c4f; integração real de envios validada
+em SQLite isolado e AUTH_MODE=demo. Autenticação de produção e Neon não validados.
 Fonte executável dos DTOs e validações: `src/contracts/models.ts`.
 Interface consumida pelas telas: `src/services/gateway.ts`.
 
@@ -28,15 +29,15 @@ Os endpoints retornam diretamente o DTO ou array descrito, sem envelope.
 | GET /document-jobs/:id               | ID informado pelo serviço                     | UploadItem                                    |
 
 Valores em centavos inteiros e datas ISO (date ou timestamp com timezone).
-Referências de fonte devem ser URLs HTTP(S) absolutas e autorizadas. O frontend não serve
-documentos: um caminho relativo abriria no host do frontend e daria 404. O backend não deve
-retornar URL pública para documento restrito. Citações sem página não
+Referências de fonte aceitam caminhos relativos ao host do frontend (assets sintéticos)
+ou URLs HTTP(S). Arquivos do backend devem usar URLs absolutas autorizadas; o backend
+não deve retornar URL pública para documento restrito. Citações sem página não
 permitem inventar página/realce. Dados devem estar autorizados antes de chegar ao cliente.
 
 O cliente envia cookies via credentials:include. O servidor deve definir a sessão,
 CORS por origem e proteção CSRF adequada ao mecanismo de autenticação escolhido.
-Não há login implementado neste contrato preliminar. A identidade vem só de GET /identity:
-não há seletor de persona. Nenhum token é armazenado em localStorage.
+Não há login implementado neste contrato preliminar; identidade da API não pode ser
+substituída pelo seletor de persona da demo. Nenhum token é armazenado em localStorage.
 
 Erros HTTP: 401 exige autenticação, 403 acesso negado, 429/5xx recuperáveis.
 Opcional: x-request-id para rastreamento. Corpo de erro do serviço não é executado
@@ -44,16 +45,39 @@ nem mostrado integralmente. Timeout do cliente: 15 s, cancelável. Cancelar fetc
 interrompe a espera, não garante cancelamento do processamento no backend.
 
 MVP do cliente: até 100 documentos/evidências por resposta, até 10 PDFs de 20 MiB
-por lote. Paginação por cursor deve ser alinhada antes de aumentar o acervo. O cliente oferece
-atualização explícita por GET /document-jobs/:id; não executa polling contínuo. O contrato
-atual de upload retorna estados; o frontend não inventa percentuais de processamento.
+por lote. Catálogo/evidências ainda exigem alinhamento de paginação antes de superar
+esses limites. Histórico de envios usa offset em páginas de 100. Itens pendentes
+são consultados a cada 3 s, sem sobreposição e com backoff até 30 s em falhas; ao
+sair da tela, o polling é cancelado. Há atualização manual. Estados vêm da API;
+o frontend não inventa percentuais de processamento.
 
 Exportação local: texto e impressão. PPTX, envio de e-mail, ingestão de PDFs novos,
 OCR/RAG, auditoria durável e permissões ficam no backend e não estão comprovados.
-Não há fonte de dados local: com a API em falha, a tela mostra o erro.
+Demo é uma fonte de dados separada e identificada; API com falha nunca vira demo.
 Para contratos estáveis, os DTOs de transporte deverão ser gerados do OpenAPI.
 
 Capacidade `curate` controla a apresentação das ações de curadoria no modo API.
 A autorização por domínio e a validação da decisão são obrigatórias no backend;
 campos persona/owner não conferem acesso. Decisões podem retornar decidedAt/decidedBy.
-Concessão real com expiração não está implementada.
+Concessão real com expiração não está implementada; a demo apenas registra o cenário.
+
+## Evolução de envios — backend e777c4f
+
+Verificado em `hacka-back/fix/persistencia-envios-aprovacao`, SHA
+`e777c4fb0deea164ba7cbea226672f24c5acfb38`. Ambiente de integração isolado:
+`http://127.0.0.1:8100`, AUTH_MODE=demo, SQLite temporário. Não é produção/Neon.
+
+- GET `/document-jobs?limit=100&offset=N`: envios autorizados paginados.
+- GET `/document-jobs/:id/file`: original como Blob; 404 se ausente ou não autorizado.
+- POST `/document-jobs/:id/decision`: status aprovado/recusado e response opcional;
+  confirmação com responsável/data. 403 sem permissão; 409 decisão concorrente;
+  503 falha de banco. Não confundir ready com aprovado.
+- DTO acrescenta createdAt, saved, fileAvailable, canApprove, aprovacao, aprovadores,
+  decidedBy, decidedAt e response. Campos de decisão aceitam null.
+- `/identity` pode incluir modo=demo|token. X-Persona-Id só é propagado no modo demo
+  explicitamente retornado pelo serviço; não é autenticação de produção.
+- O modo token requer Bearer no backend. Login/obtenção de token não foi entregue
+  pelo frontend e permanece pendente de integração com o mecanismo de sessão.
+
+Demo independente permanece explícita e não chama essas rotas; aprovações reais e
+original de envio exigem API. O contexto de identidade é reinicializado na recarga.

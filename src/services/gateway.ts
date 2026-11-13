@@ -13,6 +13,8 @@ import type {
   UploadItem,
 } from '@/contracts/models';
 export interface AppGateway {
+  readonly mode: 'demo' | 'api';
+  reset(): void;
   simulationRules(signal?: AbortSignal): Promise<SimulationRules>;
   documents(signal?: AbortSignal): Promise<DocumentVersion[]>;
   facts(signal?: AbortSignal): Promise<Fact[]>;
@@ -35,7 +37,7 @@ export interface AppGateway {
   saveFeedback(item: Feedback): Promise<Feedback>;
   uploadStatus(id: string, signal?: AbortSignal): Promise<UploadItem>;
   uploads(offset?: number, signal?: AbortSignal): Promise<UploadItem[]>;
-  decideUpload(id: string, status: 'aprovado' | 'recusado'): Promise<UploadItem>;
+  decideUpload(id: string, status: 'aprovado' | 'recusado', response?: string): Promise<UploadItem>;
   downloadUpload(id: string): Promise<Blob>;
   upload(files: File[], signal?: AbortSignal): Promise<UploadItem[]>;
 }

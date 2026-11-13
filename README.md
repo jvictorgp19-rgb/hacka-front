@@ -14,51 +14,65 @@ cp .env.example .env.local
 npm run dev
 ```
 
-O frontend só funciona com a API do repositório `hacka-back` no ar. Configure a URL dela
-em `NEXT_PUBLIC_API_URL` (padrão do exemplo: `http://localhost:8000`) e abra
-`http://localhost:3000`, a origem liberada em `CORS_ORIGINS` no backend.
+Abra `http://localhost:3000`. O modo padrão é `demo`: acervo sintético,
+cenários delimitados e ações persistidas somente neste navegador.
 
-Para servir o artefato exportado:
+Para apresentar o artefato exportado, sem Next em execução ou FastAPI:
 
 ```bash
 npm run build
 npm start
 ```
 
-`npm start` serve os arquivos de `out/`. Para outra porta, use `PREVIEW_PORT=3100 npm start`.
+`npm start` serve os arquivos de `out/`. O script de preview é somente leitura,
+sem API. Para outra porta, use `PREVIEW_PORT=3100 npm start`.
 
-## Dados
+## Modos de dados
 
-Cliente HTTP com DTOs validados, timeout/cancelamento e erros explícitos. Nenhum dado local
-substitui a API. Variáveis `NEXT_PUBLIC_*` são públicas e incorporadas ao artefato; não
-coloque segredos nelas. Trocar a URL em hospedagem estática exige um novo build.
+| Modo                         | Comportamento                                                                                             |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_DATA_MODE=demo` | Provider no navegador, consultas por cenários, dados sintéticos, histórico e reset local.                 |
+| `NEXT_PUBLIC_DATA_MODE=api`  | Cliente HTTP externo com DTOs validados, timeout/cancelamento e erros explícitos. Sem fallback para demo. |
 
-A identidade vem de `GET /identity`: o frontend não escolhe persona nem concede permissão.
+No modo API, definir `NEXT_PUBLIC_API_URL` antes do build. Variáveis `NEXT_PUBLIC_*`
+são públicas e incorporadas ao artefato; não coloque segredos nelas. Alterar URL/modo
+em hospedagem estática exige um novo build.
+
+Envios foram validados contra FastAPI real no SHA `e777c4f`, em ambiente isolado
+com SQLite e AUTH_MODE=demo: upload, histórico, aprovação, download e persistência
+após reinício. A suíte API de CI continua usando respostas controladas. Não há
+backend de produto neste repositório; Neon e autenticação de produção não foram validados.
 
 ## Funcionalidades do frontend
 
 - Conversas com fontes navegáveis, abstenção, comparação de versão e contexto persistido.
 - Acervo por tema/área/fase, versões e seleção individual/em lote de PDFs.
-- Envios salvos são recuperados ao abrir o Acervo, recarregar ou voltar à aba.
-  O histórico usa paginação para carregar todos os arquivos autorizados. A fila também fica
-  no contexto do workspace durante a navegação. Originais têm download autenticado; quem
-  recebe `canApprove` pode aprovar e ver a confirmação com responsável e data.
-  O backend precisa das rotas `GET /document-jobs`, `GET /document-jobs/{id}/file` e
-  `POST /document-jobs/{id}/decision`, além das rotas de envio e consulta existentes.
-  Registros antigos sem original continuam no histórico com essa indicação.
+- Envios recuperados por identidade ao navegar/recarregar; paginação, atualização
+  do processamento, aprovação/recusa autorizadas e download do original pela API.
 - Perspectivas de riscos, prazos, obrigações e valores; tabela, barras e timeline com fonte.
 - Simuladores com premissas explícitas, alçadas, faltas, limites e calendário de prévia.
 - Prazos em lista/calendário, usando os mesmos eventos e a referência informada.
 - Resumo executivo por evidências selecionadas, versões salvas, TXT e impressão/PDF.
 - Histórico, sugestões por tema/fontes e feedback por resposta.
-- Pedido de orientação e resposta curada pela área responsável.
+- Pedido de orientação e resposta curada, com identificação clara do modo demo/API.
 - Navegação responsiva, tema claro/escuro, teclado, contraste e texto ajustável.
 
-## Limites
+O acervo possui **13 PDFs únicos**, preservados em `docs_acervo/` e nas cópias públicas
+de demonstração. O JSON descreve **14 versões**; `RG_1100 v1.0.0` não tem PDF disponível.
 
-O calendário dos simuladores é o que a API envia em `/simulation-rules`. Datas são prévias e
-exigem validação da unidade. Não há envio de e-mail, PPTX ou OCR no navegador. Fontes
-corporativas protegidas nunca devem ser copiadas para `public/`.
+## Limites da demonstração
+
+PDF novo é selecionado/validado, mas **não é interpretado ou indexado** pelo navegador.
+O exemplo de processamento usa uma fonte já cadastrada. O chat não executa RAG/LLM;
+perguntas fora dos cenários retornam abstenção.
+
+O calendário demo é **parcial**: fins de semana e 1º de maio, intervalo 2026–2028.
+Datas são prévias e exigem validação da unidade. O seletor de persona não autentica
+ninguém; concessões, curadoria e registros locais não representam segurança ou
+uma trilha de auditoria imutável.
+
+Não há envio de e-mail, PPTX, OCR, conexão ao banco, ingestão real ou infraestrutura AWS
+provisionada. Fontes corporativas protegidas nunca devem ser copiadas para `public/`.
 
 ## Verificar
 
@@ -77,27 +91,52 @@ Após o build, para testar somente os arquivos estáticos:
 TEST_STATIC=1 npm run test:e2e
 ```
 
-Os testes de navegador usam uma API de contrato interceptada (`tests/e2e/mock-api.ts`), por
-isso o build de teste aponta para um host inválido:
+Modo API de contrato (host interceptado pelos testes):
 
 ```bash
-NEXT_PUBLIC_API_URL=https://api.test.invalid npm run build
-TEST_STATIC=1 npm run test:e2e
+NEXT_PUBLIC_DATA_MODE=api NEXT_PUBLIC_API_URL=https://api.test.invalid npm run build
+TEST_STATIC=1 TEST_DATA_MODE=api npm run test:e2e
 ```
 
-Antes de apresentar ou publicar, gere o build com a URL real da API. O
-`scripts/deploy.sh` recusa publicar sem `NEXT_PUBLIC_API_URL` em HTTPS: defina a
-variável no host antes do próximo deploy (antes, o padrão era o modo demo).
+Em seguida, execute um build `demo` ou com a URL real desejada antes de apresentar/publicar.
+O CI verifica ambos os modos e disponibiliza um artefato estático de demonstração.
 
 ## Estrutura e documentação
 
 `src/features/` contém as telas; `components/` contém layout e UI; `contracts/`
-valida DTOs; `services/http/` consome o backend.
+valida DTOs; `services/http/` consome o backend e `services/demo/` fornece a demo.
 Calculadoras puras ficam em `features/simulators/calculations.ts`.
 
 - [Plano e checkpoints](docs/IMPLEMENT-PLAN.md)
-- [Contrato proposto da API](docs/API-CONTRACT.md)
+- [Contrato da API](docs/API-CONTRACT.md)
 - [Integração e pacote AWS](docs/FRONTEND-HANDOFF.md)
 - [Workflow Dev → Homolog → main](docs/WORKFLOW.md)
 - [Registro de preservação](docs/REORGANIZACAO.md)
 - [Proposta original](docs/PROPOSTA.md) — documento de concepção histórico; nomes de branches e previsões de implementação nela não substituem o estado atual.
+
+### Estilos durante o desenvolvimento
+
+`npm run dev` compila o código atual; `npm start` serve o último `out/` gerado.
+O cache persistente do Turbopack está desativado no desenvolvimento para evitar
+reaproveitar artefatos CSS de versões anteriores. Se uma aba ficou aberta durante
+uma atualização, recarregue-a completamente (`Ctrl+Shift+R`). O CI verifica marcas,
+cabeçalho e temas tanto no artefato estático quanto em `next dev`.
+
+### Integração real isolada
+
+O teste opt-in `tests/integration/real-backend.mjs` faz requisições reais e aceita
+somente URLs localhost. Usar cópia de teste do backend e777c4f, banco descartável,
+AUTH_MODE=demo e DEMO_DEFAULT_PERSONA=helena. O PDF de teste é sintético e contém
+código GEINOV para exercitar a revisão de um envio da persona bruno.
+
+Após compilar o frontend em modo API para a URL local e iniciar os dois serviços:
+
+```bash
+RUN_REAL_BACKEND_TESTS=1 REAL_API_URL=http://127.0.0.1:8100 TEST_BASE_URL=http://127.0.0.1:3500 node tests/integration/real-backend.mjs
+# Reiniciar somente o backend de teste, mantendo seu banco:
+RUN_REAL_BACKEND_TESTS=1 REAL_API_URL=http://127.0.0.1:8100 TEST_BASE_URL=http://127.0.0.1:3500 node tests/integration/real-backend.mjs --verify-restart
+```
+
+As origens CORS precisam corresponder ao frontend. A primeira etapa cria registros
+no banco de teste. Resultados e capturas vão para /tmp por padrão. Não usar banco
+compartilhado de equipe nem apresentar esse modo como autenticação corporativa.

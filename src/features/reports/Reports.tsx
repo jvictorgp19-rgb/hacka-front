@@ -11,7 +11,8 @@ export default function Reports() {
   return <ReportComposer key={context.persona} />;
 }
 function ReportComposer() {
-  const { gateway, context, facts, selection, setSelection, openSource } = useWorkspace();
+  const { gateway, context, facts, selection, setSelection, selectionError, openSource } =
+    useWorkspace();
   const { params, update } = useUrlFilters();
   const { records, setRecords, error: loadError, loading } = useRecords();
   const [title, setTitle] = useState('Resumo executivo');
@@ -39,7 +40,11 @@ function ReportComposer() {
       });
       setRecords((list) => [result, ...list]);
       update({ registro: result.id });
-      setMessage('Versão confirmada pela API.');
+      setMessage(
+        gateway.mode === 'demo'
+          ? 'Versão salva localmente neste navegador.'
+          : 'Versão confirmada pela API.',
+      );
     } catch (e) {
       setMessage(e instanceof Error ? e.message : 'Não foi possível salvar.');
     } finally {
@@ -75,9 +80,9 @@ function ReportComposer() {
             </button>
           }
         />
-        {(message || loadError) && (
+        {(message || selectionError || loadError) && (
           <p className="notice" role="status">
-            {message || loadError}
+            {message || selectionError || loadError}
           </p>
         )}
         {params.get('registro') && loading && <p role="status">Carregando versão salva…</p>}
@@ -171,7 +176,9 @@ function ReportComposer() {
             <div className="eyebrow">RAIZ IQ / RESUMO EXECUTIVO</div>
             <h1>{reportTitle}</h1>
             <p>
-              Composição a partir das evidências retornadas pela API.{' '}
+              {gateway?.mode === 'demo'
+                ? 'Composição local a partir de evidências sintéticas selecionadas.'
+                : 'Composição a partir das evidências retornadas pela API.'}{' '}
               {saved && `Versão salva em ${new Date(saved.createdAt).toLocaleString('pt-BR')}.`}
             </p>
           </header>

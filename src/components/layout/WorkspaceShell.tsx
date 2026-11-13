@@ -7,6 +7,7 @@ import {
   CalendarDays,
   Calculator,
   ChartNoAxesCombined,
+  ChevronDown,
   Files,
   FileText,
   History,
@@ -15,12 +16,14 @@ import {
   Moon,
   PanelLeftClose,
   ShieldCheck,
-  Sprout,
   Sun,
   X,
 } from 'lucide-react';
 import { WorkspaceProvider, useWorkspace } from '@/features/workspace/context';
 import { useConversationHistory } from '@/features/history/use-conversations';
+import DemoGuide from './DemoGuide';
+import { BbtsLogo, ZeroClickSymbol } from '@/components/brand/BrandMarks';
+import { PERSONAS_NOMINAIS } from '@/features/identity/personas';
 const navigation = [
   { href: '/', label: 'Conversas', icon: MessageSquare },
   { href: '/acervo/', label: 'Acervo', icon: Files },
@@ -35,7 +38,8 @@ function Shell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { conversations } = useConversationHistory();
   const router = useRouter();
-  const { source, openSource, loading, error, reload, identity } = useWorkspace();
+  const { gateway, context, setContext, source, openSource, loading, error, reload, identity } =
+    useWorkspace();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [theme, setTheme] = useState('light');
@@ -63,6 +67,7 @@ function Shell({ children }: { children: ReactNode }) {
   const current =
     navigation.find((n) => n.href === pathname || n.href.slice(0, -1) === pathname) ||
     navigation[0];
+  const mode = gateway?.mode || (process.env.NEXT_PUBLIC_DATA_MODE === 'api' ? 'api' : 'demo');
   return (
     <div className={`workspace ${collapsed ? 'is-collapsed' : ''}`}>
       <a className="skip-link" href="#workspace-main">
@@ -79,15 +84,24 @@ function Shell({ children }: { children: ReactNode }) {
         className={`sidebar ${mobileOpen ? 'mobile-open' : ''}`}
         aria-label="Navegação principal"
       >
-        <Link href="/" className="brand" aria-label="Raiz IQ, início">
-          <span className="brand-symbol">
-            <Sprout size={22} />
-          </span>
-          <span className="nav-label">
-            Raiz<span className="brand-iq">IQ</span>
-            <small>Inteligência empresarial</small>
-          </span>
-        </Link>
+        <div className="workspace-brands">
+          <div className="company-brand" title="BBTS — BB Tecnologia e Serviços">
+            <BbtsLogo />
+          </div>
+          <Link
+            href="/"
+            className="brand"
+            aria-label="Zero Click, início"
+            title="Zero Click — Inteligência empresarial"
+            onClick={() => setMobileOpen(false)}
+          >
+            <ZeroClickSymbol />
+            <span className="nav-label">
+              <span className="brand-iq">Zero Click</span>
+              <small>Inteligência empresarial</small>
+            </span>
+          </Link>
+        </div>
         <button
           className="new-conversation nav-label"
           onClick={() => {
@@ -129,8 +143,12 @@ function Shell({ children }: { children: ReactNode }) {
         <div className="sidebar-bottom">
           <div className="workspace-note nav-label">
             <span className="live-dot" />
-            Serviço corporativo
-            <p>Dados e permissões fornecidos pela API externa.</p>
+            {mode === 'demo' ? 'Acervo sintético ACME' : 'Serviço corporativo'}
+            <p>
+              {mode === 'demo'
+                ? 'Demonstração independente. Suas ações são salvas neste navegador.'
+                : 'Dados e permissões fornecidos pela API externa.'}
+            </p>
           </div>
           <button
             className="nav-item collapse-control"
@@ -159,7 +177,7 @@ function Shell({ children }: { children: ReactNode }) {
           <div className="topbar-actions">
             <span className="mode-badge">
               <span className="live-dot" />
-              API externa
+              {mode === 'demo' ? 'Demo local' : 'API externa'}
             </span>
             <button
               className="icon-button"
@@ -177,6 +195,7 @@ function Shell({ children }: { children: ReactNode }) {
             >
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
             </button>
+            <DemoGuide />
             <details className="accessibility">
               <summary aria-label="Acessibilidade">Aa</summary>
               <div className="accessibility-options">
@@ -191,7 +210,25 @@ function Shell({ children }: { children: ReactNode }) {
                 </button>
               </div>
             </details>
-            <span>{identity?.name || 'Sessão API'}</span>
+            {mode === 'demo' ? (
+              <label className="persona-select">
+                <span className="avatar">{context.persona.slice(0, 2).toUpperCase()}</span>
+                <select
+                  aria-label="Persona de demonstração"
+                  value={context.persona}
+                  onChange={(e) => setContext({ ...context, persona: e.target.value })}
+                >
+                  {PERSONAS_NOMINAIS.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.nome}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={13} />
+              </label>
+            ) : (
+              <span>{identity?.name || 'Sessão API'}</span>
+            )}
           </div>
         </header>
         <main id="workspace-main" className="workspace-main">
@@ -206,16 +243,22 @@ function Shell({ children }: { children: ReactNode }) {
               <button className="primary-button" onClick={reload}>
                 Tentar novamente
               </button>
-              <p>Os erros da API ficam visíveis: nenhum dado local substitui o serviço.</p>
+              <p>
+                Modo API mantém erros visíveis e não usa dados de demonstração como substitutos.
+              </p>
             </div>
           ) : (
             children
           )}
         </main>
         <footer className="workspace-footer">
-          <span>
-            Raiz IQ <span className="footer-dot">·</span> Desafio 2 / Ctrl + Alt + Business
-          </span>
+          <div className="footer-identity">
+            <BbtsLogo />
+            <span className="footer-product">
+              <ZeroClickSymbol /> Zero Click
+            </span>
+            <span className="footer-credits">Desafio 2 / Ctrl + Alt + Business</span>
+          </div>
           <span>Em caso de divergência, prevalece o documento oficial.</span>
         </footer>
       </div>

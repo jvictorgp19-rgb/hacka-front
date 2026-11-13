@@ -1,6 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { contractServer } from './mock-api';
-
 const routes = [
   ['/', 'O que vamos esclarecer hoje?'],
   ['/acervo/', 'Acervo documental'],
@@ -11,9 +9,7 @@ const routes = [
   ['/administracao/', 'Curadoria e orientações'],
   ['/simuladores/', 'Simuladores de regras'],
 ];
-
-test('todas as telas cabem em mobile e desktop', async ({ page }) => {
-  await contractServer(page);
+test('todas as telas preservam leitura em mobile e desktop', async ({ page }) => {
   for (const width of [375, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     for (const [path, title] of routes) {
@@ -25,4 +21,11 @@ test('todas as telas cabem em mobile e desktop', async ({ page }) => {
       ).toBe(true);
     }
   }
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'O que vamos esclarecer hoje?' })).toBeVisible();
+  await page.screenshot({ path: '/tmp/hacka-final-light.png', fullPage: true });
+  await page.getByRole('button', { name: 'Alternar tema' }).click();
+  await page.screenshot({ path: '/tmp/hacka-final-dark.png', fullPage: true });
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.screenshot({ path: '/tmp/hacka-final-mobile.png', fullPage: true });
 });

@@ -45,7 +45,11 @@ export default function FeedbackControl({ targetId }: { targetId: string }) {
       });
       setSaved(result);
       setReview(false);
-      setMessage('Avaliação confirmada pela API.');
+      setMessage(
+        gateway.mode === 'demo'
+          ? 'Avaliação salva neste navegador.'
+          : 'Avaliação confirmada pela API.',
+      );
     } catch (e) {
       setMessage(e instanceof Error ? e.message : 'A avaliação não foi enviada.');
     } finally {

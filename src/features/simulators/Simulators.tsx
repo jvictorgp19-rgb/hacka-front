@@ -14,6 +14,7 @@ import {
   vacationDays,
   vacationTimeline,
 } from './calculations';
+import DetailedSimulators from './DetailedSimulators';
 const money = (cents: number) =>
   (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 export default function Simulators() {
@@ -362,6 +363,18 @@ export default function Simulators() {
             <footer>{sourceButton('Anexo, item 11', 'CTR_2026-012')}</footer>
           </section>
         </div>
+      )}
+      {gateway?.mode === 'demo' && (
+        <details className="legacy-details">
+          <summary>
+            Ferramentas detalhadas do acervo: elegibilidade, pontos, prêmios, fluxo e aditivos
+          </summary>
+          <p className="notice">
+            Ferramentas originais preservadas. Calendário parcial: confirme feriados e expediente da
+            unidade antes de usar as datas.
+          </p>
+          <DetailedSimulators />
+        </details>
       )}
     </>
   );
