@@ -67,7 +67,7 @@ export const answerSchema = z.object({
   facts: z.array(factSchema),
   citations: z.array(citationSchema),
   context: contextSchema,
-  origin: z.enum(['demo', 'api']),
+  origin: z.literal('api'),
   createdAt: z.string(),
   nextSteps: z.array(z.string()),
 });

@@ -92,35 +92,6 @@ export default function Documents() {
       setBusy(false);
     }
   }
-  async function demonstrateProcessing() {
-    if (busy) return;
-    setBusy(true);
-    const id = 'fixture-ng111';
-    const item: UploadItem = {
-      id,
-      name: 'Exemplo: NG_111 já cadastrado',
-      size: 0,
-      status: 'waiting',
-      message: 'Simulação de estados sobre uma fonte já conhecida; não é ingestão de arquivo novo.',
-    };
-    setJobs((list) => [...list.filter((j) => j.id !== id), item]);
-    await new Promise((resolve) => setTimeout(resolve, 250));
-    setJobs((list) => list.map((j) => (j.id === id ? { ...j, status: 'processing' } : j)));
-    await new Promise((resolve) => setTimeout(resolve, 250));
-    setJobs((list) =>
-      list.map((j) =>
-        j.id === id
-          ? {
-              ...j,
-              status: 'ready',
-              message:
-                'Exemplo concluído. O documento já fazia parte do catálogo e suas evidências foram conferidas previamente.',
-            }
-          : j,
-      ),
-    );
-    setBusy(false);
-  }
   return (
     <>
       <PageHeading
@@ -155,11 +126,7 @@ export default function Documents() {
         <span>
           <strong>{new Set(documents.map((d) => d.tema)).size}</strong> temas
         </span>
-        <span className="muted">
-          {gateway?.mode === 'demo'
-            ? 'Acervo sintético de demonstração'
-            : 'Catálogo fornecido pela API'}
-        </span>
+        <span className="muted">Catálogo fornecido pela API</span>
       </div>
       <div className="toolbar">
         <label className="search-field">
@@ -203,21 +170,6 @@ export default function Documents() {
           <option value="false">Substituídas</option>
         </select>
       </div>
-      {gateway?.mode === 'demo' && (
-        <div className="notice demo-upload-notice">
-          <span>
-            PDFs novos não são interpretados nesta demo. Você pode visualizar os estados de um
-            exemplo já cadastrado.
-          </span>
-          <button
-            className="secondary-button"
-            disabled={busy}
-            onClick={() => void demonstrateProcessing()}
-          >
-            Ver exemplo de processamento
-          </button>
-        </div>
-      )}
       {(jobs.length > 0 || error) && (
         <section className="upload-queue" aria-label="Fila de arquivos">
           <div className="section-heading">
@@ -229,10 +181,8 @@ export default function Documents() {
             )}
           </div>
           <p className="muted">
-            {gateway?.mode === 'demo'
-              ? 'Seleção local: PDFs novos não são lidos nem indexados por esta demonstração.'
-              : 'Os estados abaixo são informados pelo serviço de processamento.'}{' '}
-            Limite: 10 PDFs por lote, 20 MiB por arquivo.
+            Os estados abaixo são informados pelo serviço de processamento. Limite: 10 PDFs por
+            lote, 20 MiB por arquivo.
           </p>
           {error && (
             <p role="alert" className="notice">
@@ -245,13 +195,11 @@ export default function Documents() {
               <div>
                 <strong>{job.name}</strong>
                 <span>
-                  {statuses[job.status]}
-                  {job.id === 'fixture-ng111' ? ' (simulado)' : ''} · {(job.size / 1024).toFixed(1)}{' '}
-                  KiB
+                  {statuses[job.status]} · {(job.size / 1024).toFixed(1)} KiB
                 </span>
                 <p>{job.message}</p>
               </div>
-              {job.status === 'processing' && job.remoteId && gateway?.mode === 'api' && (
+              {job.status === 'processing' && job.remoteId && gateway && (
                 <button
                   className="secondary-button"
                   onClick={async () => {

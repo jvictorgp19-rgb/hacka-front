@@ -4,8 +4,8 @@
 # Cada build fica em release própria. Builds anteriores nunca são removidos.
 # DEPLOY_DIR deve ser uma pasta exclusiva de publicação, fora do checkout de trabalho.
 # Config: DEPLOY_BRANCH=main DEPLOY_DIR=~/deploy-bbts/hacka-front PM2_APP=hacka-front
-# PORT=3000 PREVIEW_HOST=127.0.0.1 NEXT_PUBLIC_DATA_MODE=demo|api
-# NEXT_PUBLIC_API_URL é obrigatório no modo api. FORCE=1 permite reconstruir o mesmo SHA.
+# PORT=3000 PREVIEW_HOST=127.0.0.1 NEXT_PUBLIC_API_URL=https://...
+# NEXT_PUBLIC_API_URL é obrigatório. FORCE=1 permite reconstruir o mesmo SHA.
 set -euo pipefail
 
 main() {
@@ -14,12 +14,10 @@ main() {
   local deploy_root="${DEPLOY_DIR:-$HOME/deploy-bbts/hacka-front}"
   local app_name="${PM2_APP:-hacka-front}"
   local preview_port="${PORT:-3000}"
-  local data_mode="${NEXT_PUBLIC_DATA_MODE:-demo}"
   local api_url="${NEXT_PUBLIC_API_URL:-}"
   [[ "$app_name" =~ ^[A-Za-z0-9_-]+$ ]] || { echo '[deploy] PM2_APP inválido'; return 1; }
   [[ "$preview_port" =~ ^[0-9]+$ ]] && ((preview_port > 0 && preview_port <= 65535)) || { echo '[deploy] PORT inválida'; return 1; }
-  [[ "$data_mode" = demo || "$data_mode" = api ]] || { echo '[deploy] modo inválido'; return 1; }
-  [[ "$data_mode" != api || "$api_url" = https://* ]] || { echo '[deploy] modo api requer URL HTTPS explícita'; return 1; }
+  [[ "$api_url" = https://* ]] || { echo '[deploy] NEXT_PUBLIC_API_URL requer URL HTTPS explícita'; return 1; }
   for binary in git npm node pm2 flock; do
     command -v "$binary" >/dev/null || { echo "[deploy] falta $binary"; return 1; }
   done
@@ -46,7 +44,7 @@ main() {
   (
     cd "$release_dir"
     npm ci --no-audit --no-fund
-    NEXT_PUBLIC_DATA_MODE="$data_mode" NEXT_PUBLIC_API_URL="$api_url" npm run build
+    NEXT_PUBLIC_API_URL="$api_url" npm run build
     [[ -f out/index.html && -f scripts/serve.mjs ]] || { echo '[deploy] release incompatível com preview estático'; exit 1; }
   )
   RELEASE_DIR="$release_dir" PM2_APP="$app_name" PREVIEW_PORT="$preview_port" PREVIEW_HOST="${PREVIEW_HOST:-127.0.0.1}" node --input-type=module <<'JS'

@@ -14,32 +14,26 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Abra `http://localhost:3000`. O modo padrão é `demo`: acervo sintético,
-cenários delimitados e ações persistidas somente neste navegador.
+O frontend só funciona com a API do repositório `hacka-back` no ar. Configure a URL dela
+em `NEXT_PUBLIC_API_URL` (padrão do exemplo: `http://localhost:8000`) e abra
+`http://localhost:3000`, a origem liberada em `CORS_ORIGINS` no backend.
 
-Para apresentar o artefato exportado, sem Next em execução ou FastAPI:
+Para servir o artefato exportado:
 
 ```bash
 npm run build
 npm start
 ```
 
-`npm start` serve os arquivos de `out/`. O script de preview é somente leitura,
-sem API. Para outra porta, use `PREVIEW_PORT=3100 npm start`.
+`npm start` serve os arquivos de `out/`. Para outra porta, use `PREVIEW_PORT=3100 npm start`.
 
-## Modos de dados
+## Dados
 
-| Modo                         | Comportamento                                                                                             |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_DATA_MODE=demo` | Provider no navegador, consultas por cenários, dados sintéticos, histórico e reset local.                 |
-| `NEXT_PUBLIC_DATA_MODE=api`  | Cliente HTTP externo com DTOs validados, timeout/cancelamento e erros explícitos. Sem fallback para demo. |
+Cliente HTTP com DTOs validados, timeout/cancelamento e erros explícitos. Nenhum dado local
+substitui a API. Variáveis `NEXT_PUBLIC_*` são públicas e incorporadas ao artefato; não
+coloque segredos nelas. Trocar a URL em hospedagem estática exige um novo build.
 
-No modo API, definir `NEXT_PUBLIC_API_URL` antes do build. Variáveis `NEXT_PUBLIC_*`
-são públicas e incorporadas ao artefato; não coloque segredos nelas. Alterar URL/modo
-em hospedagem estática exige um novo build.
-
-O contrato é **proposto**, ainda sem comprovação com o backend real. A suíte API
-usa respostas controladas para validar a interface, não um backend implementado aqui.
+A identidade vem de `GET /identity`: o frontend não escolhe persona nem concede permissão.
 
 ## Funcionalidades do frontend
 
@@ -50,25 +44,14 @@ usa respostas controladas para validar a interface, não um backend implementado
 - Prazos em lista/calendário, usando os mesmos eventos e a referência informada.
 - Resumo executivo por evidências selecionadas, versões salvas, TXT e impressão/PDF.
 - Histórico, sugestões por tema/fontes e feedback por resposta.
-- Pedido de orientação e resposta curada, com identificação clara do modo demo/API.
+- Pedido de orientação e resposta curada pela área responsável.
 - Navegação responsiva, tema claro/escuro, teclado, contraste e texto ajustável.
 
-O acervo possui **13 PDFs únicos**, preservados em `docs_acervo/` e nas cópias públicas
-de demonstração. O JSON descreve **14 versões**; `RG_1100 v1.0.0` não tem PDF disponível.
+## Limites
 
-## Limites da demonstração
-
-PDF novo é selecionado/validado, mas **não é interpretado ou indexado** pelo navegador.
-O exemplo de processamento usa uma fonte já cadastrada. O chat não executa RAG/LLM;
-perguntas fora dos cenários retornam abstenção.
-
-O calendário demo é **parcial**: fins de semana e 1º de maio, intervalo 2026–2028.
-Datas são prévias e exigem validação da unidade. O seletor de persona não autentica
-ninguém; concessões, curadoria e registros locais não representam segurança ou
-uma trilha de auditoria imutável.
-
-Não há envio de e-mail, PPTX, OCR, conexão ao banco, ingestão real ou infraestrutura AWS
-provisionada. Fontes corporativas protegidas nunca devem ser copiadas para `public/`.
+O calendário dos simuladores é o que a API envia em `/simulation-rules`. Datas são prévias e
+exigem validação da unidade. Não há envio de e-mail, PPTX ou OCR no navegador. Fontes
+corporativas protegidas nunca devem ser copiadas para `public/`.
 
 ## Verificar
 
@@ -87,20 +70,20 @@ Após o build, para testar somente os arquivos estáticos:
 TEST_STATIC=1 npm run test:e2e
 ```
 
-Modo API de contrato (host interceptado pelos testes):
+Os testes de navegador usam uma API de contrato interceptada (`tests/e2e/mock-api.ts`), por
+isso o build de teste aponta para um host inválido:
 
 ```bash
-NEXT_PUBLIC_DATA_MODE=api NEXT_PUBLIC_API_URL=https://api.test.invalid npm run build
-TEST_STATIC=1 TEST_DATA_MODE=api npm run test:e2e
+NEXT_PUBLIC_API_URL=https://api.test.invalid npm run build
+TEST_STATIC=1 npm run test:e2e
 ```
 
-Em seguida, execute um build `demo` ou com a URL real desejada antes de apresentar/publicar.
-O CI verifica ambos os modos e disponibiliza um artefato estático de demonstração.
+Antes de apresentar ou publicar, gere o build com a URL real da API.
 
 ## Estrutura e documentação
 
 `src/features/` contém as telas; `components/` contém layout e UI; `contracts/`
-valida DTOs; `services/http/` consome o backend e `services/demo/` fornece a demo.
+valida DTOs; `services/http/` consome o backend.
 Calculadoras puras ficam em `features/simulators/calculations.ts`.
 
 - [Plano e checkpoints](docs/IMPLEMENT-PLAN.md)

@@ -15,7 +15,7 @@ it('rejeita dados com formato incorreto', async () => {
     ).documents(),
   ).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
 });
-it.each([401, 403, 500])('preserva erro HTTP %s sem substituir por demo', async (status) => {
+it.each([401, 403, 500])('preserva erro HTTP %s sem substituir por dado local', async (status) => {
   await expect(
     createHttpGateway('https://example.test', async () => new Response('', { status })).documents(),
   ).rejects.toMatchObject({ code: String(status) });

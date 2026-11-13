@@ -1,6 +1,6 @@
 import { it, expect } from 'vitest';
 import { relatedRecords, recordHref } from '@/features/history/related';
-import { demoFacts } from '@/services/demo/catalog';
+import { facts } from '../fixtures/facts';
 import { defaultContext, type SavedRecord } from '@/contracts/models';
 const record: SavedRecord = {
   id: 'analysis',
@@ -8,7 +8,7 @@ const record: SavedRecord = {
   kind: 'analysis',
   persona: 'ana',
   context: { ...defaultContext, tema: 'ferias' },
-  facts: demoFacts.filter((f) => f.tema === 'ferias'),
+  facts: facts.filter((f) => f.tema === 'ferias'),
   createdAt: '2026-11-12T00:00:00Z',
 };
 it('sugere registros com justificativa e exclui o próprio resultado', () => {
