@@ -1,12 +1,14 @@
 import { Suspense } from 'react';
 import LocationObserver from '@/components/layout/LocationObserver';
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Geist_Mono, Source_Sans_3 } from 'next/font/google';
 import './globals.css';
 import WorkspaceShell from '@/components/layout/WorkspaceShell';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+// Fallback web das fontes proprietárias "BancoDoBrasil Textos/Titulos" do uniDS
+// (declaradas primeiro na pilha em globals.css e usadas quando instaladas).
+const dsFallback = Source_Sans_3({
+  variable: '--font-ds-fallback',
   subsets: ['latin'],
 });
 
@@ -16,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Raiz IQ | Inteligência empresarial',
+  title: 'BBTS | Zero Click — Inteligência empresarial',
   description: 'Consulte documentos, entenda suas fontes e transforme conhecimento em decisões.',
 };
 
@@ -26,7 +28,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html
+      lang="pt-BR"
+      className={`${dsFallback.variable} ${geistMono.variable} h-full antialiased`}
+    >
       <body className="min-h-full">
         <Suspense fallback={null}>
           <LocationObserver />

@@ -177,7 +177,7 @@ function ConversationThread() {
             <article className="assistant-message">
               <div className="assistant-label">
                 <Sprout size={16} />
-                Raiz IQ <span className="tag">{stateLabels[answer.status]}</span>
+                Zero Click <span className="tag">{stateLabels[answer.status]}</span>
                 <span className="tag">{answer.origin === 'demo' ? 'Demonstração' : 'API'}</span>
               </div>
               <p>{answer.text}</p>

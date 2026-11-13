@@ -77,15 +77,15 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
   return (
     <div className="space-y-6">
       {/* Contract Executive Summary Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-[#002D72] to-[#003c96] text-white rounded-2xl p-5 shadow-sm border border-[#002D72]">
+      <div className="bg-gradient-to-r from-slate-900 via-bb-primary-strong to-bb-primary-dark text-white rounded-2xl p-5 shadow-sm border border-bb-primary-strong">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="p-2.5 rounded-xl bg-[#FFCC00] text-[#002D72] shrink-0">
+            <div className="p-2.5 rounded-xl bg-bb-secondary text-bb-primary-strong shrink-0">
               <Building2 className="w-6 h-6" />
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-extrabold px-2 py-0.5 rounded bg-[#FFCC00] text-[#002D72]">
+                <span className="text-xs font-extrabold px-2 py-0.5 rounded bg-bb-secondary text-bb-primary-strong">
                   {regras.contrato_codigo}
                 </span>
                 <span className="text-xs font-semibold px-2 py-0.5 rounded bg-white/15 text-blue-100">
@@ -107,7 +107,7 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
               <div className="text-[10px] uppercase tracking-wider text-blue-200 font-bold">
                 Mensalidade
               </div>
-              <div className="text-lg font-black text-[#FFCC00]">
+              <div className="text-lg font-black text-bb-secondary">
                 R${' '}
                 {regras.valores.aluguel_mensal.toLocaleString('pt-BR', {
                   minimumFractionDigits: 2,
@@ -135,9 +135,9 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
         {/* SIMULADOR 1: Calculadora do Fiscal GOC (Desconto Internet > 4h) */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
           <div>
-            <div className="bg-gradient-to-r from-[#002D72] to-[#003c96] text-white px-5 py-4 flex items-center justify-between">
+            <div className="bg-gradient-to-r from-bb-primary-strong to-bb-primary-dark text-white px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-[#FFCC00] text-[#002D72]">
+                <div className="p-2 rounded-lg bg-bb-secondary text-bb-primary-strong">
                   <WifiOff className="w-5 h-5" />
                 </div>
                 <div>
@@ -149,7 +149,7 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
                   </p>
                 </div>
               </div>
-              <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#FFCC00] text-[#002D72]">
+              <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-bb-secondary text-bb-primary-strong">
                 GOC Fiscal
               </span>
             </div>
@@ -169,7 +169,7 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
                       onChange={(e) =>
                         setDiasSemInternet(Math.min(30, Math.max(0, parseInt(e.target.value) || 0)))
                       }
-                      className="w-16 px-2.5 py-1 text-center font-extrabold text-sm text-[#002D72] bg-blue-50 border border-[#002D72]/30 rounded-lg focus:outline-none"
+                      className="w-16 px-2.5 py-1 text-center font-extrabold text-sm text-bb-primary-strong bg-blue-50 border border-bb-primary-strong/30 rounded-lg focus:outline-none"
                     />
                     <span className="text-xs font-semibold text-slate-500">dia(s)</span>
                   </div>
@@ -181,7 +181,7 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
                   max={15}
                   value={Math.min(15, diasSemInternet)}
                   onChange={(e) => setDiasSemInternet(parseInt(e.target.value))}
-                  className="w-full accent-[#002D72] cursor-pointer h-2 bg-slate-200 rounded-lg"
+                  className="w-full accent-bb-primary-strong cursor-pointer h-2 bg-slate-200 rounded-lg"
                 />
                 <div className="flex justify-between text-[10px] text-slate-400 font-medium mt-1">
                   <span>0 dias (100% SLA)</span>
@@ -215,14 +215,14 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
                 </div>
                 <div className="pt-2.5 border-t border-slate-200 flex items-center justify-between">
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#002D72] block">
+                    <span className="text-xs font-bold uppercase tracking-wider text-bb-primary-strong block">
                       Valor Líquido para Atesto da GOC e Pagamento GFI
                     </span>
                     <span className="text-[11px] text-slate-500">
                       Link exigido: 500 Mbps • Atesto em até 5 dias úteis da NF
                     </span>
                   </div>
-                  <div className="text-2xl font-black text-[#002D72]">
+                  <div className="text-2xl font-black text-bb-primary-strong">
                     R${' '}
                     {aluguelLiquidoAtestado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </div>
@@ -231,7 +231,7 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
 
               {/* Simulador de Atraso de Pagamento (Culpa Locadora vs Culpa ACME) */}
               <div className="p-3.5 rounded-xl bg-blue-50/60 border border-blue-200/80 space-y-2">
-                <div className="text-xs font-bold text-[#002D72]">
+                <div className="text-xs font-bold text-bb-primary-strong">
                   Simular Cenário de Pagamento (Dia 8 do mês de uso):
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
@@ -239,7 +239,7 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
                     onClick={() => setAtrasoPagamentoCulpa('em_dia')}
                     className={`p-2 rounded-lg text-[11px] font-bold border transition cursor-pointer ${
                       atrasoPagamentoCulpa === 'em_dia'
-                        ? 'bg-[#002D72] text-white border-[#002D72]'
+                        ? 'bg-bb-primary-strong text-white border-bb-primary-strong'
                         : 'bg-white text-slate-700 border-slate-200'
                     }`}
                   >
@@ -298,16 +298,16 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
             <span>
               <strong>Vistoria Obrigatória GOC:</strong> Até 25/11/2026 (5 dias antes do início)
             </span>
-            <span className="font-semibold text-[#002D72]">CTR_2026-012 v1.0.0</span>
+            <span className="font-semibold text-bb-primary-strong">CTR_2026-012 v1.0.0</span>
           </div>
         </div>
 
         {/* SIMULADOR 2: Multa de Rescisão (90º vs 91º dia) & Aditivo de 20% */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
           <div>
-            <div className="bg-gradient-to-r from-[#002D72] to-[#003c96] text-white px-5 py-4 flex items-center justify-between">
+            <div className="bg-gradient-to-r from-bb-primary-strong to-bb-primary-dark text-white px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-[#FFCC00] text-[#002D72]">
+                <div className="p-2 rounded-lg bg-bb-secondary text-bb-primary-strong">
                   <FileWarning className="w-5 h-5" />
                 </div>
                 <div>
@@ -331,7 +331,7 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                     Dia de Vigência da Rescisão Antecipada (1 a 150 dias):
                   </label>
-                  <span className="px-2.5 py-1 rounded-lg bg-[#002D72] text-[#FFCC00] font-extrabold text-xs">
+                  <span className="px-2.5 py-1 rounded-lg bg-bb-primary-strong text-bb-secondary font-extrabold text-xs">
                     {diaRescisao}º dia
                   </span>
                 </div>
@@ -341,7 +341,7 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
                   max={150}
                   value={diaRescisao}
                   onChange={(e) => setDiaRescisao(parseInt(e.target.value))}
-                  className="w-full accent-[#002D72] cursor-pointer h-2 bg-slate-200 rounded-lg"
+                  className="w-full accent-bb-primary-strong cursor-pointer h-2 bg-slate-200 rounded-lg"
                 />
                 <div className="flex justify-between text-[10px] text-slate-400 font-medium mt-1">
                   <span>1º dia (30/11/26)</span>
@@ -407,7 +407,7 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
               {/* Aditivo de 20% & Prorrogação 30/03/2027 */}
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#002D72] uppercase tracking-wider">
+                  <span className="text-xs font-bold text-bb-primary-strong uppercase tracking-wider">
                     Simulador de Termo Aditivo (Teto Legal de 20%):
                   </span>
                   <span className="text-[11px] font-bold text-slate-600">
@@ -426,7 +426,7 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
                     step={250}
                     value={valorAditivoPretendido}
                     onChange={(e) => setValorAditivoPretendido(parseFloat(e.target.value))}
-                    className="w-full accent-[#002D72] cursor-pointer"
+                    className="w-full accent-bb-primary-strong cursor-pointer"
                   />
                   <span className="text-xs font-extrabold px-2.5 py-1 rounded bg-white border border-slate-300 text-slate-800 shrink-0">
                     R${' '}
@@ -452,7 +452,8 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
                 <div className="text-[11px] text-slate-600 flex items-center justify-between pt-1 border-t border-slate-200">
                   <span>
                     📅 <strong>Prazo limite para pedir prorrogação:</strong> até{' '}
-                    <strong className="text-[#002D72]">30/03/2027</strong> (30d antes do fim)
+                    <strong className="text-bb-primary-strong">30/03/2027</strong> (30d antes do
+                    fim)
                   </span>
                   <span>Máx. {regras.prazo_maximo_total_meses} meses</span>
                 </div>
@@ -479,9 +480,9 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Comparativo das 3 Cotações da NT_2026-018 */}
         <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="bg-[#002D72] text-white px-5 py-4 flex items-center justify-between">
+          <div className="bg-bb-primary-strong text-white px-5 py-4 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-lg bg-[#FFCC00] text-[#002D72]">
+              <div className="p-2 rounded-lg bg-bb-secondary text-bb-primary-strong">
                 <Scale className="w-5 h-5" />
               </div>
               <div>
@@ -494,7 +495,7 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
                 </p>
               </div>
             </div>
-            <span className="text-xs font-extrabold px-2.5 py-1 rounded bg-[#FFCC00] text-[#002D72]">
+            <span className="text-xs font-extrabold px-2.5 py-1 rounded bg-bb-secondary text-bb-primary-strong">
               NT_2026-018
             </span>
           </div>
@@ -564,9 +565,9 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
         {/* Rotina Mensal (Dia 25 NF -> 5 dias úteis Atesto GOC -> Dia 8 Pagamento GFI) */}
         <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
           <div>
-            <div className="bg-gradient-to-r from-[#002D72] to-slate-900 text-white px-5 py-4 flex items-center justify-between">
+            <div className="bg-gradient-to-r from-bb-primary-strong to-slate-900 text-white px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-[#FFCC00] text-[#002D72]">
+                <div className="p-2 rounded-lg bg-bb-secondary text-bb-primary-strong">
                   <Receipt className="w-5 h-5" />
                 </div>
                 <div>
@@ -582,11 +583,11 @@ export default function LocacaoSimulators({ regras }: LocacaoSimulatorsProps) {
                   key={item.passo}
                   className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-3"
                 >
-                  <span className="w-6 h-6 rounded-full bg-[#002D72] text-[#FFCC00] font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="w-6 h-6 rounded-full bg-bb-primary-strong text-bb-secondary font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5">
                     {item.passo}
                   </span>
                   <div>
-                    <span className="text-xs font-extrabold text-[#002D72] bg-blue-100/80 px-2 py-0.5 rounded">
+                    <span className="text-xs font-extrabold text-bb-primary-strong bg-blue-100/80 px-2 py-0.5 rounded">
                       {item.prazo}
                     </span>
                     <p className="text-xs text-slate-700 font-medium mt-1 leading-relaxed">

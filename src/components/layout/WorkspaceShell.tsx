@@ -84,12 +84,13 @@ function Shell({ children }: { children: ReactNode }) {
         className={`sidebar ${mobileOpen ? 'mobile-open' : ''}`}
         aria-label="Navegação principal"
       >
-        <Link href="/" className="brand" aria-label="Raiz IQ, início">
+        <Link href="/" className="brand" aria-label="BBTS Zero Click, início">
           <span className="brand-symbol">
             <Sprout size={22} />
           </span>
           <span className="nav-label">
-            Raiz<span className="brand-iq">IQ</span>
+            BBTS<span className="brand-divider">|</span>
+            <span className="brand-iq">Zero Click</span>
             <small>Inteligência empresarial</small>
           </span>
         </Link>
@@ -244,7 +245,8 @@ function Shell({ children }: { children: ReactNode }) {
         </main>
         <footer className="workspace-footer">
           <span>
-            Raiz IQ <span className="footer-dot">·</span> Desafio 2 / Ctrl + Alt + Business
+            BBTS | Zero Click <span className="footer-dot">·</span> Desafio 2 / Ctrl + Alt +
+            Business
           </span>
           <span>Em caso de divergência, prevalece o documento oficial.</span>
         </footer>

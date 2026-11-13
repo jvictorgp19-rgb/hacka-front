@@ -132,9 +132,9 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
         {/* SIMULADOR 1: Faltas Injustificadas -> Dias de Férias */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
           <div>
-            <div className="bg-gradient-to-r from-[#002D72] to-[#003c96] text-white px-5 py-4 flex items-center justify-between">
+            <div className="bg-gradient-to-r from-bb-primary-strong to-bb-primary-dark text-white px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-[#FFCC00] text-[#002D72]">
+                <div className="p-2 rounded-lg bg-bb-secondary text-bb-primary-strong">
                   <Calculator className="w-5 h-5" />
                 </div>
                 <div>
@@ -165,7 +165,7 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
                       max={60}
                       value={faltas}
                       onChange={(e) => setFaltas(Math.max(0, parseInt(e.target.value) || 0))}
-                      className="w-18 px-2.5 py-1 text-center font-extrabold text-sm text-[#002D72] bg-blue-50 border border-[#002D72]/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#002D72]"
+                      className="w-18 px-2.5 py-1 text-center font-extrabold text-sm text-bb-primary-strong bg-blue-50 border border-bb-primary-strong/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-bb-primary-strong"
                     />
                     <span className="text-xs font-semibold text-slate-500">faltas</span>
                   </div>
@@ -176,7 +176,7 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
                   max={40}
                   value={Math.min(40, faltas)}
                   onChange={(e) => setFaltas(parseInt(e.target.value))}
-                  className="w-full accent-[#002D72] cursor-pointer h-2 bg-slate-200 rounded-lg"
+                  className="w-full accent-bb-primary-strong cursor-pointer h-2 bg-slate-200 rounded-lg"
                 />
                 <div className="flex justify-between text-[10px] text-slate-400 font-medium mt-1">
                   <span>0 (Sem faltas)</span>
@@ -234,12 +234,12 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
                 {/* Optional Abono & 13th simulation */}
                 {diasDireito > 0 && (
                   <div className="mt-4 pt-3 border-t border-slate-200/80 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    <label className="flex items-start gap-2 p-2 rounded-lg bg-white/80 border border-slate-200 cursor-pointer hover:border-[#002D72]/40">
+                    <label className="flex items-start gap-2 p-2 rounded-lg bg-white/80 border border-slate-200 cursor-pointer hover:border-bb-primary-strong/40">
                       <input
                         type="checkbox"
                         checked={querAbono}
                         onChange={(e) => setQuerAbono(e.target.checked)}
-                        className="mt-0.5 accent-[#002D72]"
+                        className="mt-0.5 accent-bb-primary-strong"
                       />
                       <div className="text-[11px]">
                         <span className="font-bold text-slate-800 block">
@@ -252,12 +252,12 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
                         </span>
                       </div>
                     </label>
-                    <label className="flex items-start gap-2 p-2 rounded-lg bg-white/80 border border-slate-200 cursor-pointer hover:border-[#002D72]/40">
+                    <label className="flex items-start gap-2 p-2 rounded-lg bg-white/80 border border-slate-200 cursor-pointer hover:border-bb-primary-strong/40">
                       <input
                         type="checkbox"
                         checked={quer13}
                         onChange={(e) => setQuer13(e.target.checked)}
-                        className="mt-0.5 accent-[#002D72]"
+                        className="mt-0.5 accent-bb-primary-strong"
                       />
                       <div className="text-[11px]">
                         <span className="font-bold text-slate-800 block">
@@ -288,7 +288,7 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
                         onClick={() => setFaltas(row.faltas_min)}
                         className={`p-2 rounded-lg border text-xs transition cursor-pointer ${
                           active
-                            ? 'bg-[#002D72] text-white border-[#002D72] font-bold shadow-sm scale-[1.02]'
+                            ? 'bg-bb-primary-strong text-white border-bb-primary-strong font-bold shadow-sm scale-[1.02]'
                             : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                         }`}
                       >
@@ -312,16 +312,16 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
               {regras.fracionamento.min_dias_periodo_principal}d, demais ≥{' '}
               {regras.fracionamento.min_dias_demais_periodos}d)
             </span>
-            <span className="font-semibold text-[#002D72]">FM_1111-001 v2.0.0</span>
+            <span className="font-semibold text-bb-primary-strong">FM_1111-001 v2.0.0</span>
           </div>
         </div>
 
         {/* SIMULADOR 2: Limite de 30% da Equipe */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
           <div>
-            <div className="bg-gradient-to-r from-[#002D72] to-[#003c96] text-white px-5 py-4 flex items-center justify-between">
+            <div className="bg-gradient-to-r from-bb-primary-strong to-bb-primary-dark text-white px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-[#FFCC00] text-[#002D72]">
+                <div className="p-2 rounded-lg bg-bb-secondary text-bb-primary-strong">
                   <Users className="w-5 h-5" />
                 </div>
                 <div>
@@ -333,7 +333,7 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
                   </p>
                 </div>
               </div>
-              <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#FFCC00] text-[#002D72]">
+              <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-bb-secondary text-bb-primary-strong">
                 Teto 30%
               </span>
             </div>
@@ -355,9 +355,9 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
                         setTamanhoEquipe(val);
                         if (jaAusentes > val) setJaAusentes(val);
                       }}
-                      className="w-full accent-[#002D72] cursor-pointer"
+                      className="w-full accent-bb-primary-strong cursor-pointer"
                     />
-                    <span className="px-2.5 py-1 rounded-lg bg-[#002D72] text-white font-extrabold text-xs shrink-0">
+                    <span className="px-2.5 py-1 rounded-lg bg-bb-primary-strong text-white font-extrabold text-xs shrink-0">
                       {tamanhoEquipe} emp.
                     </span>
                   </div>
@@ -442,7 +442,7 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
                       className="p-2 rounded-lg bg-slate-50 border border-slate-200 text-center"
                     >
                       <div className="text-[10px] text-slate-500 font-medium">{faixa.equipe}</div>
-                      <div className="text-xs font-extrabold text-[#002D72] mt-0.5">
+                      <div className="text-xs font-extrabold text-bb-primary-strong mt-0.5">
                         Máx. {faixa.max_ferias}
                       </div>
                     </div>
@@ -475,9 +475,9 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
 
       {/* SIMULADOR 3: Linha do Tempo dos Marcos D-n (D-45 a D-3) */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="bg-[#002D72] text-white px-5 py-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="bg-bb-primary-strong text-white px-5 py-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-[#FFCC00] text-[#002D72]">
+            <div className="p-2 rounded-lg bg-bb-secondary text-bb-primary-strong">
               <CalendarClock className="w-5 h-5" />
             </div>
             <div>
@@ -492,12 +492,14 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
           </div>
 
           <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/20">
-            <label className="text-xs font-semibold text-[#FFCC00]">Data de Início (Dia D):</label>
+            <label className="text-xs font-semibold text-bb-secondary">
+              Data de Início (Dia D):
+            </label>
             <input
               type="date"
               value={dataGozo}
               onChange={(e) => setDataGozo(e.target.value)}
-              className="bg-white text-[#002D72] font-bold text-xs px-2.5 py-1 rounded-lg focus:outline-none"
+              className="bg-white text-bb-primary-strong font-bold text-xs px-2.5 py-1 rounded-lg focus:outline-none"
             />
           </div>
         </div>
@@ -505,9 +507,11 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
         <div className="p-5">
           {/* Regra de Dias Vedados Alert */}
           <div className="mb-4 p-3 rounded-xl bg-blue-50/80 border border-blue-200 flex items-start gap-2.5 text-xs text-slate-700">
-            <Info className="w-4 h-4 text-[#002D72] shrink-0 mt-0.5" />
+            <Info className="w-4 h-4 text-bb-primary-strong shrink-0 mt-0.5" />
             <div>
-              <strong className="text-[#002D72]">Trava de Dias Vedados (NG_111 v3.0.0):</strong>{' '}
+              <strong className="text-bb-primary-strong">
+                Trava de Dias Vedados (NG_111 v3.0.0):
+              </strong>{' '}
               {regras.dias_vedados_inicio}
             </div>
           </div>
@@ -523,7 +527,7 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
                   onClick={() => setSelectedMarcoIdx(idx)}
                   className={`p-3 rounded-xl border text-left transition flex flex-col justify-between cursor-pointer ${
                     isSelected
-                      ? 'bg-[#002D72] text-white border-[#002D72] shadow-md ring-2 ring-[#FFCC00]'
+                      ? 'bg-bb-primary-strong text-white border-bb-primary-strong shadow-md ring-2 ring-bb-secondary'
                       : 'bg-slate-50 hover:bg-blue-50/50 text-slate-800 border-slate-200'
                   }`}
                 >
@@ -532,8 +536,8 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
                       <span
                         className={`text-[11px] font-extrabold px-2 py-0.5 rounded ${
                           isSelected
-                            ? 'bg-[#FFCC00] text-[#002D72]'
-                            : 'bg-[#002D72]/10 text-[#002D72]'
+                            ? 'bg-bb-secondary text-bb-primary-strong'
+                            : 'bg-bb-primary-strong/10 text-bb-primary-strong'
                         }`}
                       >
                         {m.marco}
@@ -572,10 +576,10 @@ export default function FeriasSimulators({ regras, mermaidCode }: FeriasSimulato
 
           {/* Selected Marco Detail Spotlight */}
           {regras.marcos_dn[selectedMarcoIdx] && (
-            <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-slate-900 to-[#002D72] text-white flex flex-wrap items-center justify-between gap-4">
+            <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-slate-900 to-bb-primary-strong text-white flex flex-wrap items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded bg-[#FFCC00] text-[#002D72] font-extrabold text-xs">
+                  <span className="px-2.5 py-0.5 rounded bg-bb-secondary text-bb-primary-strong font-extrabold text-xs">
                     Marco Selecionado: {regras.marcos_dn[selectedMarcoIdx].marco}
                   </span>
                   <span className="text-xs text-blue-200 font-semibold">

@@ -25,9 +25,9 @@ export default function MermaidFlowchart({ mermaidCode }: MermaidFlowchartProps)
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className="bg-[#002D72] text-white px-5 py-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-bb-primary-strong text-white px-5 py-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-lg bg-[#FFCC00] text-[#002D72]">
+          <div className="p-2 rounded-lg bg-bb-secondary text-bb-primary-strong">
             <GitCommit className="w-5 h-5" />
           </div>
           <div>
@@ -50,7 +50,7 @@ export default function MermaidFlowchart({ mermaidCode }: MermaidFlowchartProps)
           onClick={() => setShowRawCode(!showRawCode)}
           className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
         >
-          <Code2 className="w-3.5 h-3.5 text-[#FFCC00]" />
+          <Code2 className="w-3.5 h-3.5 text-bb-secondary" />
           {showRawCode ? 'Ocultar Código Mermaid' : 'Ver Código Mermaid (JSON)'}
         </button>
       </div>
@@ -67,9 +67,9 @@ export default function MermaidFlowchart({ mermaidCode }: MermaidFlowchartProps)
       {/* Interactive Branch Selector */}
       <div className="bg-slate-50 px-5 py-3 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
         <span className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-          <Play className="w-3.5 h-3.5 text-[#002D72]" />
+          <Play className="w-3.5 h-3.5 text-bb-primary-strong" />
           Simular Decisão no Nó{' '}
-          <code className="bg-slate-200 px-1.5 py-0.5 rounded text-[#002D72]">
+          <code className="bg-slate-200 px-1.5 py-0.5 rounded text-bb-primary-strong">
             E &#123;Gestor decide em até 7 dias?&#125;
           </code>
           :
@@ -118,34 +118,38 @@ export default function MermaidFlowchart({ mermaidCode }: MermaidFlowchartProps)
           Fase 1: Programação Anual (Outubro a Dezembro)
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-center mb-6">
-          <div className="p-3.5 rounded-xl border-2 border-[#002D72]/20 bg-blue-50/50 flex items-start gap-3">
-            <span className="w-6 h-6 rounded-full bg-[#002D72] text-[#FFCC00] font-bold text-xs flex items-center justify-center shrink-0">
+          <div className="p-3.5 rounded-xl border-2 border-bb-primary-strong/20 bg-blue-50/50 flex items-start gap-3">
+            <span className="w-6 h-6 rounded-full bg-bb-primary-strong text-bb-secondary font-bold text-xs flex items-center justify-center shrink-0">
               A
             </span>
             <div>
-              <div className="text-xs font-bold text-[#002D72]">Empregado registra intenção</div>
+              <div className="text-xs font-bold text-bb-primary-strong">
+                Empregado registra intenção
+              </div>
               <div className="text-[11px] text-slate-600">De 1º a 31 de outubro no Portal Raiz</div>
             </div>
           </div>
 
-          <div className="p-3.5 rounded-xl border-2 border-[#002D72]/20 bg-blue-50/50 flex items-start gap-3">
-            <span className="w-6 h-6 rounded-full bg-[#002D72] text-[#FFCC00] font-bold text-xs flex items-center justify-center shrink-0">
+          <div className="p-3.5 rounded-xl border-2 border-bb-primary-strong/20 bg-blue-50/50 flex items-start gap-3">
+            <span className="w-6 h-6 rounded-full bg-bb-primary-strong text-bb-secondary font-bold text-xs flex items-center justify-center shrink-0">
               B
             </span>
             <div>
-              <div className="text-xs font-bold text-[#002D72]">Gestor consolida a equipe</div>
+              <div className="text-xs font-bold text-bb-primary-strong">
+                Gestor consolida a equipe
+              </div>
               <div className="text-[11px] text-slate-600">
                 Até 30/11 (respeitando limite de 30%)
               </div>
             </div>
           </div>
 
-          <div className="p-3.5 rounded-xl border-2 border-[#002D72]/20 bg-blue-50/50 flex items-start gap-3">
-            <span className="w-6 h-6 rounded-full bg-[#002D72] text-[#FFCC00] font-bold text-xs flex items-center justify-center shrink-0">
+          <div className="p-3.5 rounded-xl border-2 border-bb-primary-strong/20 bg-blue-50/50 flex items-start gap-3">
+            <span className="w-6 h-6 rounded-full bg-bb-primary-strong text-bb-secondary font-bold text-xs flex items-center justify-center shrink-0">
               C
             </span>
             <div>
-              <div className="text-xs font-bold text-[#002D72]">GGC publica calendário</div>
+              <div className="text-xs font-bold text-bb-primary-strong">GGC publica calendário</div>
               <div className="text-[11px] text-slate-600">Calendário anual publicado até 15/12</div>
             </div>
           </div>
@@ -161,15 +165,15 @@ export default function MermaidFlowchart({ mermaidCode }: MermaidFlowchartProps)
             className={`lg:col-span-4 p-4 rounded-xl border-2 transition flex flex-col justify-between ${
               gestorDecision === 'recusa'
                 ? 'border-rose-500 bg-rose-50/70 ring-2 ring-rose-500/20'
-                : 'border-[#002D72] bg-[#002D72]/5'
+                : 'border-bb-primary-strong bg-bb-primary-strong/5'
             }`}
           >
             <div className="flex items-start gap-3">
-              <span className="w-7 h-7 rounded-lg bg-[#002D72] text-[#FFCC00] font-bold text-xs flex items-center justify-center shrink-0">
+              <span className="w-7 h-7 rounded-lg bg-bb-primary-strong text-bb-secondary font-bold text-xs flex items-center justify-center shrink-0">
                 D
               </span>
               <div>
-                <div className="text-sm font-bold text-[#002D72]">
+                <div className="text-sm font-bold text-bb-primary-strong">
                   Empregado solicita no Portal Raiz até D-45
                 </div>
                 <p className="text-xs text-slate-600 mt-1">
@@ -187,9 +191,9 @@ export default function MermaidFlowchart({ mermaidCode }: MermaidFlowchartProps)
           </div>
 
           {/* Node E (Diamond Decision) */}
-          <div className="lg:col-span-4 p-4 rounded-xl border-2 border-[#FFCC00] bg-amber-50/80 flex flex-col justify-between shadow-sm">
+          <div className="lg:col-span-4 p-4 rounded-xl border-2 border-bb-secondary bg-amber-50/80 flex flex-col justify-between shadow-sm">
             <div className="flex items-start gap-3">
-              <span className="w-7 h-7 rounded-lg bg-[#FFCC00] text-[#002D72] font-extrabold text-xs flex items-center justify-center shrink-0">
+              <span className="w-7 h-7 rounded-lg bg-bb-secondary text-bb-primary-strong font-extrabold text-xs flex items-center justify-center shrink-0">
                 E
               </span>
               <div>
@@ -313,18 +317,18 @@ export default function MermaidFlowchart({ mermaidCode }: MermaidFlowchartProps)
             </div>
           </div>
 
-          <div className="p-3.5 rounded-xl border-2 border-[#002D72]/30 bg-blue-50/60 flex flex-col justify-between">
+          <div className="p-3.5 rounded-xl border-2 border-bb-primary-strong/30 bg-blue-50/60 flex flex-col justify-between">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="w-6 h-6 rounded-full bg-[#002D72] text-[#FFCC00] font-bold text-xs flex items-center justify-center">
+              <span className="w-6 h-6 rounded-full bg-bb-primary-strong text-bb-secondary font-bold text-xs flex items-center justify-center">
                 J
               </span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-[#002D72]">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-bb-primary-strong">
                 Dia D
               </span>
             </div>
-            <div className="text-xs font-bold text-[#002D72] flex items-center gap-1">
+            <div className="text-xs font-bold text-bb-primary-strong flex items-center gap-1">
               Gozo de Férias
-              <CalendarCheck className="w-3.5 h-3.5 text-[#002D72]" />
+              <CalendarCheck className="w-3.5 h-3.5 text-bb-primary-strong" />
             </div>
             <div className="text-[11px] text-slate-600 mt-0.5">
               Período de descanso (em até 3 frações: mín. 14d principal e 5d demais).

@@ -103,9 +103,9 @@ export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSim
         {/* SIMULADOR 1: Alçada de Prototipagem & Validador de Elegibilidade 2027 */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
           <div>
-            <div className="bg-gradient-to-r from-[#002D72] to-[#003c96] text-white px-5 py-4 flex items-center justify-between">
+            <div className="bg-gradient-to-r from-bb-primary-strong to-bb-primary-dark text-white px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-[#FFCC00] text-[#002D72]">
+                <div className="p-2 rounded-lg bg-bb-secondary text-bb-primary-strong">
                   <Coins className="w-5 h-5" />
                 </div>
                 <div>
@@ -140,7 +140,7 @@ export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSim
                       onChange={(e) =>
                         setCustoPrototipo(Math.max(0, parseFloat(e.target.value) || 0))
                       }
-                      className="w-28 px-2.5 py-1 text-right font-extrabold text-sm text-[#002D72] bg-blue-50 border border-[#002D72]/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#002D72]"
+                      className="w-28 px-2.5 py-1 text-right font-extrabold text-sm text-bb-primary-strong bg-blue-50 border border-bb-primary-strong/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-bb-primary-strong"
                     />
                   </div>
                 </div>
@@ -152,7 +152,7 @@ export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSim
                   step={1000}
                   value={Math.min(160000, custoPrototipo)}
                   onChange={(e) => setCustoPrototipo(parseFloat(e.target.value))}
-                  className="w-full accent-[#002D72] cursor-pointer h-2 bg-slate-200 rounded-lg"
+                  className="w-full accent-bb-primary-strong cursor-pointer h-2 bg-slate-200 rounded-lg"
                 />
                 <div className="flex justify-between text-[10px] text-slate-400 font-medium mt-1">
                   <span>R$ 1.000</span>
@@ -207,7 +207,7 @@ export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSim
                       equivalente: {faixaAlcada.aprovador_geral})
                     </p>
                   </div>
-                  <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#002D72] text-[#FFCC00] shrink-0">
+                  <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-bb-primary-strong text-bb-secondary shrink-0">
                     R$ {custoPrototipo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
@@ -216,7 +216,7 @@ export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSim
               {/* Mini-Validator of Eligibility 2027 (Pegadinha v1.0.0 vs v2.0.0) */}
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#002D72] uppercase tracking-wider">
+                  <span className="text-xs font-bold text-bb-primary-strong uppercase tracking-wider">
                     Teste Rápido de Elegibilidade (RG_1100 v2.0.0):
                   </span>
                   <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-900">
@@ -235,7 +235,7 @@ export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSim
                       max={24}
                       value={mesesCasa}
                       onChange={(e) => setMesesCasa(parseInt(e.target.value))}
-                      className="w-full accent-[#002D72] cursor-pointer"
+                      className="w-full accent-bb-primary-strong cursor-pointer"
                     />
                   </div>
                   <div>
@@ -251,7 +251,7 @@ export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSim
                           className={`flex-1 py-1 rounded text-xs font-bold border transition cursor-pointer ${
                             qtdIdeiasInscritas === n
                               ? n <= 2
-                                ? 'bg-[#002D72] text-white border-[#002D72]'
+                                ? 'bg-bb-primary-strong text-white border-bb-primary-strong'
                                 : 'bg-rose-600 text-white border-rose-600'
                               : 'bg-white text-slate-700 border-slate-200'
                           }`}
@@ -298,16 +298,16 @@ export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSim
             <span>
               <strong>Impedidos:</strong> {regras.elegibilidade_2027.impedidos}
             </span>
-            <span className="font-semibold text-[#002D72]">RG_1100 v2.0.0</span>
+            <span className="font-semibold text-bb-primary-strong">RG_1100 v2.0.0</span>
           </div>
         </div>
 
         {/* SIMULADOR 2: Gamificação (até 800 pts) & Prêmios Cumulativos */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
           <div>
-            <div className="bg-gradient-to-r from-[#002D72] to-[#003c96] text-white px-5 py-4 flex items-center justify-between">
+            <div className="bg-gradient-to-r from-bb-primary-strong to-bb-primary-dark text-white px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-[#FFCC00] text-[#002D72]">
+                <div className="p-2 rounded-lg bg-bb-secondary text-bb-primary-strong">
                   <Trophy className="w-5 h-5" />
                 </div>
                 <div>
@@ -319,7 +319,7 @@ export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSim
                   </p>
                 </div>
               </div>
-              <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#FFCC00] text-[#002D72]">
+              <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-bb-secondary text-bb-primary-strong">
                 {totalPontos} / 800 pts
               </span>
             </div>
@@ -329,14 +329,14 @@ export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSim
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
                   <span>Etapas Conquistadas na Jornada:</span>
-                  <span className="text-[#002D72]">
+                  <span className="text-bb-primary-strong">
                     {Math.round((totalPontos / 800) * 100)}% da pontuação máxima
                   </span>
                 </div>
 
                 <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden mb-3">
                   <div
-                    className="h-full bg-gradient-to-r from-[#002D72] to-[#FFCC00] transition-all duration-300"
+                    className="h-full bg-gradient-to-r from-bb-primary-strong to-bb-secondary transition-all duration-300"
                     style={{ width: `${(totalPontos / 800) * 100}%` }}
                   />
                 </div>
@@ -347,13 +347,13 @@ export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSim
                       type="checkbox"
                       checked={ideiaElegivel}
                       onChange={(e) => setIdeiaElegivel(e.target.checked)}
-                      className="accent-[#002D72] w-4 h-4"
+                      className="accent-bb-primary-strong w-4 h-4"
                     />
                     <span className="text-xs font-semibold text-slate-800">
                       Ideia elegível inscrita (01/02 a 28/02/2027)
                     </span>
                   </div>
-                  <span className="text-xs font-extrabold text-[#002D72] bg-blue-100 px-2 py-0.5 rounded">
+                  <span className="text-xs font-extrabold text-bb-primary-strong bg-blue-100 px-2 py-0.5 rounded">
                     +100 pts
                   </span>
                 </label>
@@ -369,14 +369,14 @@ export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSim
                         onClick={() => setVotosEmitidos(v)}
                         className={`w-6 h-6 rounded text-xs font-bold cursor-pointer transition ${
                           votosEmitidos === v
-                            ? 'bg-[#002D72] text-[#FFCC00]'
+                            ? 'bg-bb-primary-strong text-bb-secondary'
                             : 'bg-white border border-slate-300 text-slate-700'
                         }`}
                       >
                         {v}
                       </button>
                     ))}
-                    <span className="text-xs font-extrabold text-[#002D72] bg-blue-100 px-2 py-0.5 rounded ml-1">
+                    <span className="text-xs font-extrabold text-bb-primary-strong bg-blue-100 px-2 py-0.5 rounded ml-1">
                       +{ptsVotos} pts
                     </span>
                   </div>
@@ -388,13 +388,13 @@ export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSim
                       type="checkbox"
                       checked={imersaoCompleta}
                       onChange={(e) => setImersaoCompleta(e.target.checked)}
-                      className="accent-[#002D72] w-4 h-4"
+                      className="accent-bb-primary-strong w-4 h-4"
                     />
                     <span className="text-xs font-semibold text-slate-800">
                       Participação completa na Imersão (05/04 a 09/04/2027)
                     </span>
                   </div>
-                  <span className="text-xs font-extrabold text-[#002D72] bg-blue-100 px-2 py-0.5 rounded">
+                  <span className="text-xs font-extrabold text-bb-primary-strong bg-blue-100 px-2 py-0.5 rounded">
                     +150 pts
                   </span>
                 </label>
@@ -405,13 +405,13 @@ export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSim
                       type="checkbox"
                       checked={prototipoNoPrazo}
                       onChange={(e) => setPrototipoNoPrazo(e.target.checked)}
-                      className="accent-[#002D72] w-4 h-4"
+                      className="accent-bb-primary-strong w-4 h-4"
                     />
                     <span className="text-xs font-semibold text-slate-800">
                       Protótipo entregue no prazo (até 31/05/2027, TRL mín. 4)
                     </span>
                   </div>
-                  <span className="text-xs font-extrabold text-[#002D72] bg-blue-100 px-2 py-0.5 rounded">
+                  <span className="text-xs font-extrabold text-bb-primary-strong bg-blue-100 px-2 py-0.5 rounded">
                     +300 pts
                   </span>
                 </label>
@@ -422,22 +422,22 @@ export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSim
                       type="checkbox"
                       checked={bancaFinal}
                       onChange={(e) => setBancaFinal(e.target.checked)}
-                      className="accent-[#002D72] w-4 h-4"
+                      className="accent-bb-primary-strong w-4 h-4"
                     />
                     <span className="text-xs font-semibold text-slate-800">
                       Chegada à Banca Final (15/06/2027 - 5 membros, 1 DIRAF)
                     </span>
                   </div>
-                  <span className="text-xs font-extrabold text-[#002D72] bg-blue-100 px-2 py-0.5 rounded">
+                  <span className="text-xs font-extrabold text-bb-primary-strong bg-blue-100 px-2 py-0.5 rounded">
                     +200 pts
                   </span>
                 </label>
               </div>
 
               {/* Cumulative Cash Prize Simulator */}
-              <div className="p-4 rounded-xl bg-gradient-to-br from-[#002D72] to-slate-900 text-white space-y-3">
+              <div className="p-4 rounded-xl bg-gradient-to-br from-bb-primary-strong to-slate-900 text-white space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#FFCC00] uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-bb-secondary uppercase tracking-wider flex items-center gap-1.5">
                     <Award className="w-4 h-4" />
                     Simulador de Premiação Cumulativa em Folha
                   </span>
@@ -461,7 +461,7 @@ export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSim
                           onClick={() => setColocacaoGeral(opt.id as '1' | '2' | '3' | 'nenhum')}
                           className={`py-1.5 px-1 rounded text-[11px] font-bold transition cursor-pointer ${
                             colocacaoGeral === opt.id
-                              ? 'bg-[#FFCC00] text-[#002D72]'
+                              ? 'bg-bb-secondary text-bb-primary-strong'
                               : 'bg-white/10 text-white hover:bg-white/20'
                           }`}
                         >
@@ -503,7 +503,7 @@ export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSim
                   <div className="text-xs text-blue-100">
                     Prêmio Total Simulado ({arenaSelecionada}):
                   </div>
-                  <div className="text-2xl font-black text-[#FFCC00]">
+                  <div className="text-2xl font-black text-bb-secondary">
                     R$ {premioTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </div>
                 </div>
@@ -524,9 +524,9 @@ export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSim
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Orçamento R$ 96.000,00 (NT_2026-021) */}
         <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="bg-[#002D72] text-white px-5 py-4 flex items-center justify-between">
+          <div className="bg-bb-primary-strong text-white px-5 py-4 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-lg bg-[#FFCC00] text-[#002D72]">
+              <div className="p-2 rounded-lg bg-bb-secondary text-bb-primary-strong">
                 <PieChart className="w-5 h-5" />
               </div>
               <div>
@@ -541,7 +541,7 @@ export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSim
                 </p>
               </div>
             </div>
-            <span className="text-xs font-extrabold px-2.5 py-1 rounded bg-[#FFCC00] text-[#002D72]">
+            <span className="text-xs font-extrabold px-2.5 py-1 rounded bg-bb-secondary text-bb-primary-strong">
               NT_2026-021
             </span>
           </div>
@@ -552,7 +552,7 @@ export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSim
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-bold text-slate-800">{item.item}</span>
                   <div className="flex items-center gap-2">
-                    <span className="font-extrabold text-[#002D72]">
+                    <span className="font-extrabold text-bb-primary-strong">
                       R$ {item.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                     <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 w-14 text-right">
@@ -562,7 +562,7 @@ export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSim
                 </div>
                 <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-[#002D72] to-blue-500"
+                    className="h-full rounded-full bg-gradient-to-r from-bb-primary-strong to-blue-500"
                     style={{ width: `${item.participacao_pct}%` }}
                   />
                 </div>
@@ -572,19 +572,19 @@ export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSim
             <div className="pt-3 border-t border-slate-200 grid grid-cols-3 gap-3 text-center">
               <div className="p-2.5 rounded-xl bg-blue-50/70 border border-blue-200/60">
                 <div className="text-[10px] font-bold uppercase text-slate-500">Histórico 2026</div>
-                <div className="text-sm font-black text-[#002D72]">118 ideias</div>
+                <div className="text-sm font-black text-bb-primary-strong">118 ideias</div>
                 <div className="text-[10px] text-slate-600">21 protótipos (17,8%)</div>
               </div>
               <div className="p-2.5 rounded-xl bg-blue-50/70 border border-blue-200/60">
                 <div className="text-[10px] font-bold uppercase text-slate-500">Votação 2027</div>
-                <div className="text-sm font-black text-[#002D72]">Top 20 ideias</div>
+                <div className="text-sm font-black text-bb-primary-strong">Top 20 ideias</div>
                 <div className="text-[10px] text-slate-600">Máx. 6 por Arena</div>
               </div>
               <div className="p-2.5 rounded-xl bg-blue-50/70 border border-blue-200/60">
                 <div className="text-[10px] font-bold uppercase text-slate-500">
                   Liberação Horas
                 </div>
-                <div className="text-sm font-black text-[#002D72]">Até 4h / sem</div>
+                <div className="text-sm font-black text-bb-primary-strong">Até 4h / sem</div>
                 <div className="text-[10px] text-slate-600">Protótipo (TRL 4) e MVP</div>
               </div>
             </div>
@@ -594,9 +594,9 @@ export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSim
         {/* Trava de Incentivo Fiscal (31/03) & Calendário Fixo (PX_1130-001) */}
         <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
           <div>
-            <div className="bg-gradient-to-r from-amber-500 to-[#FFCC00] text-slate-950 px-5 py-4 flex items-center justify-between">
+            <div className="bg-gradient-to-r from-amber-500 to-bb-secondary text-slate-950 px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-[#002D72] text-[#FFCC00]">
+                <div className="p-2 rounded-lg bg-bb-primary-strong text-bb-secondary">
                   <Lock className="w-5 h-5" />
                 </div>
                 <div>
@@ -625,7 +625,9 @@ export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSim
                     <div className="flex items-center justify-between mb-1">
                       <span
                         className={`text-xs font-extrabold px-2 py-0.5 rounded ${
-                          isCritico ? 'bg-amber-500 text-slate-950' : 'bg-[#002D72] text-white'
+                          isCritico
+                            ? 'bg-amber-500 text-slate-950'
+                            : 'bg-bb-primary-strong text-white'
                         }`}
                       >
                         {marco.data_fixa}
@@ -646,7 +648,7 @@ export default function InovacaoSimulators({ regras, alcadasNg012 }: InovacaoSim
           </div>
 
           <div className="p-4 bg-slate-900 text-white text-xs">
-            <div className="font-bold text-[#FFCC00] mb-1">
+            <div className="font-bold text-bb-secondary mb-1">
               Funil Permanente de 5 Etapas (PX_1130-001 / NG_1130):
             </div>
             <div className="grid grid-cols-5 gap-1.5 text-[10px] text-slate-300">
