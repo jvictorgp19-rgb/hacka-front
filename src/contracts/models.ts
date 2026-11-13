@@ -119,6 +119,15 @@ export const uploadSchema = z.object({
   size: z.number(),
   status: z.enum(['waiting', 'processing', 'ready', 'failed', 'not_extracted']),
   message: z.string(),
+  createdAt: z.string().optional(),
+  saved: z.boolean().optional(),
+  fileAvailable: z.boolean().optional(),
+  canApprove: z.boolean().optional(),
+  aprovacao: z.enum(['pendente', 'aprovado', 'recusado', 'dispensado']).nullable().optional(),
+  aprovadores: z.string().nullable().optional(),
+  decidedBy: z.string().nullable().optional(),
+  decidedAt: z.string().nullable().optional(),
+  response: z.string().nullable().optional(),
 });
 export const identitySchema = z.object({
   id: z.string(),

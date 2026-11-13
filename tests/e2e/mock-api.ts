@@ -4,6 +4,7 @@ import {
   type AccessRequest,
   type AnalysisContext,
   type Answer,
+  type UploadItem,
 } from '../../src/contracts/models';
 import { facts } from '../fixtures/facts';
 
@@ -105,6 +106,7 @@ export async function contractServer(
   capabilities: string[] = [],
 ) {
   const messages: Answer[] = [];
+  const jobs: UploadItem[] = [];
   const requests: AccessRequest[] = [];
   const records: unknown[] = [];
   const feedback: unknown[] = [];
@@ -114,6 +116,7 @@ export async function contractServer(
     feedbackFails: false,
     slowCompleted: false,
     posts: 0,
+    uploadFails: false,
   };
   await page.route('https://api.test.invalid/**', async (route) => {
     const request = route.request();
@@ -126,7 +129,7 @@ export async function contractServer(
       ).origin,
       'access-control-allow-credentials': 'true',
       'access-control-allow-methods': 'GET, POST, OPTIONS',
-      'access-control-allow-headers': 'content-type',
+      'access-control-allow-headers': 'content-type, x-persona-id',
     };
     const reply = (json: unknown, status = 200) => route.fulfill({ json, status, headers });
     if (request.method() === 'OPTIONS') {
@@ -240,25 +243,64 @@ export async function contractServer(
       return;
     }
     if (url.pathname === '/document-jobs' && request.method() === 'POST') {
-      await reply([
-        {
-          id: 'server-job-1',
-          name: 'novo.pdf',
-          size: 15,
-          status: 'processing',
-          message: 'Processamento iniciado pelo serviço de teste.',
-        },
-      ]);
+      if (state.uploadFails) {
+        await reply({ detail: 'Banco indisponível' }, 503);
+        return;
+      }
+      const item: UploadItem = {
+        id: 'server-job-' + (jobs.length + 1),
+        name: request.postData()?.match(/filename="([^"]+)"/)?.[1] || 'novo.pdf',
+        size: 15,
+        status: 'processing',
+        message: 'Processamento iniciado pelo serviço de teste.',
+        saved: true,
+        fileAvailable: true,
+        canApprove: false,
+        aprovacao: 'pendente',
+        createdAt: new Date().toISOString(),
+      };
+      jobs.push(item);
+      await reply([item]);
       return;
     }
-    if (url.pathname === '/document-jobs/server-job-1') {
-      await reply({
-        id: 'server-job-1',
-        name: 'novo.pdf',
-        size: 15,
-        status: 'ready',
-        message: 'Processamento confirmado pelo serviço de teste.',
-      });
+    if (url.pathname === '/document-jobs' && request.method() === 'GET') {
+      const offset = Number(url.searchParams.get('offset') || 0);
+      await reply(jobs.slice(offset, offset + 100));
+      return;
+    }
+    if (url.pathname.startsWith('/document-jobs/')) {
+      const id = url.pathname.split('/')[2];
+      const item = jobs.find((job) => job.id === id);
+      if (!item) {
+        await reply({}, 404);
+        return;
+      }
+      if (url.pathname.endsWith('/decision')) {
+        Object.assign(item, {
+          aprovacao: 'aprovado',
+          canApprove: false,
+          decidedBy: 'helena',
+          decidedAt: new Date().toISOString(),
+          message: 'Confirmado: documento aprovado.',
+        });
+      } else if (url.pathname.endsWith('/file')) {
+        await route.fulfill({
+          body: '%PDF-1.4\n',
+          headers: {
+            ...headers,
+            'content-type': 'application/octet-stream',
+            'content-disposition': 'attachment',
+          },
+        });
+        return;
+      } else {
+        Object.assign(item, {
+          status: 'ready',
+          canApprove: true,
+          message: 'Processamento confirmado pelo serviço de teste.',
+        });
+      }
+      await reply(item);
       return;
     }
     await reply({ error: 'Endpoint não previsto pelo teste' }, 404);
