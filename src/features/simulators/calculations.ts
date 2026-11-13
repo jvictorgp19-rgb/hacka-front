@@ -37,22 +37,6 @@ export function rentalDiscount(days: number, dailyCents: number, rentCents: numb
   integer(rentCents);
   return Math.min(rentCents, days * dailyCents);
 }
-export function gamification(
-  eligible: boolean,
-  votes: number,
-  immersion: boolean,
-  prototype: boolean,
-  final: boolean,
-) {
-  integer(votes);
-  return (
-    (eligible ? 100 : 0) +
-    Math.min(5, votes) * 10 +
-    (immersion ? 150 : 0) +
-    (prototype ? 300 : 0) +
-    (final ? 200 : 0)
-  );
-}
 export function parseDate(value: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error('Informe uma data válida.');
   const date = new Date(value + 'T12:00:00Z');

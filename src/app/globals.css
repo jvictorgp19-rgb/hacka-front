@@ -330,21 +330,6 @@ textarea {
   color: var(--muted);
   white-space: nowrap;
 }
-.persona-select {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  border-left: 1px solid var(--border);
-  padding-left: 16px;
-}
-.persona-select select {
-  border: 0;
-  padding: 0;
-  max-width: 115px;
-  font-size: 0.75rem;
-  background: transparent;
-  appearance: none;
-}
 .avatar {
   width: 29px;
   height: 29px;
@@ -879,18 +864,6 @@ textarea {
   .mode-badge {
     padding: 3px 5px;
     font-size: 0.57rem;
-  }
-  .persona-select {
-    padding-left: 6px;
-    gap: 4px;
-  }
-  .persona-select select {
-    max-width: 64px;
-    font-size: 0.67rem;
-  }
-  .persona-select svg,
-  .persona-select .avatar {
-    display: none;
   }
   .workspace-main {
     padding: 26px 18px;

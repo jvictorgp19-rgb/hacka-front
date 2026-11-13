@@ -1,5 +1,10 @@
 import type { Page } from '@playwright/test';
-import { contextSchema, type AnalysisContext, type Answer } from '../../src/contracts/models';
+import {
+  contextSchema,
+  type AccessRequest,
+  type AnalysisContext,
+  type Answer,
+} from '../../src/contracts/models';
 import { facts } from '../fixtures/facts';
 
 // API de contrato para os testes de navegador: responde como o hacka-back, com dados fixos.
@@ -49,8 +54,60 @@ function answerFor(query: string, context: AnalysisContext): Answer {
     nextSteps: [],
   };
 }
-export async function contractServer(page: Page, bootstrapStatus = 200) {
+const fact = (id: string) => facts.find((f) => f.id === id)!;
+const deadlines = [
+  {
+    id: 'prazo-ferias',
+    date: '2027-03-21',
+    title: 'Solicitação de férias',
+    detail: 'Pedido com 45 dias de antecedência.',
+    owner: 'GEPEC',
+    priority: 'Alta',
+    fact: fact('ferias-pedido'),
+  },
+  {
+    id: 'prazo-fiscal',
+    date: '2027-03-31',
+    title: 'Consolidação fiscal',
+    detail: 'Consolidação dos dados para a Lei do Bem.',
+    owner: 'GEINOV',
+    priority: 'Normal',
+    fact: fact('inovacao-fiscal'),
+  },
+];
+const simulationRules = {
+  advanceDays: 45,
+  absencePercent: 30,
+  absenceTiers: [
+    { max: 5, days: 30 },
+    { max: 14, days: 24 },
+    { max: 23, days: 18 },
+    { max: 32, days: 12 },
+  ],
+  managerCapCents: 1800000,
+  directorCapCents: 12000000,
+  rentCents: 365000,
+  dailyDiscountCents: 12167,
+  globalCents: 1825000,
+  fineThroughDay: 90,
+  calendar: {
+    from: '2026-01-01',
+    to: '2028-12-31',
+    complete: false,
+    holidays: ['2026-05-01', '2027-05-01', '2028-05-01'],
+    description: 'Calendário do serviço de teste: fins de semana e 1º de maio.',
+  },
+  citations: facts.map((f) => f.citation),
+};
+export async function contractServer(
+  page: Page,
+  bootstrapStatus = 200,
+  capabilities: string[] = [],
+) {
   const messages: Answer[] = [];
+  const requests: AccessRequest[] = [];
+  const records: unknown[] = [];
+  const feedback: unknown[] = [];
   const state = {
     invalid: false,
     slow: false,
@@ -77,7 +134,7 @@ export async function contractServer(page: Page, bootstrapStatus = 200) {
       return;
     }
     if (url.pathname === '/identity') {
-      await reply({ id: 'contract-user', name: 'Usuário de contrato', capabilities: [] });
+      await reply({ id: 'contract-user', name: 'Usuário de contrato', capabilities });
       return;
     }
     if (url.pathname === '/documents') {
@@ -89,7 +146,11 @@ export async function contractServer(page: Page, bootstrapStatus = 200) {
       return;
     }
     if (url.pathname === '/deadlines') {
-      await reply([]);
+      await reply(deadlines);
+      return;
+    }
+    if (url.pathname === '/simulation-rules') {
+      await reply(simulationRules);
       return;
     }
     if (url.pathname === '/audit/findings') {
@@ -119,10 +180,63 @@ export async function contractServer(page: Page, bootstrapStatus = 200) {
       return;
     }
     if (url.pathname === '/feedback') {
-      await reply(
-        request.method() === 'POST' ? request.postDataJSON() : [],
-        request.method() === 'POST' && state.feedbackFails ? 500 : 200,
-      );
+      if (request.method() === 'GET') {
+        await reply(feedback);
+        return;
+      }
+      if (state.feedbackFails) {
+        await reply({ error: 'falha' }, 500);
+        return;
+      }
+      const item = request.postDataJSON();
+      feedback.push(item);
+      await reply(item);
+      return;
+    }
+    if (url.pathname === '/access-requests') {
+      if (request.method() === 'GET') {
+        await reply(requests);
+        return;
+      }
+      const body = request.postDataJSON();
+      const item: AccessRequest = {
+        id: 'REQ-' + String(requests.length + 1).padStart(8, '0'),
+        persona: String(body.persona),
+        owner: String(body.owner),
+        reason: String(body.reason),
+        status: 'pending',
+        response: '',
+        createdAt: new Date().toISOString(),
+      };
+      requests.unshift(item);
+      await reply(item);
+      return;
+    }
+    const decision = /^\/access-requests\/([^/]+)\/decision$/.exec(url.pathname);
+    if (decision && request.method() === 'POST') {
+      const body = request.postDataJSON();
+      const item = requests.find((r) => r.id === decodeURIComponent(decision[1]));
+      if (!item) {
+        await reply({ error: 'Pedido não encontrado' }, 404);
+        return;
+      }
+      Object.assign(item, {
+        status: body.status,
+        response: String(body.response),
+        decidedAt: new Date().toISOString(),
+        decidedBy: 'Usuário de contrato',
+      });
+      await reply(item);
+      return;
+    }
+    if (url.pathname === '/analyses') {
+      if (request.method() === 'POST') {
+        const item = request.postDataJSON();
+        records.unshift(item);
+        await reply(item);
+        return;
+      }
+      await reply(records);
       return;
     }
     if (url.pathname === '/document-jobs' && request.method() === 'POST') {
@@ -145,10 +259,6 @@ export async function contractServer(page: Page, bootstrapStatus = 200) {
         status: 'ready',
         message: 'Processamento confirmado pelo serviço de teste.',
       });
-      return;
-    }
-    if (url.pathname === '/analyses' || url.pathname === '/access-requests') {
-      await reply([]);
       return;
     }
     await reply({ error: 'Endpoint não previsto pelo teste' }, 404);

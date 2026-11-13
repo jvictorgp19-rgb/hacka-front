@@ -144,7 +144,7 @@ export const defaultContext: AnalysisContext = {
   perspective: 'obligations',
   from: '',
   to: '',
-  persona: 'ana',
+  persona: '',
 };
 export class ApiError extends Error {
   constructor(

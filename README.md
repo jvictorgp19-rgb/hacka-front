@@ -78,7 +78,9 @@ NEXT_PUBLIC_API_URL=https://api.test.invalid npm run build
 TEST_STATIC=1 npm run test:e2e
 ```
 
-Antes de apresentar ou publicar, gere o build com a URL real da API.
+Antes de apresentar ou publicar, gere o build com a URL real da API. O
+`scripts/deploy.sh` recusa publicar sem `NEXT_PUBLIC_API_URL` em HTTPS: defina a
+variável no host antes do próximo deploy (antes, o padrão era o modo demo).
 
 ## Estrutura e documentação
 
