@@ -61,6 +61,8 @@ export default function Simulators() {
       </>
     );
   if (!rules) return <p role="status">Carregando regras de simulação…</p>;
+  const allowed = (id: string) => !rules.available || (rules.available as string[]).includes(id);
+  const locked = !allowed(theme);
   let issue = '';
   let entitlement = 0;
   let maxTeam = 0;
@@ -90,9 +92,14 @@ export default function Simulators() {
         );
       if (timeline.some((m) => m.date < rules.calendar.from || m.date > rules.calendar.to))
         throw new Error('Alguns marcos ficam fora do intervalo do calendário informado.');
-    } else if (theme === 'inovacao')
-      approver = approvalIndex(cents, rules.managerCapCents, rules.directorCapCents);
-    else {
+    } else if (theme === 'inovacao') {
+      if (rules.managerCapCents !== undefined && rules.directorCapCents !== undefined)
+        approver = approvalIndex(cents, rules.managerCapCents, rules.directorCapCents);
+    } else if (
+      rules.rentCents !== undefined &&
+      rules.fineThroughDay !== undefined &&
+      rules.dailyDiscountCents !== undefined
+    ) {
       fine = rentalFine(day, rules.rentCents, rules.fineThroughDay);
       discount = rentalDiscount(outage, rules.dailyDiscountCents, rules.rentCents);
     }
@@ -122,15 +129,23 @@ export default function Simulators() {
         {Object.entries(themeLabels).map(([id, label]) => (
           <button key={id} aria-pressed={theme === id} onClick={() => update({ tema: id })}>
             {label}
+            {!allowed(id) && <small> · sem acesso</small>}
           </button>
         ))}
       </div>
-      {issue && (
+      {issue && !locked && (
         <p className="notice" role="alert">
           {issue}
         </p>
       )}
-      {theme === 'ferias' ? (
+      {locked ? (
+        <EmptyState
+          title={`O simulador de ${themeLabels[theme as keyof typeof themeLabels]} não está liberado`}
+        >
+          Seu perfil não vê todas as fontes desta regra, então os valores não são enviados. Peça
+          acesso à área dona do documento ou escolha outro tema.
+        </EmptyState>
+      ) : theme === 'ferias' ? (
         <>
           <div className="card-grid">
             <section className="evidence-card simulator-card">
@@ -329,7 +344,7 @@ export default function Simulators() {
               <div className="result-box">
                 <strong>{money(fine)}</strong>
                 <p>
-                  {day <= rules.fineThroughDay
+                  {day <= (rules.fineThroughDay ?? 0)
                     ? 'Multa de um aluguel.'
                     : 'Isento de multa; permanece o aviso prévio de 30 dias.'}
                 </p>
@@ -355,7 +370,7 @@ export default function Simulators() {
               <div className="result-box">
                 <strong>Desconto: {money(discount)}</strong>
                 <p>
-                  Aluguel líquido: {money(rules.rentCents - discount)}. Usado o valor diário
+                  Aluguel líquido: {money((rules.rentCents ?? 0) - discount)}. Usado o valor diário
                   arredondado da fonte.
                 </p>
               </div>

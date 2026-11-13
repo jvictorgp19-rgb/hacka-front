@@ -106,6 +106,7 @@ export function createDemoGateway(): AppGateway {
       dailyDiscountCents: 12167,
       globalCents: 1825000,
       fineThroughDay: 90,
+      available: ['ferias', 'inovacao', 'locacao'],
       calendar: {
         from: '2026-01-01',
         to: '2028-12-31',
