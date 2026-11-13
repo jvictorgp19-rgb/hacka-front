@@ -59,11 +59,21 @@ export function createHttpGateway(
             ? 'Entre na sua conta para continuar.'
             : response.status === 403
               ? 'Seu perfil não tem acesso a este conteúdo.'
-              : 'O serviço não concluiu a solicitação.',
+              : response.status === 409
+                ? 'Este envio já foi decidido ou está indisponível para revisão.'
+                : response.status === 404
+                  ? 'Arquivo indisponível ou sem autorização para este perfil.'
+                  : response.status === 503
+                    ? 'Não foi possível confirmar os dados no serviço. Tente novamente.'
+                    : 'O serviço não concluiu a solicitação.',
           response.status >= 500 || response.status === 429,
           requestId,
         );
-      if (!schema) return (await response.blob()) as T;
+      if (!schema) {
+        if (/json|text\/html/i.test(response.headers.get('content-type') || ''))
+          throw new ApiError('INVALID_RESPONSE', 'A API não retornou um arquivo válido.');
+        return (await response.blob()) as T;
+      }
       let json: unknown;
       try {
         json = await response.json();

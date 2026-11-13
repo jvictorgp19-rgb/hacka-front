@@ -126,7 +126,7 @@ export const uploadSchema = z.object({
   aprovacao: z.enum(['pendente', 'aprovado', 'recusado', 'dispensado']).nullable().optional(),
   aprovadores: z.string().nullable().optional(),
   decidedBy: z.string().nullable().optional(),
-  decidedAt: z.string().nullable().optional(),
+  decidedAt: z.iso.datetime({ offset: true }).nullable().optional(),
   response: z.string().nullable().optional(),
 });
 export const identitySchema = z.object({

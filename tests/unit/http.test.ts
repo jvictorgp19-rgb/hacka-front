@@ -52,3 +52,25 @@ it('não inicia transporte quando a consulta já foi cancelada', async () => {
   ).rejects.toMatchObject({ code: 'ABORTED' });
   expect(transport).not.toHaveBeenCalled();
 });
+it.each(['demo', 'token'] as const)(
+  'propaga contexto de persona somente se o backend declarou modo demo (%s)',
+  async (modo) => {
+    const headers: Headers[] = [];
+    const gateway = createHttpGateway('https://example.test', async (url, init) => {
+      headers.push(new Headers(init?.headers));
+      return String(url).endsWith('/identity')
+        ? Response.json({ id: 'helena', name: 'Helena', modo, capabilities: [] })
+        : Response.json([]);
+    });
+    await gateway.identity();
+    await gateway.uploads();
+    expect(headers[1].get('x-persona-id')).toBe(modo === 'demo' ? 'helena' : null);
+  },
+);
+it('não baixa JSON de erro respondido como HTTP 200', async () => {
+  await expect(
+    createHttpGateway('https://example.test', async () =>
+      Response.json({ error: 'arquivo indisponível' }),
+    ).downloadUpload('id'),
+  ).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
+});

@@ -1,5 +1,5 @@
 'use client';
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 import { getGateway } from '@/services';
 import type { AppGateway } from '@/services/gateway';
 import {
@@ -36,7 +36,9 @@ interface WorkspaceState {
 }
 const Workspace = createContext<WorkspaceState | null>(null);
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
-  const [uploadJobs, setUploadJobs] = useState<(UploadItem & { remoteId?: string })[]>([]);
+  const [jobsByOwner, setJobsByOwner] = useState<
+    Record<string, (UploadItem & { remoteId?: string })[]>
+  >({});
   const [gateway, setGateway] = useState<AppGateway | null>(null);
   const [documents, setDocuments] = useState<DocumentVersion[]>([]);
   const [facts, setFacts] = useState<Fact[]>([]);
@@ -44,6 +46,20 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [findings, setFindings] = useState<Finding[]>([]);
   const [identity, setIdentity] = useState<Identity | null>(null);
   const [context, setContext] = useState(defaultContext);
+  const uploadOwner =
+    gateway?.mode === 'demo' ? `demo:${context.persona}` : `api:${identity?.id || ''}`;
+  const uploadJobs = jobsByOwner[uploadOwner] || [];
+  const setUploadJobs = useCallback<
+    React.Dispatch<React.SetStateAction<(UploadItem & { remoteId?: string })[]>>
+  >(
+    (value) => {
+      setJobsByOwner((current) => ({
+        ...current,
+        [uploadOwner]: typeof value === 'function' ? value(current[uploadOwner] || []) : value,
+      }));
+    },
+    [uploadOwner],
+  );
   const [source, openSource] = useState<Citation | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

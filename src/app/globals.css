@@ -2449,3 +2449,22 @@ td:nth-child(2) {
 .topbar .detail-dialog {
   color: var(--ink);
 }
+
+/* Integration actions reuse existing tokens and wrap beside long file names. */
+.upload-actions {
+  margin: 0;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+@media (max-width: 760px) {
+  .upload-row {
+    flex-wrap: wrap;
+  }
+  .upload-row > div:not(.upload-actions) {
+    flex: 1;
+    min-width: 160px;
+  }
+  .upload-actions {
+    width: 100%;
+  }
+}

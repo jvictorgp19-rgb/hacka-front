@@ -6,7 +6,9 @@ import { EmptyState, PageHeading } from '@/components/ui/primitives';
 import Dialog from '@/components/ui/Dialog';
 import { useUrlFilters } from '@/lib/url-filters';
 import { validatePdf, fileKey, MAX_FILES } from './validation';
-import type { UploadItem } from '@/contracts/models';
+import { useUploadHistory } from './use-upload-history';
+import { saveUploadBlob } from './download';
+import { ApiError, type UploadItem } from '@/contracts/models';
 const statuses = {
   waiting: 'Aguardando envio',
   processing: 'Processamento informado pela API',
@@ -22,96 +24,29 @@ export default function Documents() {
     openSource,
     uploadJobs: jobs,
     setUploadJobs: setJobs,
+    context,
   } = useWorkspace();
   const { params, update } = useUrlFilters();
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const [historyLoading, setHistoryLoading] = useState(false);
-  const [historyRevision, setHistoryRevision] = useState(0);
+
   const [deciding, setDeciding] = useState<string | null>(null);
+  const decisionLock = useRef(false);
+  const [rejectId, setRejectId] = useState('');
+  const [response, setResponse] = useState('');
   const files = useRef(new Map<string, File>());
   const controller = useRef<AbortController | null>(null);
+  const { historyLoading, refreshHistory, invalidateHistory } = useUploadHistory(
+    gateway,
+    jobs,
+    setJobs,
+    setError,
+  );
+  useEffect(() => () => controller.current?.abort(), []);
   useEffect(() => {
-    if (!gateway || gateway.mode !== 'api') return;
-    const refresh = () => setHistoryRevision((value) => value + 1);
-    window.addEventListener('focus', refresh);
-    return () => window.removeEventListener('focus', refresh);
-  }, [gateway]);
-  useEffect(() => {
-    if (!gateway || gateway.mode !== 'api') return;
-    const abort = new AbortController();
-    async function restore() {
-      const startedAt = Date.now();
-      setHistoryLoading(true);
-      try {
-        const history: UploadItem[] = [];
-        for (let offset = 0; ; offset += 100) {
-          const batch = await gateway!.uploads(offset, abort.signal);
-          history.push(...batch);
-          if (batch.length < 100) break;
-        }
-        if (abort.signal.aborted) return;
-        setJobs((current) => {
-          const byId = new Map(history.map((item) => [item.id, item]));
-          const merged = current.flatMap((item) => {
-            const saved = byId.get(item.remoteId || item.id);
-            if (!saved)
-              return !item.remoteId || (item.createdAt && Date.parse(item.createdAt) >= startedAt)
-                ? [item]
-                : [];
-            byId.delete(saved.id);
-            return [{ ...saved, id: item.id, remoteId: saved.id }];
-          });
-          return [
-            ...merged,
-            ...Array.from(byId.values(), (item) => ({ ...item, remoteId: item.id })),
-          ];
-        });
-        setError('');
-      } catch (e) {
-        if (!abort.signal.aborted)
-          setError(e instanceof Error ? e.message : 'Não foi possível recuperar seus arquivos.');
-      } finally {
-        if (!abort.signal.aborted) setHistoryLoading(false);
-      }
-    }
-    void restore();
-    return () => abort.abort();
-  }, [gateway, setJobs, historyRevision]);
-  useEffect(() => {
-    if (!gateway || gateway.mode !== 'api') return;
-    const pending = jobs.filter(
-      (job) => job.remoteId && ['waiting', 'processing'].includes(job.status),
-    );
-    if (!pending.length) return;
-    const abort = new AbortController();
-    let running = false;
-    const timer = setInterval(async () => {
-      if (running) return;
-      running = true;
-      try {
-        const updates = await Promise.all(
-          pending.map((job) => gateway.uploadStatus(job.remoteId!, abort.signal)),
-        );
-        if (abort.signal.aborted) return;
-        setJobs((current) =>
-          current.map((job) => {
-            const update = updates.find((item) => item.id === job.remoteId);
-            return update ? { ...update, id: job.id, remoteId: update.id } : job;
-          }),
-        );
-      } catch (e) {
-        if (!abort.signal.aborted)
-          setError(e instanceof Error ? e.message : 'Não foi possível atualizar o processamento.');
-      } finally {
-        running = false;
-      }
-    }, 3000);
-    return () => {
-      clearInterval(timer);
-      abort.abort();
-    };
-  }, [gateway, jobs, setJobs]);
+    files.current.clear();
+    controller.current?.abort();
+  }, [gateway, context.persona]);
   const selected = documents.find((doc) => doc.id === params.get('doc'));
   const query = (params.get('q') || '').toLocaleLowerCase('pt-BR');
   const filtered = documents.filter(
@@ -121,8 +56,34 @@ export default function Documents() {
       (!params.get('fase') || String(doc.vigente) === params.get('fase')) &&
       `${doc.codigo} ${doc.titulo} ${doc.resumo}`.toLocaleLowerCase('pt-BR').includes(query),
   );
+  async function decide(id: string, status: 'aprovado' | 'recusado') {
+    const job = jobs.find((item) => item.id === id);
+    if (!gateway || gateway.mode !== 'api' || !job?.canApprove || decisionLock.current) return;
+    decisionLock.current = true;
+    setDeciding(id);
+    try {
+      const result = await gateway.decideUpload(
+        job.remoteId || job.id,
+        status,
+        status === 'recusado' ? response.trim() : '',
+      );
+      setJobs((value) =>
+        value.map((row) => (row.id === id ? { ...result, id, remoteId: result.id } : row)),
+      );
+      invalidateHistory();
+      setError('');
+      setRejectId('');
+      setResponse('');
+    } catch (error) {
+      if (error instanceof ApiError && ['403', '404', '409'].includes(error.code)) refreshHistory();
+      setError(error instanceof Error ? error.message : 'Não foi possível confirmar a decisão.');
+    } finally {
+      decisionLock.current = false;
+      setDeciding(null);
+    }
+  }
   async function submitFile(file: File, key: string) {
-    if (!gateway || gateway.mode !== 'api') return;
+    if (!gateway) return;
     setJobs((list) =>
       list.map((job) =>
         job.id === key ? { ...job, status: 'waiting', message: 'Preparando envio.' } : job,
@@ -312,7 +273,7 @@ export default function Documents() {
               <button
                 className="secondary-button"
                 disabled={historyLoading}
-                onClick={() => setHistoryRevision((value) => value + 1)}
+                onClick={refreshHistory}
               >
                 {historyLoading ? 'Carregando arquivos…' : 'Atualizar arquivos'}
               </button>
@@ -324,8 +285,10 @@ export default function Documents() {
             )}
           </div>
           <p className="muted">
-            Os estados abaixo são informados pelo serviço de processamento. Limite: 10 PDFs por
-            lote, 20 MiB por arquivo.
+            {gateway?.mode === 'demo'
+              ? 'Seleção local: PDFs novos não são lidos nem indexados por esta demonstração.'
+              : 'Os estados abaixo são informados pelo serviço de processamento.'}{' '}
+            Limite: 10 PDFs por lote, 20 MiB por arquivo.
           </p>
           {error && (
             <p role="alert" className="notice">
@@ -338,7 +301,9 @@ export default function Documents() {
               <div>
                 <strong>{job.name}</strong>
                 <span>
-                  {statuses[job.status]} · {(job.size / 1024).toFixed(1)} KiB
+                  {statuses[job.status]}
+                  {job.id === 'fixture-ng111' ? ' (simulado)' : ''} · {(job.size / 1024).toFixed(1)}{' '}
+                  KiB
                 </span>
                 <p>{job.message}</p>
                 {job.saved && (
@@ -366,12 +331,7 @@ export default function Documents() {
                   onClick={async () => {
                     try {
                       const blob = await gateway.downloadUpload(job.remoteId || job.id);
-                      const url = URL.createObjectURL(blob);
-                      const link = document.createElement('a');
-                      link.href = url;
-                      link.download = job.name;
-                      link.click();
-                      setTimeout(() => URL.revokeObjectURL(url), 1000);
+                      saveUploadBlob(blob, job.name);
                     } catch (e) {
                       setError(
                         e instanceof Error ? e.message : 'Não foi possível baixar o arquivo.',
@@ -382,31 +342,26 @@ export default function Documents() {
                   Baixar original
                 </button>
               )}
-              {job.canApprove && gateway && (
-                <button
-                  className="primary-button"
-                  disabled={deciding === job.id}
-                  onClick={async () => {
-                    setDeciding(job.id);
-                    try {
-                      const result = await gateway.decideUpload(job.remoteId || job.id, 'aprovado');
-                      setJobs((current) =>
-                        current.map((row) =>
-                          row.id === job.id ? { ...result, id: job.id, remoteId: result.id } : row,
-                        ),
-                      );
-                      setError('');
-                    } catch (e) {
-                      setError(
-                        e instanceof Error ? e.message : 'Não foi possível confirmar a aprovação.',
-                      );
-                    } finally {
-                      setDeciding(null);
-                    }
-                  }}
-                >
-                  {deciding === job.id ? 'Confirmando…' : 'Aprovar documento'}
-                </button>
+              {job.canApprove && gateway?.mode === 'api' && (
+                <div className="toolbar upload-actions">
+                  <button
+                    className="primary-button"
+                    disabled={deciding !== null}
+                    onClick={() => void decide(job.id, 'aprovado')}
+                  >
+                    {deciding === job.id ? 'Confirmando…' : 'Aprovar documento'}
+                  </button>
+                  <button
+                    className="secondary-button"
+                    disabled={deciding !== null}
+                    onClick={() => {
+                      setRejectId(job.id);
+                      setResponse('');
+                    }}
+                  >
+                    Recusar documento
+                  </button>
+                </div>
               )}
               {job.status === 'processing' && job.remoteId && gateway && (
                 <button
@@ -479,6 +434,38 @@ export default function Documents() {
           ))}
         </div>
       )}
+      <Dialog
+        open={!!rejectId}
+        title="Recusar documento"
+        onClose={() => {
+          if (!deciding) setRejectId('');
+        }}
+      >
+        <form
+          className="access-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (response.trim().length >= 10) void decide(rejectId, 'recusado');
+          }}
+        >
+          <label>
+            Motivo da recusa
+            <textarea
+              required
+              minLength={10}
+              maxLength={1000}
+              value={response}
+              onChange={(event) => setResponse(event.target.value)}
+            />
+          </label>
+          <button
+            className="primary-button"
+            disabled={deciding !== null || response.trim().length < 10}
+          >
+            Confirmar recusa
+          </button>
+        </form>
+      </Dialog>
       <Dialog
         open={!!selected}
         title={selected?.codigo || 'Documento'}
