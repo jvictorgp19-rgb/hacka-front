@@ -1,5 +1,13 @@
 'use client';
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+  type Dispatch,
+  type SetStateAction,
+} from 'react';
 import { getGateway } from '@/services';
 import type { AppGateway } from '@/services/gateway';
 import {
@@ -11,7 +19,9 @@ import {
   type Fact,
   type Finding,
   type Identity,
+  type UploadItem,
 } from '@/contracts/models';
+export type UploadJob = UploadItem & { remoteId?: string };
 
 interface WorkspaceState {
   gateway: AppGateway | null;
@@ -29,6 +39,8 @@ interface WorkspaceState {
   loading: boolean;
   error: string;
   reload: () => void;
+  uploadJobs: UploadJob[];
+  setUploadJobs: Dispatch<SetStateAction<UploadJob[]>>;
 }
 const Workspace = createContext<WorkspaceState | null>(null);
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
@@ -38,6 +50,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [deadlines, setDeadlines] = useState<Deadline[]>([]);
   const [findings, setFindings] = useState<Finding[]>([]);
   const [identity, setIdentity] = useState<Identity | null>(null);
+  const [uploadJobs, setUploadJobs] = useState<UploadJob[]>([]);
   const [context, setContext] = useState(defaultContext);
   const [source, openSource] = useState<Citation | null>(null);
   const [loading, setLoading] = useState(true);
@@ -87,6 +100,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         deadlines,
         findings,
         identity,
+        uploadJobs,
+        setUploadJobs,
         context,
         setContext,
         source,

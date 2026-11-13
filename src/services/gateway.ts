@@ -34,5 +34,8 @@ export interface AppGateway {
   feedback(persona: string, signal?: AbortSignal): Promise<Feedback[]>;
   saveFeedback(item: Feedback): Promise<Feedback>;
   uploadStatus(id: string, signal?: AbortSignal): Promise<UploadItem>;
+  uploads(offset?: number, signal?: AbortSignal): Promise<UploadItem[]>;
+  decideUpload(id: string, status: 'aprovado' | 'recusado'): Promise<UploadItem>;
+  downloadUpload(id: string): Promise<Blob>;
   upload(files: File[], signal?: AbortSignal): Promise<UploadItem[]>;
 }

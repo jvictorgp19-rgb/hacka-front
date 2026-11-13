@@ -39,6 +39,13 @@ A identidade vem de `GET /identity`: o frontend não escolhe persona nem concede
 
 - Conversas com fontes navegáveis, abstenção, comparação de versão e contexto persistido.
 - Acervo por tema/área/fase, versões e seleção individual/em lote de PDFs.
+- Envios salvos são recuperados ao abrir o Acervo, recarregar ou voltar à aba.
+  O histórico usa paginação para carregar todos os arquivos autorizados. A fila também fica
+  no contexto do workspace durante a navegação. Originais têm download autenticado; quem
+  recebe `canApprove` pode aprovar e ver a confirmação com responsável e data.
+  O backend precisa das rotas `GET /document-jobs`, `GET /document-jobs/{id}/file` e
+  `POST /document-jobs/{id}/decision`, além das rotas de envio e consulta existentes.
+  Registros antigos sem original continuam no histórico com essa indicação.
 - Perspectivas de riscos, prazos, obrigações e valores; tabela, barras e timeline com fonte.
 - Simuladores com premissas explícitas, alçadas, faltas, limites e calendário de prévia.
 - Prazos em lista/calendário, usando os mesmos eventos e a referência informada.

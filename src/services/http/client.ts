@@ -20,9 +20,10 @@ export function createHttpGateway(
   transport: typeof fetch = fetch,
   timeoutMs = 15000,
 ): AppGateway {
+  let personaId = '';
   async function request<T>(
     path: string,
-    schema: z.ZodType<T>,
+    schema: z.ZodType<T> | null,
     init: RequestInit = {},
     signal?: AbortSignal,
   ): Promise<T> {
@@ -45,6 +46,7 @@ export function createHttpGateway(
         signal: controller.signal,
         headers: {
           ...(init.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
+          ...(personaId ? { 'X-Persona-Id': personaId } : {}),
           ...init.headers,
         },
       });
@@ -61,6 +63,7 @@ export function createHttpGateway(
           response.status >= 500 || response.status === 429,
           requestId,
         );
+      if (!schema) return (await response.blob()) as T;
       let json: unknown;
       try {
         json = await response.json();
@@ -117,7 +120,11 @@ export function createHttpGateway(
       ),
     deadlines: (signal) => request('/deadlines', z.array(deadlineSchema), {}, signal),
     findings: (signal) => request('/audit/findings', z.array(findingSchema), {}, signal),
-    identity: (signal) => request('/identity', identitySchema, {}, signal),
+    identity: async (signal) => {
+      const identity = await request('/identity', identitySchema, {}, signal);
+      personaId = identity.id;
+      return identity;
+    },
     requests: (persona, signal) =>
       request(
         '/access-requests?persona=' + encodeURIComponent(persona),
@@ -151,6 +158,12 @@ export function createHttpGateway(
     saveFeedback: (item) => post('/feedback', feedbackSchema, item),
     uploadStatus: (id, signal) =>
       request('/document-jobs/' + encodeURIComponent(id), uploadSchema, {}, signal),
+    uploads: (offset = 0, signal) =>
+      request('/document-jobs?limit=100&offset=' + offset, z.array(uploadSchema), {}, signal),
+    decideUpload: (id, status) =>
+      post('/document-jobs/' + encodeURIComponent(id) + '/decision', uploadSchema, { status }),
+    downloadUpload: (id) =>
+      request<Blob>('/document-jobs/' + encodeURIComponent(id) + '/file', null),
     upload: (files, signal) => {
       const body = new FormData();
       files.forEach((file) => body.append('files', file));
