@@ -117,14 +117,17 @@ export default function Documents() {
     try {
       for (const file of Array.from(selection).slice(0, MAX_FILES)) {
         const key = fileKey(file);
-        if (files.current.has(key)) {
+        if (
+          files.current.has(key) ||
+          jobs.some((job) => job.id === key && job.status !== 'failed')
+        ) {
           setError('Um arquivo repetido foi ignorado. Os demais continuam na fila.');
           continue;
         }
         const message = await validatePdf(file);
         files.current.set(key, file);
         setJobs((list) => [
-          ...list,
+          ...list.filter((job) => job.id !== key),
           {
             id: key,
             name: file.name,
