@@ -389,40 +389,63 @@ textarea {
   border-right: 1px solid var(--border);
   background: var(--surface);
 }
+.workspace-brands {
+  margin-bottom: 24px;
+  color: var(--ds-secondary);
+}
+.company-brand {
+  padding: 0 8px 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--ds-chrome-border);
+}
+.bbts-logo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 967 / 84;
+  flex-shrink: 0;
+  background-color: currentColor;
+  mask: url('/brand/bbts-wordmark.png') left center / contain no-repeat;
+}
+.zero-click-symbol {
+  display: inline-block;
+  width: 32px;
+  aspect-ratio: 1;
+  flex-shrink: 0;
+  background-color: currentColor;
+  mask: url('/brand/zero-click-symbol.svg') center / contain no-repeat;
+  vertical-align: middle;
+}
 .brand {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 0 8px 32px;
+  margin: 0 8px;
   font-family: var(--ds-font-title);
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: 0;
   line-height: 1.2;
 }
-/* Símbolo com as cores da marca: amarelo (secundária) + azul (primária) */
-.brand-symbol {
-  width: 40px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-  color: var(--ds-blue-600);
-  background: var(--ds-secondary);
-  border-radius: var(--ds-radius-md);
-  flex-shrink: 0;
-}
 .brand-iq {
-  font-weight: 400;
-  margin-left: 3px;
-  color: var(--ds-text-primary);
+  font-size: 1.25rem;
+  font-weight: 700;
 }
 .brand small {
   display: block;
-  color: var(--muted);
+  color: var(--ds-chrome-text);
   font-size: 0.75rem;
   font-weight: 400;
-  letter-spacing: 0.01em;
-  margin-top: 6px;
+  margin-top: 5px;
+}
+@media (min-width: 761px) {
+  .is-collapsed .company-brand {
+    padding: 0 6px 20px;
+  }
+  .is-collapsed .company-brand .bbts-logo {
+    width: 40px;
+    aspect-ratio: 1;
+    mask-size: auto 100%;
+  }
+  .is-collapsed .brand {
+    margin-inline: 10px;
+  }
 }
 /* CTA principal da navegação: Button secundário uniDS (amarelo da marca) */
 .new-conversation {
@@ -532,9 +555,6 @@ textarea {
 }
 .is-collapsed .nav-label {
   display: none;
-}
-.is-collapsed .brand {
-  margin-left: 2px;
 }
 .is-collapsed .sidebar {
   padding-inline: 12px;
@@ -678,8 +698,32 @@ textarea {
   border-top: 1px solid var(--border);
   background: var(--surface);
 }
-.footer-dot {
-  margin: 0 7px;
+.footer-identity {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  color: var(--ds-blue-500);
+}
+.footer-identity .bbts-logo {
+  width: 174px;
+}
+.footer-product {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 16px;
+  border-left: 1px solid var(--border);
+  font-weight: 600;
+}
+.footer-product .zero-click-symbol {
+  width: 20px;
+}
+.footer-credits {
+  color: var(--muted);
+}
+[data-theme='dark'] .footer-identity {
+  color: var(--ds-yellow-300);
 }
 .page-heading {
   display: flex;
@@ -991,10 +1035,18 @@ svg.lucide {
   width: 56px;
   height: 56px;
   margin-bottom: 24px;
-  border-radius: var(--ds-radius-lg);
-  background: var(--ds-secondary);
-  color: var(--ds-blue-600);
-  border: 0;
+  color: var(--ds-blue-500);
+}
+.intro-mark .zero-click-symbol {
+  width: 56px;
+}
+[data-theme='dark'] .intro-mark,
+[data-theme='dark'] .assistant-label > .zero-click-symbol {
+  color: var(--ds-yellow-300);
+}
+.assistant-label > .zero-click-symbol {
+  width: 20px;
+  color: var(--ds-blue-500);
 }
 /* Title/XX-Large uniDS 38/48 */
 .conversation-intro h1 {
@@ -1299,7 +1351,7 @@ svg.lucide {
   .workspace-footer {
     padding: 14px 18px;
   }
-  .workspace-footer span:last-child {
+  .workspace-footer > span:last-child {
     font-size: 0.75rem;
   }
   .card-grid {
@@ -2305,19 +2357,9 @@ td:nth-child(2) {
 .persona-select select:focus-visible {
   outline-color: var(--ds-secondary);
 }
-/* Marca */
-.sidebar .brand {
-  color: var(--ds-chrome-text);
-  font-size: 1.125rem;
-}
-.brand-divider {
-  margin: 0 6px;
-  font-weight: 400;
-  color: var(--ds-blue-200);
-}
+/* Logos sobre o chrome azul usam a versão amarela em ambos os temas. */
+.sidebar .brand,
 .sidebar .brand-iq {
-  margin-left: 0;
-  font-weight: 700;
   color: var(--ds-secondary);
 }
 .sidebar .brand small,

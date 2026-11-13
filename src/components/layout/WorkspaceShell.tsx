@@ -16,13 +16,13 @@ import {
   Moon,
   PanelLeftClose,
   ShieldCheck,
-  Sprout,
   Sun,
   X,
 } from 'lucide-react';
 import { WorkspaceProvider, useWorkspace } from '@/features/workspace/context';
 import { useConversationHistory } from '@/features/history/use-conversations';
 import DemoGuide from './DemoGuide';
+import { BbtsLogo, ZeroClickSymbol } from '@/components/brand/BrandMarks';
 import { PERSONAS_NOMINAIS } from '@/features/identity/personas';
 const navigation = [
   { href: '/', label: 'Conversas', icon: MessageSquare },
@@ -84,16 +84,24 @@ function Shell({ children }: { children: ReactNode }) {
         className={`sidebar ${mobileOpen ? 'mobile-open' : ''}`}
         aria-label="Navegação principal"
       >
-        <Link href="/" className="brand" aria-label="BBTS Zero Click, início">
-          <span className="brand-symbol">
-            <Sprout size={22} />
-          </span>
-          <span className="nav-label">
-            BBTS<span className="brand-divider">|</span>
-            <span className="brand-iq">Zero Click</span>
-            <small>Inteligência empresarial</small>
-          </span>
-        </Link>
+        <div className="workspace-brands">
+          <div className="company-brand" title="BBTS — BB Tecnologia e Serviços">
+            <BbtsLogo />
+          </div>
+          <Link
+            href="/"
+            className="brand"
+            aria-label="Zero Click, início"
+            title="Zero Click — Inteligência empresarial"
+            onClick={() => setMobileOpen(false)}
+          >
+            <ZeroClickSymbol />
+            <span className="nav-label">
+              <span className="brand-iq">Zero Click</span>
+              <small>Inteligência empresarial</small>
+            </span>
+          </Link>
+        </div>
         <button
           className="new-conversation nav-label"
           onClick={() => {
@@ -244,10 +252,13 @@ function Shell({ children }: { children: ReactNode }) {
           )}
         </main>
         <footer className="workspace-footer">
-          <span>
-            BBTS | Zero Click <span className="footer-dot">·</span> Desafio 2 / Ctrl + Alt +
-            Business
-          </span>
+          <div className="footer-identity">
+            <BbtsLogo />
+            <span className="footer-product">
+              <ZeroClickSymbol /> Zero Click
+            </span>
+            <span className="footer-credits">Desafio 2 / Ctrl + Alt + Business</span>
+          </div>
           <span>Em caso de divergência, prevalece o documento oficial.</span>
         </footer>
       </div>
