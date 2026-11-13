@@ -1,6 +1,7 @@
-# Contrato de integração proposto — v0.1
+# Contrato de integração — v0.2
 
-Status: proposta do frontend; precisa ser alinhada com o repositório FastAPI.
+Status: contratos conferidos com FastAPI e777c4f; integração real de envios validada
+em SQLite isolado e AUTH_MODE=demo. Autenticação de produção e Neon não validados.
 Fonte executável dos DTOs e validações: `src/contracts/models.ts`.
 Interface consumida pelas telas: `src/services/gateway.ts`.
 
@@ -44,9 +45,11 @@ nem mostrado integralmente. Timeout do cliente: 15 s, cancelável. Cancelar fetc
 interrompe a espera, não garante cancelamento do processamento no backend.
 
 MVP do cliente: até 100 documentos/evidências por resposta, até 10 PDFs de 20 MiB
-por lote. Paginação por cursor deve ser alinhada antes de aumentar o acervo. O cliente oferece
-atualização explícita por GET /document-jobs/:id; não executa polling contínuo. O contrato
-atual de upload retorna estados; o frontend não inventa percentuais de processamento.
+por lote. Catálogo/evidências ainda exigem alinhamento de paginação antes de superar
+esses limites. Histórico de envios usa offset em páginas de 100. Itens pendentes
+são consultados a cada 3 s, sem sobreposição e com backoff até 30 s em falhas; ao
+sair da tela, o polling é cancelado. Há atualização manual. Estados vêm da API;
+o frontend não inventa percentuais de processamento.
 
 Exportação local: texto e impressão. PPTX, envio de e-mail, ingestão de PDFs novos,
 OCR/RAG, auditoria durável e permissões ficam no backend e não estão comprovados.

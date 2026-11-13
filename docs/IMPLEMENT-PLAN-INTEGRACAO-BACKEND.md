@@ -312,12 +312,12 @@ seguem seu processo de revisão; não há deploy AWS implícito.
 
 ## 6. Acompanhamento
 
-- [ ] IB-00 — Bases, backups e referência visual
-- [ ] IB-01 — Contrato com o backend alvo
-- [ ] IB-02 — Merge controlado preservando Dev
-- [ ] IB-03 — Histórico e consistência dos envios
-- [ ] IB-04 — Aprovação e download na UI atual
-- [ ] IB-05 — Testes e integração real
+- [x] IB-00 — Bases, backups e referência visual
+- [x] IB-01 — Contrato com o backend alvo
+- [x] IB-02 — Merge controlado preservando Dev
+- [x] IB-03 — Histórico e consistência dos envios
+- [x] IB-04 — Aprovação e download na UI atual
+- [x] IB-05 — Testes e integração real
 - [ ] IB-06 — Push, PRs e limpeza das branches
 
 Cada commit deve descrever problema, entrega, preservação, validação executada,

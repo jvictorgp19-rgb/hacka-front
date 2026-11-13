@@ -24,7 +24,7 @@ async function contractServer(page: Page, bootstrapStatus = 200) {
       ).origin,
       'access-control-allow-credentials': 'true',
       'access-control-allow-methods': 'GET, POST, OPTIONS',
-      'access-control-allow-headers': 'content-type',
+      'access-control-allow-headers': 'content-type, x-persona-id',
     };
     const reply = (json: unknown, status = 200) => route.fulfill({ json, status, headers });
     if (request.method() === 'OPTIONS') {
@@ -85,6 +85,10 @@ async function contractServer(page: Page, bootstrapStatus = 200) {
         request.method() === 'POST' ? request.postDataJSON() : [],
         request.method() === 'POST' && state.feedbackFails ? 500 : 200,
       );
+      return;
+    }
+    if (url.pathname === '/document-jobs' && request.method() === 'GET') {
+      await reply([]);
       return;
     }
     if (url.pathname === '/document-jobs' && request.method() === 'POST') {

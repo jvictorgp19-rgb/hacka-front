@@ -38,13 +38,17 @@ No modo API, definir `NEXT_PUBLIC_API_URL` antes do build. Variáveis `NEXT_PUBL
 são públicas e incorporadas ao artefato; não coloque segredos nelas. Alterar URL/modo
 em hospedagem estática exige um novo build.
 
-O contrato é **proposto**, ainda sem comprovação com o backend real. A suíte API
-usa respostas controladas para validar a interface, não um backend implementado aqui.
+Envios foram validados contra FastAPI real no SHA `e777c4f`, em ambiente isolado
+com SQLite e AUTH_MODE=demo: upload, histórico, aprovação, download e persistência
+após reinício. A suíte API de CI continua usando respostas controladas. Não há
+backend de produto neste repositório; Neon e autenticação de produção não foram validados.
 
 ## Funcionalidades do frontend
 
 - Conversas com fontes navegáveis, abstenção, comparação de versão e contexto persistido.
 - Acervo por tema/área/fase, versões e seleção individual/em lote de PDFs.
+- Envios recuperados por identidade ao navegar/recarregar; paginação, atualização
+  do processamento, aprovação/recusa autorizadas e download do original pela API.
 - Perspectivas de riscos, prazos, obrigações e valores; tabela, barras e timeline com fonte.
 - Simuladores com premissas explícitas, alçadas, faltas, limites e calendário de prévia.
 - Prazos em lista/calendário, usando os mesmos eventos e a referência informada.
@@ -104,7 +108,7 @@ valida DTOs; `services/http/` consome o backend e `services/demo/` fornece a dem
 Calculadoras puras ficam em `features/simulators/calculations.ts`.
 
 - [Plano e checkpoints](docs/IMPLEMENT-PLAN.md)
-- [Contrato proposto da API](docs/API-CONTRACT.md)
+- [Contrato da API](docs/API-CONTRACT.md)
 - [Integração e pacote AWS](docs/FRONTEND-HANDOFF.md)
 - [Workflow Dev → Homolog → main](docs/WORKFLOW.md)
 - [Registro de preservação](docs/REORGANIZACAO.md)
@@ -117,3 +121,22 @@ O cache persistente do Turbopack está desativado no desenvolvimento para evitar
 reaproveitar artefatos CSS de versões anteriores. Se uma aba ficou aberta durante
 uma atualização, recarregue-a completamente (`Ctrl+Shift+R`). O CI verifica marcas,
 cabeçalho e temas tanto no artefato estático quanto em `next dev`.
+
+### Integração real isolada
+
+O teste opt-in `tests/integration/real-backend.mjs` faz requisições reais e aceita
+somente URLs localhost. Usar cópia de teste do backend e777c4f, banco descartável,
+AUTH_MODE=demo e DEMO_DEFAULT_PERSONA=helena. O PDF de teste é sintético e contém
+código GEINOV para exercitar a revisão de um envio da persona bruno.
+
+Após compilar o frontend em modo API para a URL local e iniciar os dois serviços:
+
+```bash
+RUN_REAL_BACKEND_TESTS=1 REAL_API_URL=http://127.0.0.1:8100 TEST_BASE_URL=http://127.0.0.1:3500 node tests/integration/real-backend.mjs
+# Reiniciar somente o backend de teste, mantendo seu banco:
+RUN_REAL_BACKEND_TESTS=1 REAL_API_URL=http://127.0.0.1:8100 TEST_BASE_URL=http://127.0.0.1:3500 node tests/integration/real-backend.mjs --verify-restart
+```
+
+As origens CORS precisam corresponder ao frontend. A primeira etapa cria registros
+no banco de teste. Resultados e capturas vão para /tmp por padrão. Não usar banco
+compartilhado de equipe nem apresentar esse modo como autenticação corporativa.
