@@ -1,0 +1,269 @@
+[
+  {
+    "id": "locacao-vistoria",
+    "title": "Vistoria do espaço",
+    "text": "Realize a vistoria antes da entrega do coworking.",
+    "tema": "locacao",
+    "area": "GCO",
+    "perspective": "deadlines",
+    "citation": {
+      "id": "locacao-vistoria-source",
+      "documentId": "CTR_2026-012@1.0.0",
+      "codigo": "CTR_2026-012",
+      "titulo": "Contrato de Locação de Espaço",
+      "versao": "1.0.0",
+      "status": "Vigente",
+      "item": "Anexo, item 5",
+      "trecho": "Condições de entrega: espaço pronto em 30/11/2026; vistoria até 25/11/2026.",
+      "page": 3,
+      "url": "/documents/CTR_2026-012@1.0.0/file"
+    },
+    "date": "2026-11-25"
+  },
+  {
+    "id": "inovacao-fiscal",
+    "title": "Consolidação fiscal",
+    "text": "Projetos sem documentação até 31 de março ficam fora do ciclo anual.",
+    "tema": "inovacao",
+    "area": "NIN",
+    "perspective": "deadlines",
+    "citation": {
+      "id": "inovacao-fiscal-source",
+      "documentId": "PX_1130-001@1.0.0",
+      "codigo": "PX_1130-001",
+      "titulo": "Funil de Inovação",
+      "versao": "1.0.0",
+      "status": "Vigente",
+      "item": "8.6.4",
+      "trecho": "Projetos que não tiverem documentação até 31 de março ficam fora do ciclo do ano.",
+      "page": 3,
+      "url": "/documents/PX_1130-001@1.0.0/file"
+    },
+    "date": "2027-03-31"
+  },
+  {
+    "id": "ferias-pedido",
+    "title": "Solicitação de férias",
+    "text": "Solicite com 45 dias corridos de antecedência.",
+    "tema": "ferias",
+    "area": "GGC",
+    "perspective": "deadlines",
+    "citation": {
+      "id": "ferias-pedido-source",
+      "documentId": "NG_111@3.0.0",
+      "codigo": "NG_111",
+      "titulo": "Férias",
+      "versao": "3.0.0",
+      "status": "Vigente",
+      "item": "4.3.1",
+      "trecho": "A solicitação é formal e feita no Portal Raiz (FM_1111-001) com antecedência mínima de 45 dias corridos do início de gozo.",
+      "page": 2,
+      "url": "/documents/NG_111@3.0.0/file"
+    }
+  },
+  {
+    "id": "ferias-equipe",
+    "title": "Limite simultâneo da equipe",
+    "text": "Máximo de 30%, arredondado para baixo; equipes de até 3 têm mínimo de uma pessoa.",
+    "tema": "ferias",
+    "area": "GGC",
+    "perspective": "obligations",
+    "citation": {
+      "id": "ferias-equipe-source",
+      "documentId": "NG_111@3.0.0",
+      "codigo": "NG_111",
+      "titulo": "Férias",
+      "versao": "3.0.0",
+      "status": "Vigente",
+      "item": "4.6.3",
+      "trecho": "No máximo 30% da equipe pode estar de férias ao mesmo tempo, arredondando-se para baixo; em equipes de até 3 empregados, uma pessoa por vez.",
+      "page": 3,
+      "url": "/documents/NG_111@3.0.0/file"
+    }
+  },
+  {
+    "id": "ferias-decisao",
+    "title": "Decisão do gestor",
+    "text": "Pedidos precisam de decisão em até 7 dias corridos após o registro.",
+    "tema": "ferias",
+    "area": "GGC",
+    "perspective": "risks",
+    "citation": {
+      "id": "ferias-decisao-source",
+      "documentId": "NG_111@3.0.0",
+      "codigo": "NG_111",
+      "titulo": "Férias",
+      "versao": "3.0.0",
+      "status": "Vigente",
+      "item": "4.5.2",
+      "trecho": "Decisão do gestor imediato: até 7 dias corridos depois do registro da solicitação.",
+      "page": 3,
+      "url": "/documents/NG_111@3.0.0/file"
+    }
+  },
+  {
+    "id": "inovacao-gerente",
+    "title": "Alçada de prototipagem",
+    "text": "Até R$ 18.000,00, aprova o gerente do NIN.",
+    "tema": "inovacao",
+    "area": "NIN",
+    "perspective": "values",
+    "citation": {
+      "id": "inovacao-gerente-source",
+      "documentId": "NT_2026-021@1.0.0",
+      "codigo": "NT_2026-021",
+      "titulo": "Orçamento, competências e elegibilidade - Ideias em Campo 2027",
+      "versao": "1.0.0",
+      "status": "Vigente",
+      "item": "4.2",
+      "trecho": "Gasto de prototipagem por ideia até R$ 18.000,00: gerente do NIN.",
+      "page": 2,
+      "url": "/documents/NT_2026-021@1.0.0/file"
+    },
+    "valueCents": 1800000
+  },
+  {
+    "id": "inovacao-diretor",
+    "title": "Alçada de diretoria",
+    "text": "De R$ 18.000,01 a R$ 120.000,00, aprova o diretor da DIRTEC.",
+    "tema": "inovacao",
+    "area": "NIN",
+    "perspective": "values",
+    "citation": {
+      "id": "inovacao-diretor-source",
+      "documentId": "NT_2026-021@1.0.0",
+      "codigo": "NT_2026-021",
+      "titulo": "Orçamento, competências e elegibilidade - Ideias em Campo 2027",
+      "versao": "1.0.0",
+      "status": "Vigente",
+      "item": "4.3",
+      "trecho": "Gasto entre R$ 18.000,01 e R$ 120.000,00: diretor da DIRTEC.",
+      "page": 2,
+      "url": "/documents/NT_2026-021@1.0.0/file"
+    },
+    "valueCents": 12000000
+  },
+  {
+    "id": "inovacao-ideias",
+    "title": "Limite de ideias",
+    "text": "Cada proponente pode inscrever até duas ideias por edição.",
+    "tema": "inovacao",
+    "area": "NIN",
+    "perspective": "obligations",
+    "citation": {
+      "id": "inovacao-ideias-source",
+      "documentId": "RG_1100@2.0.0",
+      "codigo": "RG_1100",
+      "titulo": "Regulamento do Programa Ideias em Campo (Edição 2027)",
+      "versao": "2.0.0",
+      "status": "Vigente",
+      "item": "4.1.2",
+      "trecho": "Cada proponente pode inscrever até 2 ideias por edição.",
+      "page": 2,
+      "url": "/documents/RG_1100@2.0.0/file"
+    }
+  },
+  {
+    "id": "inovacao-elegivel",
+    "title": "Elegibilidade",
+    "text": "É necessário ter pelo menos 6 meses de casa na abertura das inscrições.",
+    "tema": "inovacao",
+    "area": "NIN",
+    "perspective": "obligations",
+    "citation": {
+      "id": "inovacao-elegivel-source",
+      "documentId": "RG_1100@2.0.0",
+      "codigo": "RG_1100",
+      "titulo": "Regulamento do Programa Ideias em Campo (Edição 2027)",
+      "versao": "2.0.0",
+      "status": "Vigente",
+      "item": "4.1.1",
+      "trecho": "Podem participar empregados com, no mínimo, 6 meses de casa na data de abertura das inscrições.",
+      "page": 2,
+      "url": "/documents/RG_1100@2.0.0/file"
+    }
+  },
+  {
+    "id": "inovacao-rateio",
+    "title": "Rateio não definido",
+    "text": "O regulamento não define a divisão do prêmio entre integrantes. Consulte o NIN.",
+    "tema": "inovacao",
+    "area": "NIN",
+    "perspective": "risks",
+    "citation": {
+      "id": "inovacao-rateio-source",
+      "documentId": "RG_1100@2.0.0",
+      "codigo": "RG_1100",
+      "titulo": "Regulamento do Programa Ideias em Campo (Edição 2027)",
+      "versao": "2.0.0",
+      "status": "Vigente",
+      "item": "FAQ — prêmio em equipe",
+      "trecho": "Quem recebe o prêmio em dinheiro de uma ideia de equipe? O regulamento fixa os valores por ideia e por colocação. Ele não trata da divisão entre integrantes.",
+      "page": 9,
+      "url": "/documents/RG_1100@2.0.0/file"
+    }
+  },
+  {
+    "id": "locacao-prorroga",
+    "title": "Prorrogação do coworking",
+    "text": "Formalize o pedido até 30/03/2027, 30 dias antes do término contratual.",
+    "tema": "locacao",
+    "area": "GCO",
+    "perspective": "deadlines",
+    "citation": {
+      "id": "locacao-prorroga-source",
+      "documentId": "CTR_2026-012@1.0.0",
+      "codigo": "CTR_2026-012",
+      "titulo": "Contrato de Locação de Espaço",
+      "versao": "1.0.0",
+      "status": "Vigente",
+      "item": "Cláusula terceira",
+      "trecho": "O pedido de prorrogação é feito pela LOCATÁRIA até 30 dias corridos antes do fim da vigência.",
+      "page": 1,
+      "url": "/documents/CTR_2026-012@1.0.0/file"
+    },
+    "date": "2027-03-30"
+  },
+  {
+    "id": "locacao-multa",
+    "title": "Isenção de multa",
+    "text": "A partir do 91º dia de vigência não há multa de rescisão; permanece o aviso prévio.",
+    "tema": "locacao",
+    "area": "GCO",
+    "perspective": "values",
+    "citation": {
+      "id": "locacao-multa-source",
+      "documentId": "CTR_2026-012@1.0.0",
+      "codigo": "CTR_2026-012",
+      "titulo": "Contrato de Locação de Espaço",
+      "versao": "1.0.0",
+      "status": "Vigente",
+      "item": "Cláusula décima terceira",
+      "trecho": "Se a rescisão ocorrer até o 90º dia de vigência, aplica-se multa equivalente a um aluguel mensal; a partir do 91º dia, não há multa.",
+      "page": 2,
+      "url": "/documents/CTR_2026-012@1.0.0/file"
+    },
+    "date": "2027-02-28",
+    "valueCents": 0
+  },
+  {
+    "id": "ferias-pagamento",
+    "title": "Antecipação do pagamento",
+    "text": "Pagamento até D-3, antecipado para o dia útil anterior em fim de semana ou feriado.",
+    "tema": "ferias",
+    "area": "GGC",
+    "perspective": "deadlines",
+    "citation": {
+      "id": "ferias-pagamento-source",
+      "documentId": "NG_111@3.0.0",
+      "codigo": "NG_111",
+      "titulo": "Férias",
+      "versao": "3.0.0",
+      "status": "Vigente",
+      "item": "4.5.5",
+      "trecho": "Pagamento: até 3 dias corridos antes; se esse dia for sábado, domingo ou feriado, o pagamento é antecipado para o dia útil anterior.",
+      "page": 3,
+      "url": "/documents/NG_111@3.0.0/file"
+    }
+  }
+]

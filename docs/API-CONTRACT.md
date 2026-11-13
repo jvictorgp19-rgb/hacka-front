@@ -57,3 +57,24 @@ Capacidade `curate` controla a apresentação das ações de curadoria no modo A
 A autorização por domínio e a validação da decisão são obrigatórias no backend;
 campos persona/owner não conferem acesso. Decisões podem retornar decidedAt/decidedBy.
 Concessão real com expiração não está implementada; a demo apenas registra o cenário.
+
+## Evolução de envios — backend e777c4f
+
+Verificado em `hacka-back/fix/persistencia-envios-aprovacao`, SHA
+`e777c4fb0deea164ba7cbea226672f24c5acfb38`. Ambiente de integração isolado:
+`http://127.0.0.1:8100`, AUTH_MODE=demo, SQLite temporário. Não é produção/Neon.
+
+- GET `/document-jobs?limit=100&offset=N`: envios autorizados paginados.
+- GET `/document-jobs/:id/file`: original como Blob; 404 se ausente ou não autorizado.
+- POST `/document-jobs/:id/decision`: status aprovado/recusado e response opcional;
+  confirmação com responsável/data. 403 sem permissão; 409 decisão concorrente;
+  503 falha de banco. Não confundir ready com aprovado.
+- DTO acrescenta createdAt, saved, fileAvailable, canApprove, aprovacao, aprovadores,
+  decidedBy, decidedAt e response. Campos de decisão aceitam null.
+- `/identity` pode incluir modo=demo|token. X-Persona-Id só é propagado no modo demo
+  explicitamente retornado pelo serviço; não é autenticação de produção.
+- O modo token requer Bearer no backend. Login/obtenção de token não foi entregue
+  pelo frontend e permanece pendente de integração com o mecanismo de sessão.
+
+Demo independente permanece explícita e não chama essas rotas; aprovações reais e
+original de envio exigem API. O contexto de identidade é reinicializado na recarga.

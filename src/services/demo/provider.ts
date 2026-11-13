@@ -117,6 +117,13 @@ export function createDemoGateway(): AppGateway {
       citations: [...demoFacts.map((f) => f.citation), ...simulationSources],
     }),
     mode: 'demo',
+    uploads: async () => [],
+    decideUpload: async () => {
+      throw new ApiError('UNSUPPORTED', 'Aprovação de arquivo exige a API externa.');
+    },
+    downloadUpload: async () => {
+      throw new ApiError('UNSUPPORTED', 'Original de envio disponível somente na API externa.');
+    },
     documents: async () => demoDocuments,
     facts: async () => demoFacts,
     messages: async (persona) => readDemo().messages.filter((m) => m.context.persona === persona),

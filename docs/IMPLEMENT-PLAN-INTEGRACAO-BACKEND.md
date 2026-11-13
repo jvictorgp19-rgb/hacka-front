@@ -93,13 +93,13 @@ deve constar expressamente no PR, para revisão consciente da equipe.
 
 Rotas verificadas no backend `e777c4f`:
 
-| Operação   | Contrato                                 | Uso no frontend                                             |
-| ---------- | ---------------------------------------- | ----------------------------------------------------------- |
-| Identidade | `GET /identity`                          | Inicializar sujeito e capacidades antes dos dados restritos |
-| Envio      | `POST /document-jobs`, multipart `files` | Usar os IDs e estados devolvidos; não inventar confirmação  |
-| Histórico  | `GET /document-jobs?limit=100&offset=N`  | Recuperar somente envios autorizados, em todas as páginas   |
-| Estado     | `GET /document-jobs/{id}`                | Atualizar itens pendentes                                   |
-| Original   | `GET /document-jobs/{id}/file`           | Baixar Blob com o mesmo contexto de identidade              |
+| Operação   | Contrato                                 | Uso no frontend                                                                        |
+| ---------- | ---------------------------------------- | -------------------------------------------------------------------------------------- |
+| Identidade | `GET /identity`                          | Inicializar sujeito e capacidades antes dos dados restritos                            |
+| Envio      | `POST /document-jobs`, multipart `files` | Usar os IDs e estados devolvidos; não inventar confirmação                             |
+| Histórico  | `GET /document-jobs?limit=100&offset=N`  | Recuperar somente envios autorizados, em todas as páginas                              |
+| Estado     | `GET /document-jobs/{id}`                | Atualizar itens pendentes                                                              |
+| Original   | `GET /document-jobs/{id}/file`           | Baixar Blob com o mesmo contexto de identidade                                         |
 | Decisão    | `POST /document-jobs/{id}/decision`      | `{status: 'aprovado' ou 'recusado', response?: string}`; receber UploadItem atualizado |
 
 `UploadItem`: os cinco campos atuais mais `createdAt`, `saved`, `fileAvailable`,

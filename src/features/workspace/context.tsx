@@ -11,6 +11,7 @@ import {
   type Fact,
   type Finding,
   type Identity,
+  type UploadItem,
 } from '@/contracts/models';
 
 interface WorkspaceState {
@@ -30,9 +31,12 @@ interface WorkspaceState {
   loading: boolean;
   error: string;
   reload: () => void;
+  uploadJobs: (UploadItem & { remoteId?: string })[];
+  setUploadJobs: React.Dispatch<React.SetStateAction<(UploadItem & { remoteId?: string })[]>>;
 }
 const Workspace = createContext<WorkspaceState | null>(null);
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
+  const [uploadJobs, setUploadJobs] = useState<(UploadItem & { remoteId?: string })[]>([]);
   const [gateway, setGateway] = useState<AppGateway | null>(null);
   const [documents, setDocuments] = useState<DocumentVersion[]>([]);
   const [facts, setFacts] = useState<Fact[]>([]);
@@ -128,6 +132,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         deadlines,
         findings,
         identity,
+        uploadJobs,
+        setUploadJobs,
         context,
         setContext,
         source,

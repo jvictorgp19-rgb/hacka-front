@@ -1,5 +1,5 @@
 'use client';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowUpRight, Files, Search, Upload } from 'lucide-react';
 import { useWorkspace, themeLabels } from '@/features/workspace/context';
 import { EmptyState, PageHeading } from '@/components/ui/primitives';
@@ -15,13 +15,103 @@ const statuses = {
   not_extracted: 'Conteúdo ainda não extraído',
 };
 export default function Documents() {
-  const { gateway, documents, facts, openSource } = useWorkspace();
+  const {
+    gateway,
+    documents,
+    facts,
+    openSource,
+    uploadJobs: jobs,
+    setUploadJobs: setJobs,
+  } = useWorkspace();
   const { params, update } = useUrlFilters();
-  const [jobs, setJobs] = useState<(UploadItem & { remoteId?: string })[]>([]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyRevision, setHistoryRevision] = useState(0);
+  const [deciding, setDeciding] = useState<string | null>(null);
   const files = useRef(new Map<string, File>());
   const controller = useRef<AbortController | null>(null);
+  useEffect(() => {
+    if (!gateway || gateway.mode !== 'api') return;
+    const refresh = () => setHistoryRevision((value) => value + 1);
+    window.addEventListener('focus', refresh);
+    return () => window.removeEventListener('focus', refresh);
+  }, [gateway]);
+  useEffect(() => {
+    if (!gateway || gateway.mode !== 'api') return;
+    const abort = new AbortController();
+    async function restore() {
+      const startedAt = Date.now();
+      setHistoryLoading(true);
+      try {
+        const history: UploadItem[] = [];
+        for (let offset = 0; ; offset += 100) {
+          const batch = await gateway!.uploads(offset, abort.signal);
+          history.push(...batch);
+          if (batch.length < 100) break;
+        }
+        if (abort.signal.aborted) return;
+        setJobs((current) => {
+          const byId = new Map(history.map((item) => [item.id, item]));
+          const merged = current.flatMap((item) => {
+            const saved = byId.get(item.remoteId || item.id);
+            if (!saved)
+              return !item.remoteId || (item.createdAt && Date.parse(item.createdAt) >= startedAt)
+                ? [item]
+                : [];
+            byId.delete(saved.id);
+            return [{ ...saved, id: item.id, remoteId: saved.id }];
+          });
+          return [
+            ...merged,
+            ...Array.from(byId.values(), (item) => ({ ...item, remoteId: item.id })),
+          ];
+        });
+        setError('');
+      } catch (e) {
+        if (!abort.signal.aborted)
+          setError(e instanceof Error ? e.message : 'Não foi possível recuperar seus arquivos.');
+      } finally {
+        if (!abort.signal.aborted) setHistoryLoading(false);
+      }
+    }
+    void restore();
+    return () => abort.abort();
+  }, [gateway, setJobs, historyRevision]);
+  useEffect(() => {
+    if (!gateway || gateway.mode !== 'api') return;
+    const pending = jobs.filter(
+      (job) => job.remoteId && ['waiting', 'processing'].includes(job.status),
+    );
+    if (!pending.length) return;
+    const abort = new AbortController();
+    let running = false;
+    const timer = setInterval(async () => {
+      if (running) return;
+      running = true;
+      try {
+        const updates = await Promise.all(
+          pending.map((job) => gateway.uploadStatus(job.remoteId!, abort.signal)),
+        );
+        if (abort.signal.aborted) return;
+        setJobs((current) =>
+          current.map((job) => {
+            const update = updates.find((item) => item.id === job.remoteId);
+            return update ? { ...update, id: job.id, remoteId: update.id } : job;
+          }),
+        );
+      } catch (e) {
+        if (!abort.signal.aborted)
+          setError(e instanceof Error ? e.message : 'Não foi possível atualizar o processamento.');
+      } finally {
+        running = false;
+      }
+    }, 3000);
+    return () => {
+      clearInterval(timer);
+      abort.abort();
+    };
+  }, [gateway, jobs, setJobs]);
   const selected = documents.find((doc) => doc.id === params.get('doc'));
   const query = (params.get('q') || '').toLocaleLowerCase('pt-BR');
   const filtered = documents.filter(
@@ -32,7 +122,7 @@ export default function Documents() {
       `${doc.codigo} ${doc.titulo} ${doc.resumo}`.toLocaleLowerCase('pt-BR').includes(query),
   );
   async function submitFile(file: File, key: string) {
-    if (!gateway) return;
+    if (!gateway || gateway.mode !== 'api') return;
     setJobs((list) =>
       list.map((job) =>
         job.id === key ? { ...job, status: 'waiting', message: 'Preparando envio.' } : job,
@@ -155,11 +245,7 @@ export default function Documents() {
         <span>
           <strong>{new Set(documents.map((d) => d.tema)).size}</strong> temas
         </span>
-        <span className="muted">
-          {gateway?.mode === 'demo'
-            ? 'Acervo sintético de demonstração'
-            : 'Catálogo fornecido pela API'}
-        </span>
+        <span className="muted">Catálogo fornecido pela API</span>
       </div>
       <div className="toolbar">
         <label className="search-field">
@@ -218,10 +304,19 @@ export default function Documents() {
           </button>
         </div>
       )}
-      {(jobs.length > 0 || error) && (
+      {(jobs.length > 0 || error || gateway?.mode === 'api') && (
         <section className="upload-queue" aria-label="Fila de arquivos">
           <div className="section-heading">
             <h2>Seus arquivos</h2>
+            {gateway?.mode === 'api' && (
+              <button
+                className="secondary-button"
+                disabled={historyLoading}
+                onClick={() => setHistoryRevision((value) => value + 1)}
+              >
+                {historyLoading ? 'Carregando arquivos…' : 'Atualizar arquivos'}
+              </button>
+            )}
             {busy && (
               <button className="secondary-button" onClick={() => controller.current?.abort()}>
                 Cancelar espera
@@ -229,10 +324,8 @@ export default function Documents() {
             )}
           </div>
           <p className="muted">
-            {gateway?.mode === 'demo'
-              ? 'Seleção local: PDFs novos não são lidos nem indexados por esta demonstração.'
-              : 'Os estados abaixo são informados pelo serviço de processamento.'}{' '}
-            Limite: 10 PDFs por lote, 20 MiB por arquivo.
+            Os estados abaixo são informados pelo serviço de processamento. Limite: 10 PDFs por
+            lote, 20 MiB por arquivo.
           </p>
           {error && (
             <p role="alert" className="notice">
@@ -245,13 +338,77 @@ export default function Documents() {
               <div>
                 <strong>{job.name}</strong>
                 <span>
-                  {statuses[job.status]}
-                  {job.id === 'fixture-ng111' ? ' (simulado)' : ''} · {(job.size / 1024).toFixed(1)}{' '}
-                  KiB
+                  {statuses[job.status]} · {(job.size / 1024).toFixed(1)} KiB
                 </span>
                 <p>{job.message}</p>
+                {job.saved && (
+                  <span>
+                    {job.fileAvailable
+                      ? 'Salvo no sistema'
+                      : 'Registro salvo; original indisponível'}
+                  </span>
+                )}
+                {job.aprovacao === 'pendente' && <p>Aguardando aprovação: {job.aprovadores}</p>}
+                {job.aprovacao === 'aprovado' && (
+                  <p role="status">
+                    Confirmado — aprovado por {job.decidedBy}
+                    {job.decidedAt ? ` em ${new Date(job.decidedAt).toLocaleString('pt-BR')}` : ''}.
+                  </p>
+                )}
+                {job.aprovacao === 'dispensado' && (
+                  <p>Confirmado automaticamente — aprovação dispensada.</p>
+                )}
+                {job.aprovacao === 'recusado' && <p>Recusado na revisão.</p>}
               </div>
-              {job.status === 'processing' && job.remoteId && gateway?.mode === 'api' && (
+              {job.fileAvailable && gateway && (
+                <button
+                  className="secondary-button"
+                  onClick={async () => {
+                    try {
+                      const blob = await gateway.downloadUpload(job.remoteId || job.id);
+                      const url = URL.createObjectURL(blob);
+                      const link = document.createElement('a');
+                      link.href = url;
+                      link.download = job.name;
+                      link.click();
+                      setTimeout(() => URL.revokeObjectURL(url), 1000);
+                    } catch (e) {
+                      setError(
+                        e instanceof Error ? e.message : 'Não foi possível baixar o arquivo.',
+                      );
+                    }
+                  }}
+                >
+                  Baixar original
+                </button>
+              )}
+              {job.canApprove && gateway && (
+                <button
+                  className="primary-button"
+                  disabled={deciding === job.id}
+                  onClick={async () => {
+                    setDeciding(job.id);
+                    try {
+                      const result = await gateway.decideUpload(job.remoteId || job.id, 'aprovado');
+                      setJobs((current) =>
+                        current.map((row) =>
+                          row.id === job.id ? { ...result, id: job.id, remoteId: result.id } : row,
+                        ),
+                      );
+                      setError('');
+                    } catch (e) {
+                      setError(
+                        e instanceof Error ? e.message : 'Não foi possível confirmar a aprovação.',
+                      );
+                    } finally {
+                      setDeciding(null);
+                    }
+                  }}
+                >
+                  {deciding === job.id ? 'Confirmando…' : 'Aprovar documento'}
+                </button>
+              )}
+              {job.status === 'processing' && job.remoteId && gateway && (
                 <button
                   className="secondary-button"
                   onClick={async () => {

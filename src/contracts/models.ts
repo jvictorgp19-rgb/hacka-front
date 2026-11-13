@@ -116,14 +116,24 @@ export const feedbackSchema = z.object({
 export const uploadSchema = z.object({
   id: z.string(),
   name: z.string(),
-  size: z.number(),
+  size: z.number().int().nonnegative(),
   status: z.enum(['waiting', 'processing', 'ready', 'failed', 'not_extracted']),
   message: z.string(),
+  createdAt: z.iso.datetime({ offset: true }).optional(),
+  saved: z.boolean().optional(),
+  fileAvailable: z.boolean().optional(),
+  canApprove: z.boolean().optional(),
+  aprovacao: z.enum(['pendente', 'aprovado', 'recusado', 'dispensado']).nullable().optional(),
+  aprovadores: z.string().nullable().optional(),
+  decidedBy: z.string().nullable().optional(),
+  decidedAt: z.string().nullable().optional(),
+  response: z.string().nullable().optional(),
 });
 export const identitySchema = z.object({
   id: z.string(),
   name: z.string(),
   capabilities: z.array(z.string()),
+  modo: z.enum(['demo', 'token']).optional(),
 });
 export type Citation = z.infer<typeof citationSchema>;
 export type DocumentVersion = z.infer<typeof documentSchema>;
