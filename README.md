@@ -109,3 +109,11 @@ Calculadoras puras ficam em `features/simulators/calculations.ts`.
 - [Workflow Dev → Homolog → main](docs/WORKFLOW.md)
 - [Registro de preservação](docs/REORGANIZACAO.md)
 - [Proposta original](docs/PROPOSTA.md) — documento de concepção histórico; nomes de branches e previsões de implementação nela não substituem o estado atual.
+
+### Estilos durante o desenvolvimento
+
+`npm run dev` compila o código atual; `npm start` serve o último `out/` gerado.
+O cache persistente do Turbopack está desativado no desenvolvimento para evitar
+reaproveitar artefatos CSS de versões anteriores. Se uma aba ficou aberta durante
+uma atualização, recarregue-a completamente (`Ctrl+Shift+R`). O CI verifica marcas,
+cabeçalho e temas tanto no artefato estático quanto em `next dev`.
